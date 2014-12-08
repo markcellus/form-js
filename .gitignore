@@ -1,0 +1,12 @@
+.DS_Store
+.settings
+*.diff
+.project
+*.patch
+.idea/
+/node_modules
+/bower_components
+*.log
+dist/build.txt
+external
+_site-docs/

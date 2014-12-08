@@ -1,0 +1,57 @@
+<html>
+<head>
+    <style>
+
+        /* hide the native checkbox, because its not as pretty */
+        .my-checkbox-input {
+            display: none;
+        }
+
+        /* the "un-checked" state of the pretty checkbox */
+        .my-checkbox {
+            width: 10px;
+            height: 10px;
+            background: grey;
+        }
+
+        /* the "checked" state of the pretty checkbox */
+        .my-checkbox-checked {
+            background: pink;
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- our starter checkbox html -->
+<label>The world's simplest checkbox</label>
+<input type="checkbox" class="input-checkbox" value="" name="mycheck" />
+
+<!-- don't forget requirejs -->
+<script src="path/to/require.js"></script>
+
+<script>
+    require(['path/to/checkbox'], function (Checkbox) {
+
+        var checkbox = new Checkbox({
+            el: document.getElementsByClassName('input-checkbox')[0],
+            containerClass: 'my-checkbox',
+            inputClass: 'my-checkbox-input',
+            checkedClass: 'my-checkbox-checked'
+
+        });
+
+        // check it
+        checkbox.check();
+
+        //un-check it
+        checkbox.uncheck();
+
+        // dont forget to destroy when you're done
+        checkbox.destroy();
+
+    })
+</script>
+
+</body>
+</html>

@@ -1,0 +1,55 @@
+<html>
+<head>
+    <style>
+
+        /* the toggle containers */
+        .toggle {
+        }
+
+        /* input field versions of toggles */
+        .toggle-input {
+        }
+
+        /* clicked toggles */
+        .toggle-clicked {
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- our starter html -->
+<label>The world's simplest button toggle (via input radio elements)</label>
+
+<input type="radio" value="MD" name="state" />
+<input type="radio" value="VA" name="state" />
+<input type="radio" value="DC" name="state" />
+
+<!-- don't forget requirejs -->
+<script src="path/to/require.js"></script>
+
+<script>
+    require(['path/to/button-toggle'], function (ButtonToggle) {
+
+        var toggle = new ButtonToggle({
+            inputs: document.getElementsByTagName('input'),
+            containerClass: 'toggle',
+            inputClass: 'toggle-input',
+            selectedClass: 'toggle-clicked'
+        });
+
+        // select second toggle
+        toggle.select(1);
+
+        // select third toggle (will automatically unselect the previous
+        // selected toggle because thats how radio buttons work in the real-world
+        toggle.select(2);
+
+        // don't forget to destroy
+        toggle.destroy();
+
+    })
+</script>
+
+</body>
+</html>

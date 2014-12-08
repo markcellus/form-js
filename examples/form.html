@@ -1,0 +1,44 @@
+<html>
+<body>
+
+<!-- our starter html -->
+<h1>The world's simplest form</h1>
+<form>
+    <input type="checkbox" value="" name="mycheck" />
+
+    <input type="text" value="" name="name" />
+
+    <select>
+        <option value="a" selected>Apples</option>
+        <option value="b">Bananas</option>
+        <option value="c">Curry Chicken</option>
+    </select>
+
+    <label><input type="radio" value="girl" name="gender" /> Woman</label>
+    <label><input type="radio" value="boy" name="gender" /> Guy</label>
+
+</form>
+
+<!-- don't forget requirejs -->
+<script src="path/to/require.js"></script>
+
+<script>
+    require(['path/to/form'], function (Form) {
+
+        var form = new Form({
+            el: document.getElementsByName('form')[0]
+        });
+
+        // disable the form
+        form.disable();
+
+        // re-enable the form
+        form.enable();
+
+        var values = form.getCurrentValues(); // prints a serialized array of the current values in the form
+
+    })
+</script>
+
+</body>
+</html>

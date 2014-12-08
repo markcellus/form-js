@@ -1,0 +1,24 @@
+/* Checkboxes */
+.ui-checkbox-input {
+    left: -10000px;
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    top: auto;
+    width: 1px;
+}
+
+/* Button Toggles */
+.ui-button-toggle-input {
+    left: -10000px;
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    top: auto;
+    width: 1px;
+}
+
+/* Input Fields */
+.ui-input-text-placeholder .ui-input-text-input {
+    color: #a9a9a9;
+}

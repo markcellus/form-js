@@ -1,0 +1,45 @@
+{
+  "name": "formjs",
+  "version": "0.0.1",
+  "homepage": "https://github.com/mkay581/formjs",
+  "authors": [
+    "Mark Kennedy <mkay581@gmail.com>"
+  ],
+  "description": "Create better ui form elements. Supports IE9+, all modern browsers, and mobile.",
+  "main": "dist/form.js",
+  "moduleType": [
+    "amd",
+    "es6",
+    "node"
+  ],
+  "keywords": [
+    "forms",
+    "form",
+    "html",
+    "forms",
+    "css",
+    "ui-forms",
+    "checkboxes",
+    "input",
+    "fields",
+    "html",
+    "utils",
+    "toggles",
+    "buttons"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "element-kit": "~0.1.1",
+    "underscore": "~1.7.0",
+    "sinonjs": "~1.10.2",
+    "qunit": "~1.16.0",
+    "requirejs": "~2.1.15"
+  }
+}

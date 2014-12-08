@@ -1,0 +1,59 @@
+<html>
+<head>
+    <style>
+
+        /* The input field container */
+        .my-field {
+        }
+
+        /* The input field element */
+        .my-field-input {
+        }
+
+        /* when the field is in focus */
+        .my-field-active {
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- our starter html -->
+<label>The world's simplest input field</label>
+<input type="text" value="" name="words" id="my-text" />
+
+<!-- don't forget requirejs -->
+<script src="path/to/require.js"></script>
+
+<script>
+    require(['path/to/input-field'], function (InputField) {
+
+        var field = new InputField({
+            el: document.getElementById('my-text'),
+            containerClass: 'my-field',
+            inputClass: 'my-field-input',
+            activeClass: 'my-field-active'
+        });
+
+        // get the current input value
+        field.getValue();
+
+        // set the input field's value to a new value
+        field.setValue('newValue');
+
+        // disable the input field
+        field.disable();
+
+        // re-enable the input field
+        field.enable();
+
+        // don't forget to destroy the input field when you're done
+        field.destroy();
+
+        // more methods and advanced functionality is available in the documentation
+
+    })
+</script>
+
+</body>
+</html>
