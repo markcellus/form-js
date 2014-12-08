@@ -7,7 +7,8 @@ require.config({
         qunit: 'tests/libs/qunit/qunit-require',
         sinon: 'tests/libs/sinon/sinon',
         'test-utils': 'tests/libs/test-utils',
-        'underscore': 'src/libs/underscore/underscore-min'
+        'underscore': 'bower_components/underscore/underscore-min',
+        'element-kit': 'bower_components/element-kit/dist/element-kit.min'
     },
     shim: {
         sinon: {exports: 'sinon'},

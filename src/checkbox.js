@@ -1,7 +1,7 @@
 define([
     'underscore',
     './form-element',
-    './libs/element-kit/element-kit.min'
+    'element-kit'
 ], function (
     _,
     FormElement
