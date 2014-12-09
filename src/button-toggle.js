@@ -123,7 +123,8 @@ define([
         },
 
         /**
-         * Private delegator that triggers a method on all passed toggle items.
+         * Private delegator that triggers a callback on each of the current button toggle elements.
+         * Useful for performing an operation across all elements
          * @param {Function} callback - The function that should be executed for each input item
          * @private
          */
@@ -151,16 +152,42 @@ define([
             // form version of the toggle causes another click to be triggered on its parent UI-element.
             // we only care about the UI element.
             if (!isFormElement) {
-                // only non-radio elements should toggle when clicked on twice
-                if (!this.isRadio() || this._lastClickedItem !== clickedUIEl) {
-                    if (!clickedFormEl.checked) {
-                        this._onToggleSelect(clickedFormEl, clickedUIEl);
-                    } else {
-                        this._onToggleDeselect(clickedFormEl, clickedUIEl);
-                    }
-                    this.triggerChange(clickedFormEl, clickedUIEl);
-                    this._lastClickedItem = clickedUIEl;
+                if (this.isRadio()) {
+                    this._onRadioToggleClick(clickedFormEl, clickedUIEl);
+                } else {
+                    this._onCheckboxToggleClick(clickedFormEl, clickedUIEl);
                 }
+            }
+        },
+
+        /**
+         * When a button toggle is clicked that is a radio input element.
+         * @param {HTMLInputElement} formElement - The radio button element
+         * @param {HTMLElement} UIElement - The ui element
+         * @private
+         */
+        _onRadioToggleClick: function (formElement, UIElement) {
+            // radio buttons should only trigger a change if the clicked item isnt already selected
+            if (!formElement.checked) {
+                this._triggerAll(function (formElement, UIElement) {
+                    UIElement.kit.classList.remove(this.options.selectedClass);
+                    formElement.checked = false;
+                }.bind(this));
+                this._onToggleSelect(formElement, UIElement);
+            }
+        },
+
+        /**
+         * When a button toggle is clicked that is a checkbox input element.
+         * @param {HTMLInputElement} formElement - The checkbox element
+         * @param {HTMLElement} UIElement - The ui element
+         * @private
+         */
+        _onCheckboxToggleClick: function (formElement, UIElement) {
+            if (!UIElement.kit.classList.contains(this.options.selectedClass)) {
+                this._onToggleSelect(formElement, UIElement);
+            } else {
+                this._onToggleDeselect(formElement, UIElement);
             }
         },
 
@@ -171,12 +198,9 @@ define([
          * @private
          */
         _onToggleSelect: function (formElement, UIElement) {
-            if (this.isRadio()) {
-                this._triggerAll(function (formElement, UIElement) {
-                    UIElement.kit.classList.remove(this.options.selectedClass);
-                }.bind(this));
-            }
+            formElement.checked = true;
             UIElement.kit.classList.add(this.options.selectedClass);
+            this._triggerChange(formElement, UIElement);
         },
 
         /**
@@ -186,7 +210,9 @@ define([
          * @private
          */
         _onToggleDeselect: function (formElement, UIElement) {
+            formElement.checked = false;
             UIElement.kit.classList.remove(this.options.selectedClass);
+            this._triggerChange(formElement, UIElement);
         },
 
         /**
@@ -228,8 +254,9 @@ define([
          * Triggers a change on the button toggle.
          * @param {HTMLInputElement} formElement - The input element
          * @param {HTMLElement} UIElement - The ui element
+         * @private
          */
-        triggerChange: function (formElement, UIElement) {
+        _triggerChange: function (formElement, UIElement) {
             if (this.options.onChange) {
                 this.options.onChange(formElement.value, formElement, UIElement);
             }
@@ -245,7 +272,7 @@ define([
             if (!input.checked) {
                 input.checked = true;
                 toggle.kit.classList.add(this.options.selectedClass);
-                this.triggerChange(input, toggle);
+                this._triggerChange(input, toggle);
             }
 
             if (this.isRadio()) {
@@ -284,7 +311,7 @@ define([
             toggle.kit.classList.remove(this.options.selectedClass);
             if (input.checked) {
                 input.checked = false;
-                this.triggerChange(input, toggle);
+                this._triggerChange(input, toggle);
             }
         },
 
