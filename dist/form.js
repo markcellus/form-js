@@ -1,3 +1,8 @@
+/** 
+* FormJS - v0.1.4.
+* https://github.com/mkay581/formjs.git
+* Copyright 2014. Licensed MIT.
+*/
 define(function (
 ) {
     
