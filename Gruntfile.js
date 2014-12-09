@@ -125,6 +125,15 @@ module.exports = function(grunt) {
                     ]
                 }
             }
+        },
+        bump: {
+            options: {
+                files: ['package.json', 'bower.json'],
+                commit: false,
+                createTag: false,
+                push: false,
+                updateConfigs: ['pkg']
+            }
         }
     });
 
@@ -135,13 +144,21 @@ module.exports = function(grunt) {
         }
     });
 
+    grunt.task.registerTask('release', 'A custom release.', function(type) {
+        type = type || 'patch';
+        grunt.task.run([
+            'bump:' + type,
+            'build',
+            "usebanner:all"
+        ]);
+    });
+
     // Default grunt
     grunt.registerTask( "build", [
         "clean",
         "copy:all",
         "requirejs",
         "uglify",
-        "usebanner",
         "test"
     ]);
 
