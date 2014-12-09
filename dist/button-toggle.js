@@ -1,8 +1,3 @@
-/** 
-* FormJS - v0.1.3.
-* https://github.com/mkay581/formjs.git
-* Copyright 2014. Licensed MIT.
-*/
 define([
     'underscore',
     './form-element',
@@ -106,8 +101,14 @@ define([
          * @private
          */
         _setupEvents: function () {
+            var parent;
             this._triggerAll(function (formElement, UIElement) {
-                UIElement.kit.addEventListener('click', '_onToggleClick', this);
+                UIElement.kit.addEventListener('click', '_onUIElementClick', this);
+                // if element has a parent of a label, lets listen to its event
+                parent = UIElement.parentNode;
+                if (parent && parent.tagName.toLowerCase() === 'label') {
+                    parent.kit.addEventListener('click', '_onLabelClick', this);
+                }
             }.bind(this));
         },
 
@@ -143,25 +144,47 @@ define([
         },
 
         /**
-         * When the UI-version of the toggle element is clicked (and in certain cases, the form element also).
-         * @param {Event} e - The event
+         * When a label is clicked
+         * @param e
          * @private
          */
-        _onToggleClick: function (e) {
-            var clickedEl = e.target,
-                isFormElement = clickedEl.tagName.toLowerCase() === 'input',
-                clickedUIEl = isFormElement ? clickedEl.parentNode : clickedEl,
-                clickedFormEl = isFormElement ? clickedEl : clickedUIEl.getElementsByClassName(this.options.inputClass)[0];
+        _onLabelClick: function (e) {
+            var formEl = e.currentTarget.getElementsByClassName(this.options.inputClass)[0],
+                UIElement = e.currentTarget.getElementsByClassName(this.options.containerClass)[0];
+            // this function will fire twice if a click bubbles up from a nested item
+            // within the label we only care about clicks on the actual label itself
+            if (e.target === e.currentTarget) {
+                this._delegateClick(formEl, UIElement);
+            }
+        },
 
-            // sometimes this function will be fired a second time (unnecessarily) because the click on
-            // form version of the toggle causes another click to be triggered on its parent UI-element.
-            // we only care about the UI element.
-            if (!isFormElement) {
-                if (this.isRadio()) {
-                    this._onRadioToggleClick(clickedFormEl, clickedUIEl);
-                } else {
-                    this._onCheckboxToggleClick(clickedFormEl, clickedUIEl);
-                }
+        /**
+         * When the button toggle container element is clicked.
+         * @param {Event} e
+         * @private
+         */
+        _onUIElementClick: function (e) {
+            var clickedEl = e.currentTarget,
+                formEl = clickedEl.getElementsByClassName(this.options.inputClass)[0];
+            // sometimes this function will be fired a second time (unnecessarily) because the input
+            // click causes another click to be triggered on its parent UI-element.
+            // we only care about the UI element at this point.
+            if (e.target === e.currentTarget) {
+                this._delegateClick(formEl, clickedEl);
+            }
+        },
+
+        /**
+         * Delegates a click as a radio button or checkbox.
+         * @param {HTMLInputElement} formElement
+         * @param {HTMLElement} UIElement
+         * @private
+         */
+        _delegateClick: function (formElement, UIElement) {
+            if (this.isRadio()) {
+                this._processRadioClick(formElement, UIElement);
+            } else {
+                this._processCheckboxClick(formElement, UIElement);
             }
         },
 
@@ -171,14 +194,15 @@ define([
          * @param {HTMLElement} UIElement - The ui element
          * @private
          */
-        _onRadioToggleClick: function (formElement, UIElement) {
+        _processRadioClick: function (formElement, UIElement) {
             // radio buttons should only trigger a change if the clicked item isnt already selected
-            if (!formElement.checked) {
+            if (this._lastRadioClicked !== formElement) {
                 this._triggerAll(function (formElement, UIElement) {
                     UIElement.kit.classList.remove(this.options.selectedClass);
                     formElement.checked = false;
                 }.bind(this));
                 this._onToggleSelect(formElement, UIElement);
+                this._lastRadioClicked = formElement;
             }
         },
 
@@ -188,7 +212,7 @@ define([
          * @param {HTMLElement} UIElement - The ui element
          * @private
          */
-        _onCheckboxToggleClick: function (formElement, UIElement) {
+        _processCheckboxClick: function (formElement, UIElement) {
             if (!UIElement.kit.classList.contains(this.options.selectedClass)) {
                 this._onToggleSelect(formElement, UIElement);
             } else {
@@ -374,9 +398,13 @@ define([
          * Destruction of this class.
          */
         destroy: function () {
+            var parent;
             this._triggerAll(function (formElement, UIElement) {
                 UIElement.parentNode.replaceChild(formElement, UIElement);
-                UIElement.kit.removeEventListener('click', '_onToggleClick', this);
+                UIElement.kit.removeEventListener('click', '_onUIElementClick', this);
+                if (parent && parent.tagName.toLowerCase() === 'label') {
+                    parent.kit.addEventListener('click', '_onLabelClick', this);
+                }
             }.bind(this));
             FormElement.prototype.destroy.call(this);
         }

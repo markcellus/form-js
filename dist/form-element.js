@@ -1,8 +1,3 @@
-/** 
-* FormJS - v0.1.3.
-* https://github.com/mkay581/formjs.git
-* Copyright 2014. Licensed MIT.
-*/
 define(['underscore'], function (_) {
     
 

@@ -68,7 +68,7 @@ define([
         QUnit.equal(inputs[2].parentNode, containers[2], 'third input element\'s parent node is back to original');
     });
 
-    QUnit.test('selecting and deselecting checkbox toggles', function() {
+    QUnit.test('checkbox: selecting and deselecting checkbox toggles', function() {
         QUnit.expect(14);
         var fixture = document.getElementById('qunit-fixture');
         var wrapper = TestUtils.createHtmlElement(checkboxHtml);
@@ -107,7 +107,7 @@ define([
         instance.destroy();
     });
 
-    QUnit.test('clicking checkbox toggles', function() {
+    QUnit.test('checkbox: clicking ui container', function() {
         QUnit.expect(12);
         var fixture = document.getElementById('qunit-fixture');
         var wrapper = TestUtils.createHtmlElement(checkboxHtml);
@@ -139,7 +139,40 @@ define([
         instance.destroy();
     });
 
-    QUnit.test('selecting and deselecting radio toggles', function() {
+    QUnit.test('checkboxes: clicking label', function() {
+        QUnit.expect(12);
+        var fixture = document.getElementById('qunit-fixture');
+        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        fixture.appendChild(wrapper);
+        var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
+        var labels = wrapper.getElementsByTagName('label');
+        var onChangeSpy = Sinon.spy();
+        var instance = new ButtonToggle({inputs: inputs, onChange: onChangeSpy});
+        var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
+        // click first label
+        labels[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        QUnit.deepEqual(onChangeSpy.args[0], [inputs[0].value, inputs[0], UIElements[0]], 'clicking on first label fires onChange callback with correct args');
+        QUnit.ok(UIElements[0].classList.contains(selectedClass), 'first label ui element contains active class');
+        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second label ui element does NOT contain active class');
+        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third label ui element does NOT contain active class');
+        // click first label again
+        labels[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        QUnit.deepEqual(onChangeSpy.args[1], [inputs[0].value, inputs[0], UIElements[0]], 'clicking on first label again fires onChange callback again with correct args');
+        QUnit.ok(!UIElements[0].classList.contains(selectedClass), 'first label ui element no longer contains active class');
+        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second label ui element does NOT contain active class');
+        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third label ui element does NOT contain active class');
+        // click second label
+        labels[1].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        QUnit.deepEqual(onChangeSpy.args[2], [inputs[1].value, inputs[1], UIElements[1]], 'clicking on second label fires onChange callback with correct args');
+        QUnit.ok(UIElements[1].classList.contains(selectedClass), 'second label ui element now contains active class');
+        // click third label
+        labels[2].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        QUnit.deepEqual(onChangeSpy.args[3], [inputs[2].value, inputs[2], UIElements[2]], 'clicking on third label fires onChange callback with correct args');
+        QUnit.ok(UIElements[2].classList.contains(selectedClass), 'third label ui element now contains active class');
+        instance.destroy();
+    });
+
+    QUnit.test('radio buttons: selecting and deselecting', function() {
         QUnit.expect(28);
         var fixture = document.getElementById('qunit-fixture');
         var wrapper = TestUtils.createHtmlElement(radioHtml);
@@ -187,7 +220,7 @@ define([
         instance.destroy();
     });
 
-    QUnit.test('clicking radio toggles', function() {
+    QUnit.test('radio buttons: clicking ui containers', function() {
         QUnit.expect(16);
         var fixture = document.getElementById('qunit-fixture');
         var wrapper = TestUtils.createHtmlElement(radioHtml);
@@ -220,6 +253,43 @@ define([
         QUnit.ok(UIElements[2].classList.contains(selectedClass), 'third toggle ui element contains active class');
         QUnit.ok(!UIElements[0].classList.contains(selectedClass), 'first toggle ui element does NOT contain active class');
         QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second toggle ui element does NOT contain active class');
+        instance.destroy();
+    });
+
+    QUnit.test('radio buttons: clicking labels', function() {
+        QUnit.expect(16);
+        var fixture = document.getElementById('qunit-fixture');
+        var wrapper = TestUtils.createHtmlElement(radioHtml);
+        fixture.appendChild(wrapper);
+        var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
+        var labels = wrapper.getElementsByTagName('label');
+        var onChangeSpy = Sinon.spy();
+        var instance = new ButtonToggle({inputs: inputs, onChange: onChangeSpy});
+        var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
+        // click first label
+        labels[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        QUnit.deepEqual(onChangeSpy.args[0], [inputs[0].value, inputs[0], UIElements[0]], 'clicking on first label, fires onChange callback with correct args');
+        QUnit.ok(UIElements[0].classList.contains(selectedClass), 'first label ui element contains active class');
+        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second label ui element does NOT contain active class');
+        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third label ui element does NOT contain active class');
+        // click first label again
+        labels[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        QUnit.equal(onChangeSpy.callCount, 1, 'clicking on first label again, does NOT fire onChange callback');
+        QUnit.ok(UIElements[0].classList.contains(selectedClass), 'first label ui element still contains active class');
+        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second label ui element does NOT contain active class');
+        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third label ui element does NOT contain active class');
+        // click second label
+        labels[1].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        QUnit.deepEqual(onChangeSpy.args[1], [inputs[1].value, inputs[1], UIElements[1]], 'clicking on second label, fires onChange callback with correct args');
+        QUnit.ok(UIElements[1].classList.contains(selectedClass), 'second label ui element contains active class');
+        QUnit.ok(!UIElements[0].classList.contains(selectedClass), 'first label ui element does NOT contain active class');
+        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third label ui element does NOT contain active class');
+        // click third label
+        UIElements[2].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        QUnit.deepEqual(onChangeSpy.args[2], [inputs[2].value, inputs[2], UIElements[2]], 'clicking on third label, fires onChange callback with correct args');
+        QUnit.ok(UIElements[2].classList.contains(selectedClass), 'third label ui element contains active class');
+        QUnit.ok(!UIElements[0].classList.contains(selectedClass), 'first label ui element does NOT contain active class');
+        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second label ui element does NOT contain active class');
         instance.destroy();
     });
 
