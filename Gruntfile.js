@@ -50,12 +50,18 @@ module.exports = function(grunt) {
                     baseUrl: 'src',
                     dir: "dist",
                     removeCombined: true,
-                    optimize: 'uglify',
-                    uglify: {
-                        preserveComments: true,
-                        ASCIIOnly: true,
-                        banner: banner
-                    }
+                    optimize: 'none'
+                }
+            }
+        },
+        uglify: {
+            my_target: {
+                files: {
+                    'dist/button-toggle.min.js': ['dist/button-toggle.js'],
+                    'dist/checkbox.min.js': ['dist/checkbox.js'],
+                    'dist/form.min.js': ['dist/form.js'],
+                    'dist/form-element.min.js': ['dist/form-element.js'],
+                    'dist/input-field.min.js': ['dist/input-field.js']
                 }
             }
         },
@@ -115,11 +121,7 @@ module.exports = function(grunt) {
                 },
                 files: {
                     src: [
-                        'dist/button-toggle.js',
-                        'dist/checkbox.js',
-                        'dist/form.js',
-                        'dist/form-element.js',
-                        'dist/input-field.js'
+                        'dist/**/*'
                     ]
                 }
             }
@@ -138,6 +140,7 @@ module.exports = function(grunt) {
         "clean",
         "copy:all",
         "requirejs",
+        "uglify",
         "usebanner",
         "test"
     ]);

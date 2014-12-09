@@ -1,6 +1,119 @@
 /** 
-* FormJS - v0.1.1.
+* FormJS - v0.1.2.
 * https://github.com/mkay581/formjs.git
 * Copyright 2014. Licensed MIT.
 */
-define([],function(){var e=function(e){this.options=e,this._setupEvents()};return e.prototype={_setupEvents:function(){var e;this.eventEls=this.options.el.elements;for(e=0;e<this.eventEls.length;e++)this.eventEls[e].kit.addEventListener("change","_onValueChange",this)},_onValueChange:function(e){this.options.onValueChange&&this.options.onValueChange(e)},disable:function(){this.setPropertyAll("disabled",!0)},enable:function(){this.setPropertyAll("disabled",!1)},setPropertyAll:function(e,t){var n,r=this.options.el.elements;for(n=0;n<r.length;n++)r[n][e]=t},getCurrentValues:function(){var e=[],t=this.options.el.querySelectorAll("[name]"),n=t.length,r,i,s;for(r=0;r<n;r++)i=t[r],i.name&&(s={name:i.name,value:i.value},e.push(s));return e},destroy:function(){var e;for(e=0;e<this.eventEls.length;e++)this.eventEls[e].kit.removeEventListener("change","_onValueChange",this)}},e});
+define(function (
+) {
+    
+
+    /**
+     * The function that fires when the input value changes
+     * @callback Form~onValueChange
+     * @param {Event} event - The event that fired the change
+     */
+
+    /**
+     * Utility class for form elements.
+     * @class Form
+     * @param {object} options - The options
+     * @param {HTMLInputElement} options.el - The input field element
+     * @param {Form~onValueChange} [options.onValueChange] - A callback function that fires when the input value changes
+     */
+    var Form = function (options) {
+        this.options = options;
+        this._setupEvents();
+    };
+
+    Form.prototype = /** @lends Form */{
+
+        /**
+         * Sets up change events.
+         * @private
+         */
+        _setupEvents: function () {
+            var i;
+            this.eventEls = this.options.el.elements;
+            for (i = 0; i < this.eventEls.length; i++) {
+                this.eventEls[i].kit.addEventListener('change', '_onValueChange', this);
+            }
+        },
+
+        /**
+         * When any form element's value changes.
+         * @param {Event} e
+         * @private
+         */
+        _onValueChange: function (e) {
+            if (this.options.onValueChange) {
+                this.options.onValueChange(e);
+            }
+        },
+
+        /**
+         * Disables all form elements.
+         */
+        disable: function () {
+            this.setPropertyAll('disabled', true);
+        },
+
+        /**
+         * Enables all form elements.
+         */
+        enable: function () {
+            this.setPropertyAll('disabled', false);
+        },
+
+        /**
+         * Sets a property on all form elements.
+         * @param {string} prop - The property to change
+         * @param {*} value - The value to set
+         */
+        setPropertyAll: function (prop, value) {
+            var i,
+                els = this.options.el.elements;
+            for (i = 0; i < els.length; i++) {
+                els[i][prop] = value;
+            }
+        },
+
+        /**
+         * Gets an object that maps all fields to their current name/value pairs.
+         * @returns {Array} Returns an array of objects
+         */
+        getCurrentValues: function () {
+            var map = [],
+                fields = this.options.el.querySelectorAll('[name]'),
+                fieldCount = fields.length,
+                i,
+                field,
+                obj;
+            for (i = 0; i < fieldCount; i++) {
+                field = fields[i];
+                // only add fields with a name attribute
+                if (field.name) {
+                    obj = {
+                        name: field.name,
+                        // fallback to value attribute when .value can't be trusted (i.e. input[type=date])
+                        value: field.value
+                        //value: field.value || field.getAttribute('value')
+                    };
+                    map.push(obj);
+                }
+            }
+            return map;
+        },
+
+        /**
+         * Kills form functionality.
+         */
+        destroy: function () {
+            var i;
+            for (i = 0; i < this.eventEls.length; i++) {
+                this.eventEls[i].kit.removeEventListener('change', '_onValueChange', this);
+            }
+        }
+    };
+
+    return Form;
+});
