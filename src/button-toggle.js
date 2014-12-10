@@ -101,14 +101,8 @@ define([
          * @private
          */
         _setupEvents: function () {
-            var parent;
             this._triggerAll(function (formElement, UIElement) {
-                UIElement.kit.addEventListener('click', '_onUIElementClick', this);
-                // if element has a parent of a label, lets listen to its event
-                parent = UIElement.parentNode;
-                if (parent && parent.tagName.toLowerCase() === 'label') {
-                    parent.kit.addEventListener('click', '_onLabelClick', this);
-                }
+                formElement.kit.addEventListener('click', '_onFormElementClick', this);
             }.bind(this));
         },
 
@@ -144,34 +138,22 @@ define([
         },
 
         /**
-         * When a label is clicked
-         * @param e
-         * @private
-         */
-        _onLabelClick: function (e) {
-            var formEl = e.currentTarget.getElementsByClassName(this.options.inputClass)[0],
-                UIElement = e.currentTarget.getElementsByClassName(this.options.containerClass)[0];
-            // this function will fire twice if a click bubbles up from a nested item
-            // within the label we only care about clicks on the actual label itself
-            if (e.target === e.currentTarget) {
-                this._delegateClick(formEl, UIElement);
-            }
-        },
-
-        /**
-         * When the button toggle container element is clicked.
+         * When the input field is clicked.
          * @param {Event} e
          * @private
          */
-        _onUIElementClick: function (e) {
-            var clickedEl = e.currentTarget,
-                formEl = clickedEl.getElementsByClassName(this.options.inputClass)[0];
-            // sometimes this function will be fired a second time (unnecessarily) because the input
-            // click causes another click to be triggered on its parent UI-element.
-            // we only care about the UI element at this point.
-            if (e.target === e.currentTarget) {
-                this._delegateClick(formEl, clickedEl);
+        _onFormElementClick: function (e) {
+            var formEl = e.currentTarget.getElementsByClassName(this.options.inputClass)[0],
+                UIElement = e.currentTarget.getElementsByClassName(this.options.containerClass)[0];
+
+            // this function will fire multiple times do to events bubbling up
+            // we only care when the event bubbles up to the input field
+            if (e.currentTarget === e.target) {
+                formEl = e.target;
+                UIElement = e.target.parentElement;
+                this._delegateClick(formEl, UIElement);
             }
+
         },
 
         /**
@@ -398,13 +380,9 @@ define([
          * Destruction of this class.
          */
         destroy: function () {
-            var parent;
             this._triggerAll(function (formElement, UIElement) {
                 UIElement.parentNode.replaceChild(formElement, UIElement);
-                UIElement.kit.removeEventListener('click', '_onUIElementClick', this);
-                if (parent && parent.tagName.toLowerCase() === 'label') {
-                    parent.kit.addEventListener('click', '_onLabelClick', this);
-                }
+                formElement.addEventListener('click', '_onFormElementClick', this);
             }.bind(this));
             FormElement.prototype.destroy.call(this);
         }
