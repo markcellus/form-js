@@ -148,8 +148,7 @@ module.exports = function(grunt) {
         type = type || 'patch';
         grunt.task.run([
             'bump:' + type,
-            'build',
-            "usebanner:all"
+            'build'
         ]);
     });
 
@@ -159,6 +158,7 @@ module.exports = function(grunt) {
         "copy:all",
         "requirejs",
         "uglify",
+        "usebanner:all",
         "test"
     ]);
 
