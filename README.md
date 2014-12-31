@@ -21,23 +21,6 @@ Supports IE9+, all modern browsers, and mobile.
 * [ElementKit](https://github.com/mkay581/element-kit) - Fast DOM manipulation for html elements
 * [Underscore](http://underscorejs.org/) - Lightweight javascript goodies
 
-## Installation
-
-
-### NPM Module
-You may install FormJS as a NPM module with the following command:
-
-```shell
-npm install formjs --save-dev
-```
-
-Then, you'll want to inject the files into your project for use. You can do this using [npmcopy](https://github.com/timmywil/grunt-npmcopy).
-
-### Bower
-
-```shell
-bower install formjs
-```
 
 ## Usage
 
