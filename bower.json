@@ -35,7 +35,7 @@
     "test",
     "tests"
   ],
-  "dependencies": {
+  "devDependencies": {
     "element-kit": "~0.1.1",
     "underscore": "~1.7.0",
     "sinonjs": "~1.10.2",

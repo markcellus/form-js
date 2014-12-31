@@ -2,12 +2,12 @@ define([
     'sinon',
     'qunit',
     'test-utils',
-    'src/checkbox'
+    'src/form'
 ], function(
     Sinon,
     QUnit,
     TestUtils,
-    Checkbox
+    Form
 ){
     "use strict";
 
@@ -22,7 +22,7 @@ define([
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
         var input = container.getElementsByClassName('ui-checkbox-input')[0];
-        var checkbox = new Checkbox({el: input});
+        var checkbox = new Form.Checkbox({el: input});
         var checkboxContainer = container.getElementsByClassName('ui-checkbox')[0];
         QUnit.ok(checkboxContainer.childNodes[0].isEqualNode(input), 'ui checkbox container was created with input element as its nested child');
         checkbox.destroy();
@@ -35,7 +35,7 @@ define([
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
         var input = container.getElementsByClassName('ui-checkbox-input')[0];
-        var checkbox = new Checkbox({el: input});
+        var checkbox = new Form.Checkbox({el: input});
         var checkboxContainer = container.getElementsByClassName('ui-checkbox')[0];
         QUnit.ok(!checkboxContainer.kit.classList.contains('ui-checkbox-checked'), 'checkbox does not have active class initially');
         QUnit.ok(!input.checked, 'input\'s checked boolean returns falsy');
@@ -54,7 +54,7 @@ define([
         var fixture = document.getElementById('qunit-fixture').appendChild(container);
         var input = container.getElementsByClassName('ui-checkbox-input')[0];
         input.setAttribute('checked', 'checked'); // make it so that input is checked initially
-        var checkbox = new Checkbox({el: input});
+        var checkbox = new Form.Checkbox({el: input});
         var checkboxContainer = container.getElementsByClassName('ui-checkbox')[0];
         QUnit.equal(input.checked, true, 'input was checked initially');
         QUnit.ok(checkboxContainer.kit.classList.contains('ui-checkbox-checked'), 'checkbox has active class initially because original input was checked initially');
@@ -72,7 +72,7 @@ define([
         var input = container.getElementsByClassName('ui-checkbox-input')[0];
         var onCheckedSpy = Sinon.spy();
         var onUncheckedSpy = Sinon.spy();
-        var checkbox = new Checkbox({el: input, onChecked: onCheckedSpy, onUnchecked: onUncheckedSpy});
+        var checkbox = new Form.Checkbox({el: input, onChecked: onCheckedSpy, onUnchecked: onUncheckedSpy});
         var UICheckbox = container.getElementsByClassName('ui-checkbox')[0];
         checkbox.check();
         QUnit.deepEqual(onCheckedSpy.args[0], ['NY', input, UICheckbox], 'on check(), onChecked callback was fired with correct args');
@@ -89,9 +89,9 @@ define([
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
         var input = container.getElementsByClassName('ui-checkbox-input')[0];
-        var checkSpy = Sinon.spy(Checkbox.prototype, 'check');
-        var uncheckSpy = Sinon.spy(Checkbox.prototype, 'uncheck');
-        var instance = new Checkbox({el: input});
+        var checkSpy = Sinon.spy(Form.Checkbox.prototype, 'check');
+        var uncheckSpy = Sinon.spy(Form.Checkbox.prototype, 'uncheck');
+        var instance = new Form.Checkbox({el: input});
         var checkboxEl = container.getElementsByClassName('ui-checkbox')[0];
         QUnit.equal(checkSpy.callCount, 0, 'check() method was not called initially');
         QUnit.equal(uncheckSpy.callCount, 0, 'uncheck() method was not called initially');
@@ -120,9 +120,9 @@ define([
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
         var input = container.getElementsByClassName('ui-checkbox-input')[0];
-        var checkSpy = Sinon.spy(Checkbox.prototype, 'check');
-        var uncheckSpy = Sinon.spy(Checkbox.prototype, 'uncheck');
-        var instance = new Checkbox({el: input});
+        var checkSpy = Sinon.spy(Form.Checkbox.prototype, 'check');
+        var uncheckSpy = Sinon.spy(Form.Checkbox.prototype, 'uncheck');
+        var instance = new Form.Checkbox({el: input});
         var label = container.getElementsByClassName('checkbox-label')[0];
         QUnit.equal(checkSpy.callCount, 0, 'check() method was not called initially');
         QUnit.equal(uncheckSpy.callCount, 0, 'uncheck() method was not called initially');
@@ -149,9 +149,9 @@ define([
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
         var input = container.getElementsByClassName('ui-checkbox-input')[0];
-        var checkSpy = Sinon.spy(Checkbox.prototype, 'check');
-        var uncheckSpy = Sinon.spy(Checkbox.prototype, 'uncheck');
-        var instance = new Checkbox({el: input});
+        var checkSpy = Sinon.spy(Form.Checkbox.prototype, 'check');
+        var uncheckSpy = Sinon.spy(Form.Checkbox.prototype, 'uncheck');
+        var instance = new Form.Checkbox({el: input});
         var checkboxEl = container.getElementsByClassName('ui-checkbox')[0];
         instance.disable(); //disable
         checkboxEl.dispatchEvent(TestUtils.createEvent('click'));
@@ -174,7 +174,7 @@ define([
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
         var inputEl = container.getElementsByClassName('ui-checkbox-input')[0];
-        var instance = new Checkbox({el: inputEl});
+        var instance = new Form.Checkbox({el: inputEl});
         var checkboxEl = container.getElementsByClassName('ui-checkbox')[0];
         QUnit.ok(!checkboxEl.kit.classList.contains(disabledClass), 'checkbox element does not have active class initially');
         QUnit.ok(!inputEl.disabled, 'input\'s checked boolean returns falsy');
@@ -194,7 +194,7 @@ define([
         var inputEl = container.getElementsByClassName('ui-checkbox-input')[0];
         inputEl.setAttribute('disabled', 'disabled'); // make it so that input is checked initially
         var setAttrSpy = Sinon.spy(inputEl, 'setAttribute');
-        var instance = new Checkbox({el: inputEl});
+        var instance = new Form.Checkbox({el: inputEl});
         var checkboxEl = container.getElementsByClassName('ui-checkbox')[0];
         QUnit.ok(inputEl.disabled, 'input was disabled initially');
         QUnit.ok(checkboxEl.kit.classList.contains(disabledClass), 'checkbox element has disabled class initially because original input was disabled initially');

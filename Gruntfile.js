@@ -9,60 +9,54 @@ module.exports = function(grunt) {
 
     grunt.initConfig({
         pkg: grunt.file.readJSON("package.json"),
-        clean: [
-            'dist',
-            'src/libs/element-kit',
-            'src/libs/require',
-            'src/libs/underscore',
-            'tests/libs/qunit/qunit.css',
-            'tests/libs/qunit/qunit.js',
-            'tests/libs/sinon'
-        ],
+        clean: ['dist'],
         copy: {
             all: {
                 files: [
                     {
                         expand: true,
                         cwd: 'bower_components/sinonjs',
-                        dest: 'tests/libs/sinon',
+                        dest: 'external/sinon',
                         src: ['sinon.js']
                     },
                     {
                         expand: true,
                         cwd: 'bower_components/qunit/qunit',
-                        dest: 'tests/libs/qunit',
+                        dest: 'external/qunit',
                         src: ['qunit.js', 'qunit.css']
                     },
                     {
                         expand: true,
-                        cwd: 'src',
-                        dest: 'dist',
-                        src: [
-                            '**/*'
-                        ]
+                        cwd: 'bower_components/element-kit/dist',
+                        dest: 'external/element-kit',
+                        src: ['element-kit.min.js']
+                    },
+                    {
+                        expand: true,
+                        cwd: 'bower_components/requirejs',
+                        dest: 'external/requirejs',
+                        src: ['require.js']
+                    },
+                    {
+                        expand: true,
+                        cwd: 'bower_components/underscore',
+                        dest: 'external/underscore',
+                        src: ['underscore-min.js']
                     }
                 ]
-            }
-        },
-        requirejs: {
-            compile: {
-                options: {
-                    baseUrl: 'src',
-                    dir: "dist",
-                    removeCombined: true,
-                    optimize: 'none'
-                }
             }
         },
         uglify: {
             my_target: {
                 files: {
-                    'dist/button-toggle.min.js': ['dist/button-toggle.js'],
-                    'dist/checkbox.min.js': ['dist/checkbox.js'],
-                    'dist/form.min.js': ['dist/form.js'],
-                    'dist/form-element.min.js': ['dist/form-element.js'],
-                    'dist/input-field.min.js': ['dist/input-field.js']
+                    'dist/form.min.js': ['dist/form.js']
                 }
+            }
+        },
+        concat: {
+            dist: {
+                src: ['src/form.js', 'external/element-kit/element-kit.min.js', 'external/underscore/underscore-min.js'],
+                dest: 'dist/form.js'
             }
         },
         connect: {
@@ -156,7 +150,7 @@ module.exports = function(grunt) {
     grunt.registerTask( "build", [
         "clean",
         "copy:all",
-        "requirejs",
+        "concat",
         "uglify",
         "usebanner:all",
         "test"

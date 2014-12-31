@@ -2,12 +2,12 @@ define([
     'sinon',
     'qunit',
     'test-utils',
-    'src/input-field'
+    'src/form'
 ], function(
     Sinon,
     QUnit,
     TestUtils,
-    InputField
+    Form
 ){
     "use strict";
 
@@ -27,7 +27,7 @@ define([
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
         var inputEl = container.getElementsByClassName(inputClass)[0];
-        var instance = new InputField({el: inputEl});
+        var instance = new Form.InputField({el: inputEl});
         var uiEl = container.getElementsByClassName(containerClass)[0];
         QUnit.ok(uiEl.childNodes[0].isEqualNode(inputEl), 'ui element was created with input element as its nested child');
         instance.destroy();
@@ -40,7 +40,7 @@ define([
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
         var inputEl = container.getElementsByClassName(inputClass)[0];
-        var instance = new InputField({el: inputEl});
+        var instance = new Form.InputField({el: inputEl});
         var uiEl = container.getElementsByClassName(containerClass)[0];
         QUnit.ok(!uiEl.kit.classList.contains(activeClass), 'input does not have active class initially');
         inputEl.dispatchEvent(TestUtils.createEvent('focus'));
@@ -57,7 +57,7 @@ define([
         fixture.appendChild(container);
         var inputEl = container.getElementsByClassName(inputClass)[0];
         var onChangeSpy = Sinon.spy();
-        var instance = new InputField({el: inputEl, onChange: onChangeSpy});
+        var instance = new Form.InputField({el: inputEl, onChange: onChangeSpy});
         var uiEl = container.getElementsByClassName(containerClass)[0];
         QUnit.equal(inputEl.value, '', 'input value is empty initially');
         QUnit.equal(onChangeSpy.callCount, 0, 'onChange callback was NOT fired yet');
@@ -78,7 +78,7 @@ define([
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
         var inputEl = container.getElementsByClassName(inputClass)[0];
-        var instance = new InputField({el: inputEl});
+        var instance = new Form.InputField({el: inputEl});
         var uiEl = container.getElementsByClassName(containerClass)[0];
         QUnit.equal(inputEl.value, '', 'input value hasnt been set initially');
         QUnit.ok(!uiEl.kit.classList.contains(placeholderClass), 'placeholder class has not been set on ui element');
@@ -98,11 +98,11 @@ define([
         fixture.appendChild(container);
 
         var inputEl = container.getElementsByClassName(inputClass)[0];
-        var isPlaceholderSupportedStub = Sinon.stub(InputField.prototype, 'isPlaceholderSupported').returns(false);
+        var isPlaceholderSupportedStub = Sinon.stub(Form.InputField.prototype, 'isPlaceholderSupported').returns(false);
         var placeholder = 'test placeholder';
-        var getPlaceholderStub = Sinon.stub(InputField.prototype, 'getPlaceholder').returns(placeholder);
+        var getPlaceholderStub = Sinon.stub(Form.InputField.prototype, 'getPlaceholder').returns(placeholder);
         var onChangeSpy = Sinon.spy();
-        var instance = new InputField({el: inputEl, onChange: onChangeSpy});
+        var instance = new Form.InputField({el: inputEl, onChange: onChangeSpy});
         var uiEl = container.getElementsByClassName(containerClass)[0];
 
         QUnit.equal(inputEl.value, placeholder, 'input placeholder has been set initially');
@@ -140,7 +140,7 @@ define([
         var fixture = document.getElementById('qunit-fixture');
         var el = TestUtils.createHtmlElement('<input type="text" value="" name="first_name" />');
         fixture.appendChild(el);
-        var instance = new InputField({el: el});
+        var instance = new Form.InputField({el: el});
         var getAttributeStub = Sinon.stub(el, 'getAttribute').returns(null);
         QUnit.equal(instance.getPlaceholder(), '', 'calling getPlacholder() an on input field in IE that returns "null" returns an empty string');
         getAttributeStub.restore();
@@ -155,7 +155,7 @@ define([
         var input = container.getElementsByClassName(inputClass)[0];
         var origValue = 'testy';
         input.value = origValue; // add custom value before initialization
-        var instance = new InputField({el: input});
+        var instance = new Form.InputField({el: input});
         QUnit.equal(input.value, origValue, 'input has its initial value');
         var testValue2 = 'new testy';
         input.value = testValue2;
@@ -170,7 +170,7 @@ define([
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
         var inputEl = container.getElementsByClassName(inputClass)[0];
-        var instance = new InputField({el: inputEl});
+        var instance = new Form.InputField({el: inputEl});
         var uiEl = container.getElementsByClassName(containerClass)[0];
         QUnit.ok(!uiEl.kit.classList.contains(disabledClass), 'ui element does not have active class initially');
         QUnit.ok(!inputEl.disabled, 'input\'s disabled boolean returns falsy');
@@ -190,7 +190,7 @@ define([
         var inputEl = container.getElementsByClassName(inputClass)[0];
         inputEl.setAttribute('disabled', 'true'); // make it so that input is checked initially
         var setAttrSpy = Sinon.spy(inputEl, 'setAttribute');
-        var instance = new InputField({el: inputEl});
+        var instance = new Form.InputField({el: inputEl});
         var uiEl = container.getElementsByClassName(containerClass)[0];
         QUnit.ok(inputEl.disabled, 'input was disabled initially');
         QUnit.ok(uiEl.kit.classList.contains(disabledClass), 'ui element has disabled class initially because original input was disabled initially');
@@ -209,7 +209,7 @@ define([
         fixture.appendChild(container);
         var inputEl = container.getElementsByClassName(inputClass)[0];
         var onChangeSpy = Sinon.spy();
-        var instance = new InputField({el: inputEl, onKeyDownChange: onChangeSpy});
+        var instance = new Form.InputField({el: inputEl, onKeyDownChange: onChangeSpy});
         var uiEl = container.getElementsByClassName(containerClass)[0];
         var testValue = 'aha';
         inputEl.value = testValue;
