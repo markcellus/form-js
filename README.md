@@ -2,7 +2,7 @@
 
 This library attempts to solve many of the headaches when building and developing forms on the web. It does quite a few things, but most notably:
 
-1. Allows you totally restyle UI form elements which can be difficult to override when using css.
+1. Allows you totally restyle a native browser's form elements, which can be difficult to override when using css.
 2. Provides an API to programmatically manipulate form elements via javascript.
 
 UI Elements include:
