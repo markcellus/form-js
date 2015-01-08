@@ -44,6 +44,16 @@ module.exports = function(grunt) {
                         src: ['underscore-min.js']
                     }
                 ]
+            },
+            src: {
+                files: [
+                    {
+                        expand: true,
+                        cwd: 'src',
+                        dest: 'dist',
+                        src: ['form.js']
+                    }
+                ]
             }
         },
         uglify: {
@@ -51,12 +61,6 @@ module.exports = function(grunt) {
                 files: {
                     'dist/form.min.js': ['dist/form.js']
                 }
-            }
-        },
-        concat: {
-            dist: {
-                src: ['src/form.js', 'external/element-kit/element-kit.min.js', 'external/underscore/underscore-min.js'],
-                dest: 'dist/form.js'
             }
         },
         connect: {
@@ -68,7 +72,6 @@ module.exports = function(grunt) {
             },
             local: {
                 options: {
-                    keepalive: true,
                     options: { livereload: true }
                 }
             }
@@ -128,6 +131,12 @@ module.exports = function(grunt) {
                 push: false,
                 updateConfigs: ['pkg']
             }
+        },
+        watch: {
+            all: {
+                files: ['src/form.js'],
+                tasks: ['build']
+            }
         }
     });
 
@@ -150,14 +159,15 @@ module.exports = function(grunt) {
     grunt.registerTask( "build", [
         "clean",
         "copy:all",
-        "concat",
+        "copy:src",
         "uglify",
         "usebanner:all",
         "test"
     ]);
 
     grunt.registerTask( "server", [
-        "connect:local"
+        "connect:local",
+        "watch"
     ]);
 
     grunt.registerTask( "test", [
