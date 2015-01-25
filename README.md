@@ -10,8 +10,8 @@ UI Elements include:
  * Checkboxes
  * Button Toggles
  * Input Fields
+ * Dropdowns
  * Entire forms
- * and more to come...
 
 Supports IE9+, all modern browsers, and mobile.
 
@@ -19,7 +19,6 @@ Supports IE9+, all modern browsers, and mobile.
 
 * [RequireJS](http://requirejs.org/) - AMD and dependency management
 * [ElementKit](https://github.com/mkay581/element-kit) - Fast DOM manipulation for html elements
-* [Underscore](http://underscorejs.org/) - Lightweight javascript goodies
 
 
 ## Usage
