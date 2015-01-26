@@ -72,7 +72,7 @@ module.exports = function(grunt) {
             },
             local: {
                 options: {
-                    options: { livereload: true }
+                    keepalive: true
                 }
             }
         },
@@ -131,12 +131,6 @@ module.exports = function(grunt) {
                 push: false,
                 updateConfigs: ['pkg']
             }
-        },
-        watch: {
-            all: {
-                files: ['src/form.js'],
-                tasks: ['build']
-            }
         }
     });
 
@@ -166,8 +160,7 @@ module.exports = function(grunt) {
     ]);
 
     grunt.registerTask( "server", [
-        "connect:local",
-        "watch"
+        "connect:local"
     ]);
 
     grunt.registerTask( "test", [

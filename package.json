@@ -1,6 +1,6 @@
 {
   "name": "formjs",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Create better ui form elements. Supports IE9+, all modern browsers, and mobile.",
   "repository": {
     "type": "git",
@@ -14,6 +14,8 @@
     "css",
     "ui-forms",
     "checkboxes",
+    "dropdowns",
+    "select",
     "input",
     "fields",
     "html",
@@ -37,7 +39,6 @@
     "grunt-contrib-qunit": "~0.5.2",
     "grunt-contrib-requirejs": "0.4.4",
     "grunt-contrib-uglify": "^0.6.0",
-    "grunt-contrib-watch": "^0.6.1",
     "grunt-github-pages": "0.0.4",
     "grunt-jsdoc": "0.5.7",
     "load-grunt-tasks": "0.6.0",
