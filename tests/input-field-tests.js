@@ -203,7 +203,7 @@ define([
     });
 
     QUnit.asyncTest('onKeyDownChange event', function() {
-        QUnit.expect(1);
+        QUnit.expect(2);
         var fixture = document.getElementById('qunit-fixture');
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
@@ -220,7 +220,8 @@ define([
         var newTestValue = testValue + '!';
         inputEl.value = newTestValue; // reflect new character change in input field
         setTimeout(function () {
-            QUnit.deepEqual(onChangeSpy.args[0], [newTestValue, inputEl, uiEl, keydownEvent], 'after 2 milliseconds of a new character change in the input field, onKeyDownChange callback was fired with correct args');
+            QUnit.deepEqual(onChangeSpy.args[0], [inputEl, uiEl, keydownEvent], 'after 2 milliseconds of a new character change in the input field, onKeyDownChange callback was fired with correct args');
+            QUnit.equal(instance.getValue(), newTestValue, 'getValue() returns new value');
             instance.destroy();
             QUnit.start();
         },2);
