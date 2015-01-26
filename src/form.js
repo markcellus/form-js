@@ -1443,9 +1443,10 @@
         setValue: function (dataValue) {
             var origOptionEl = this.getOptionByDataValue(this.getValue()),
                 newOptionEl = this.getOptionByDataValue(dataValue),
-                e = document.createEvent('HTMLEvents');
+                e = document.createEvent('HTMLEvents'),
+                formEl = this.getFormElement();
 
-            if (!this.getFormElement().disabled) {
+            if (!formEl.disabled) {
                 e.initEvent('change', false, true);
 
                 // switch selected value because browser doesnt do it for us
@@ -1453,9 +1454,12 @@
                     origOptionEl.removeAttribute('selected');
                 }
                 if (newOptionEl) {
-                    newOptionEl.setAttribute('selected', 'selected'); // this is sufficient because it also updates the value attr
+                    newOptionEl.setAttribute('selected', 'selected');
+                    // in most cases, setting attribute (above) also updates the dropdown's value
+                    // but for some browsers (like phantomjs), we need to manually set it
+                    formEl.value = dataValue;
                     // trigger change event on dropdown
-                    this.options.el.dispatchEvent(e);
+                    formEl.dispatchEvent(e);
                 } else {
                     console.warn('Form Dropdown Error: Cannot call setValue(), dropdown has no option element with a ' +
                     'value attribute of ' + dataValue + '.');
