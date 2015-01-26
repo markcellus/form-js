@@ -866,9 +866,8 @@
      * The function that is triggered when the input field has changed after a key has been pressed down
      * NOTE: This function can fire rapidly as a user types!
      * @callback InputField~onKeyDownChange
-     * @param {string} value - The new value of the input element
-     * @param {HTMLInputElement} input - The input element
-     * @param {HTMLElement} UIElement - The container of the input element
+     * @param {HTMLInputElement} input - The updated input element
+     * @param {HTMLElement} UIElement - The updated container of the input element
      * @param {Event} event - The event
      */
 
@@ -989,7 +988,7 @@
          */
         _triggerKeyDownChange: function (e) {
             if (this.options.onKeyDownChange) {
-                this.options.onKeyDownChange(this.getValue(), this.getFormElement(), this.getUIElement(), e);
+                this.options.onKeyDownChange(this.getFormElement(), this.getUIElement(), e);
             }
         },
 
