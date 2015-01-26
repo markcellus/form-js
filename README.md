@@ -46,11 +46,10 @@ dropdown.getDisplayValue(); => "Washington, DC"
 var inputField = new Form.InputField({
     el: document.getElementsByTagName('input')[0],
     onChange: function (el) {
-        // input value has changed!
+        // user has finished typing into the field!
     },
-    onKeyDownChange: function (newValue) {
+    onKeyDownChange: function (el) {
         // the user has typed a key into the field!
-        console.log(newValue);
     }
 });
 ```
