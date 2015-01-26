@@ -2,13 +2,13 @@
     'use strict';
     // support both AMD and non-AMD
     if (typeof define === 'function' && define.amd) {
-        define(['underscore', 'element-kit'], function (_) {
-            return factory(_);
+        define(['element-kit'], function () {
+            return factory();
         });
     } else {
-        factory(window._);
+        window.Form = factory();
     }
-})((function (_) {
+})((function () {
     'use strict';
 
     function getIEVersion() {
@@ -28,6 +28,35 @@
     }
 
     /**
+     * Merges the contents of two or more objects.
+     * @param {object} obj - The target object
+     * @param {...object} - Additional objects who's properties will be merged in
+     */
+    function extend(target) {
+        var merged = target,
+            source, i;
+        for (i = 1; i < arguments.length; i++) {
+            source = arguments[i];
+            for (var prop in source) {
+                if (source.hasOwnProperty(prop)) {
+                    merged[prop] = source[prop];
+                }
+            }
+        }
+        return merged;
+    }
+
+    /**
+     * Checks if user is on a mobile device.
+     * @returns {boolean}
+     */
+    function isMobile() {
+        // detect orientation, property that only smartphones, tablets and phablets have
+        // if it doesnt exist, we know user is on a desktop
+        return typeof window.orientation !== 'undefined';
+    }
+
+    /**
      * @class FormElement
      * @description An extendable base class that provides common functionality among all form elements.
      * @param {Object} options - Instantiation options
@@ -42,7 +71,9 @@
          * Sets up stuff.
          * @abstract
          */
-        initialize: function (options) {},
+        initialize: function (options) {
+            this.options = options || {};
+        },
 
         /**
          * Gets the form element.
@@ -50,7 +81,7 @@
          * @abstract
          */
         getFormElement: function () {
-            return this.el;
+            return this.options.el;
         },
 
         /**
@@ -270,7 +301,7 @@
         this.initialize(options);
     };
 
-    ButtonToggle.prototype = _.extend({}, FormElement.prototype, /** @lends ButtonToggle.prototype */{
+    ButtonToggle.prototype = extend({}, FormElement.prototype, /** @lends ButtonToggle.prototype */{
 
         /**
          * Initialization.
@@ -278,7 +309,7 @@
          */
         initialize: function (options) {
 
-            this.options = _.extend({
+            this.options = extend({
                 inputs: [],
                 onChange: null,
                 containerClass: 'ui-button-toggle',
@@ -322,7 +353,7 @@
          * @private
          */
         _setupEvents: function () {
-            this._triggerAll(function (formElement, UIElement) {
+            this._triggerAll(function (formElement) {
                 formElement.kit.addEventListener('click', '_onFormElementClick', this);
             }.bind(this));
         },
@@ -610,6 +641,8 @@
 
     });
 
+    Form.ButtonToggle = ButtonToggle;
+
     /**
      * A callback function that fires when the checkbox is checked
      * @callback Checkbox~onChecked
@@ -643,7 +676,7 @@
         this.initialize(options);
     };
 
-    Checkbox.prototype = _.extend({}, FormElement.prototype, /** @lends Checkbox.prototype */{
+    Checkbox.prototype = extend({}, FormElement.prototype, /** @lends Checkbox.prototype */{
 
         /**
          * Initialization.
@@ -651,7 +684,7 @@
          */
         initialize: function (options) {
 
-            this.options = _.extend({
+            this.options = extend({
                 el: null,
                 onChecked: null,
                 onUnchecked: null,
@@ -818,6 +851,8 @@
 
     });
 
+    Form.Checkbox = Checkbox;
+
     /**
      * The function that fires when the input value changes
      * @callback InputField~onChange
@@ -854,7 +889,7 @@
         this.initialize(options);
     };
 
-    InputField.prototype = _.extend({}, FormElement.prototype, /** @lends InputField */{
+    InputField.prototype = extend({}, FormElement.prototype, /** @lends InputField */{
 
         /**
          * Initializes the Input Field class.
@@ -862,7 +897,7 @@
          */
         initialize: function (options) {
 
-            this.options = _.extend({
+            this.options = extend({
                 el: null,
                 onChange: null,
                 onKeyDownChange: null,
@@ -1138,9 +1173,340 @@
 
     });
 
-    Form.ButtonToggle = ButtonToggle;
-    Form.Checkbox = Checkbox;
     Form.InputField = InputField;
+
+    /**
+     * The function that is triggered the selected dropdown value changes
+     * @callback Dropdown~onChange
+     * @param {HTMLSelectElement} input - The select element after its value has been updated
+     * @param {HTMLElement} UIElement - The container of the select element after its value has been updated
+     * @param {Event} event - The event
+     */
+
+    /**
+     * Adds JS functionality to a select element and creates a ui representation of it to allow custom styling.
+     * Falls back to native dropdowns on mobile devices.
+     * @constructor Dropdown
+     * @param {object} options - Options to pass
+     * @param {HTMLSelectElement} options.el - The container of the tooltip
+     * @param {Dropdown~onChange} [options.onChange] - A callback function that fires when the selected dropdown value changes
+     * @param {Boolean} [options.autoSetup] - When to automatically setup the dropdown (add event listeners, etc)
+     * @param {string} [options.containerClass] - The css class to use for the dropdown container for the ui representation of the dropdown
+     * @param {string} [options.optionsContainerClass] - The css class to use for the options container of the ui representation of the dropdown
+     * @param {string} [options.optionsContainerActiveClass] - The css class that will applied to the ui representation of an option element when it should be visible to the user
+     * @param {string} [options.optionsClass] - The css class to use for the ui representation of all options elements
+     * @param {string} [options.optionsSelectedClass] - The css class to use for the option element of the ui representation of the dropdown when it is selected
+     * @param {string} [options.selectedValueContainerClass] - The css class to use for the selected value container of the dropdown
+     * @param {string} [options.selectedValueContainerActiveClass] - The css class that will be applied to the selected value container when it should be visible to the user
+     */
+    var Dropdown = function (options) {
+        this.initialize(options);
+    };
+
+    Dropdown.prototype = extend({}, FormElement.prototype, /** @lends Dropdown.prototype */{
+
+        /**
+         * When instantiated.
+         * @param options
+         */
+        initialize: function (options) {
+
+            this.options = extend({
+                el: null,
+                onChange: null,
+                autoSetup: true,
+                containerClass: 'dropdown-container',
+                optionsContainerClass: 'dropdown-option-container',
+                optionsContainerActiveClass: 'dropdown-option-container-active',
+                optionsClass: 'dropdown-option',
+                optionsSelectedClass: 'dropdown-option-selected',
+                selectedValueContainerClass: 'dropdown-value-container',
+                selectedValueContainerActiveClass: 'dropdown-value-container-active',
+                disabledClass: 'dropdown-disabled'
+            }, options);
+
+            FormElement.prototype.initialize.call(this, this.options);
+
+            if (this.options.autoSetup) {
+                this.setup();
+            }
+        },
+
+        /**
+         * Sets up events for dropdown.
+         * @memberOf Dropdown
+         */
+        setup: function () {
+            var el = this.options.el,
+                selectedOption = el.querySelectorAll('option[selected]')[0];
+
+            el.kit.addEventListener('change', '_onSelectChange', this);
+
+            if(!isMobile()){
+                // user is on desktop!
+                // hide original select element
+                this._origDisplayValue = el.style.display;
+                el.style.display = 'none';
+
+                // build html
+                el.insertAdjacentHTML('afterend',
+                    '<div class="' + this.options.containerClass + '">' +
+                        this._buildSelectedValueHtml() + this._buildOptionsHtml() +
+                    '</div>');
+
+                this._setupEvents();
+
+                if (selectedOption) {
+                    this._setUISelectedValue(selectedOption.value, selectedOption.textContent);
+                }
+
+                if (this.getFormElement().disabled) {
+                    this.disable();
+                }
+            }
+
+        },
+
+        /**
+         * Sets the UI representation of the select dropdown to a new value.
+         * @param {string} dataValue - The new data value
+         * @private
+         * @memberOf Dropdown
+         */
+        _setUISelectedValue: function (dataValue) {
+            var optionsContainerEl = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+                prevSelectedOption = optionsContainerEl.getElementsByClassName(this.options.optionsSelectedClass)[0],
+                newSelectedOptionEl = optionsContainerEl.querySelectorAll('.' + this.options.optionsClass + '[data-value="' + dataValue + '"]')[0],
+                selectedClass = this.options.optionsSelectedClass,
+                selectedValueContainerEl = this.getUIElement().getElementsByClassName(this.options.selectedValueContainerClass)[0];
+
+            if (!this.getFormElement().disabled) {
+                selectedValueContainerEl.setAttribute('data-value', dataValue);
+                selectedValueContainerEl.innerHTML = newSelectedOptionEl.textContent;
+
+                // remove selected class from previously selected option
+                if (prevSelectedOption) {
+                    prevSelectedOption.kit.classList.remove(selectedClass)
+                }
+                // add selected class to new option
+                newSelectedOptionEl.kit.classList.add(selectedClass);
+            }
+
+        },
+
+        /**
+         * Sets up click events on the ui element and its children.
+         * @private
+         * @memberOf Dropdown
+         */
+        _setupEvents: function () {
+            var uiEl = this.getUIElement(),
+                uiValueContainer = uiEl.getElementsByClassName(this.options.selectedValueContainerClass)[0],
+                uiOptionEls = uiEl.getElementsByClassName(this.options.optionsClass),
+                count = uiOptionEls.length,
+                i;
+            // add click events on container
+            uiValueContainer.kit.addEventListener('click', '_onClickUIValueContainer', this);
+
+            // add click events on options
+            for (i = 0; i < count; i++) {
+                uiOptionEls[i].kit.addEventListener('click', '_onClickUIOption', this);
+            }
+        },
+
+        /**
+         * When clicking on the div that represents the select value.
+         * @param {Event} e
+         * @private
+         * @memberOf Dropdown
+         */
+        _onClickUIValueContainer: function (e) {
+            // show/hide options container
+            this.getUIElement().kit.classList.toggle(this.options.optionsContainerActiveClass);
+        },
+
+        /**
+         * When one of the ui divs (representing the options elements) is clicked.
+         * @param {Event} e
+         * @private
+         * @memberOf Dropdown
+         */
+        _onClickUIOption: function (e) {
+            var selectedOption = e.currentTarget,
+                newDataValue = selectedOption.kit.dataset.value,
+                newDisplayValue = selectedOption.textContent;
+
+            if (this.getValue() !== newDataValue) {
+                // set the current value of the REAL dropdown
+                this.setValue(newDataValue);
+                // set value of ui dropdown
+                this._setUISelectedValue(newDataValue, newDisplayValue);
+            }
+        },
+
+        /**
+         * Builds the html for the dropdown value.
+         * @returns {string}
+         * @private
+         * @memberOf Dropdown
+         */
+        _buildSelectedValueHtml: function () {
+            return '<div class="' + this.options.selectedValueContainerClass + '" data-value=""></div>';
+        },
+
+        /**
+         * Builds a representative version of the option elements of the original select.
+         * @returns {string} Returns the html of the options container along with its nested children
+         * @private
+         * @memberOf Dropdown
+         */
+        _buildOptionsHtml: function () {
+            var options = this.options,
+                uiOptionsContainer = document.createElement('div'),
+                html = '<div class="' + options.optionsContainerClass + '">',
+                optionEls = options.el.getElementsByTagName('option'),
+                count = optionEls.length,
+                i,
+                option,
+                selectedClass = '';
+
+            uiOptionsContainer.kit.classList.add(options.optionsContainerClass);
+
+            for (i = 0; i < count; i++) {
+                option = optionEls[i];
+                selectedClass = option.hasAttribute('selected') ? options.optionsSelectedClass : '';
+                html += '<div class="' + options.optionsClass + ' ' + selectedClass + '" data-value="' + option.value  + '">' +
+                option.textContent + '</div>';
+            }
+
+            html += '</div>'; // close container tag
+
+            return html;
+
+        },
+
+        /**
+         * When the select value changes.
+         * @param e
+         * @private
+         * @memberOf Dropdown
+         */
+        _onSelectChange: function (e) {
+            if (this.options.onChange) {
+                this.options.onChange(this.getFormElement(), this.getUIElement(), e);
+            }
+        },
+
+        /**
+         * Returns the element that represents the div-version of the dropdown.
+         * @returns {HTMLElement|*}
+         */
+        getUIElement: function () {
+            return this.getFormElement().nextSibling || this.getFormElement(); // mobile wont have the sibiling
+        },
+
+        /**
+         * Gets an option element by its value attribute.
+         * @param {string} dataValue - The value attribute of the option desired
+         * @returns {*}
+         * @memberOf Dropdown
+         */
+        getOptionByDataValue: function (dataValue) {
+            return this.options.el.querySelectorAll('option[value="' + dataValue + '"]')[0];
+        },
+
+        /**
+         * Gets an option element by its text content.
+         * @param {string} displayValue - The text content that the eleemnt should have in order to be returned
+         * @returns {*|HTMLOptionElement}
+         * @memberOf Dropdown
+         */
+        getOptionByDisplayValue: function (displayValue) {
+            var optionEls = this.options.el.querySelectorAll('option'),
+                i,
+                count = optionEls.length,
+                option;
+            for (i = 0; i < count; i++) {
+                option = optionEls[i];
+                if (option.textContent === displayValue) {
+                    break;
+                }
+            }
+            return option;
+        },
+
+        /**
+         * Sets the dropdown to a specified value (if there is an option
+         * element with a value attribute that contains the value supplied)
+         * @param {string} dataValue - The value to set the dropdown menu to
+         * @memberOf Dropdown
+         */
+        setValue: function (dataValue) {
+            var origOptionEl = this.getOptionByDataValue(this.getValue()),
+                newOptionEl = this.getOptionByDataValue(dataValue),
+                e = document.createEvent('HTMLEvents');
+
+            if (!this.getFormElement().disabled) {
+                e.initEvent('change', false, true);
+
+                // switch selected value because browser doesnt do it for us
+                if (origOptionEl) {
+                    origOptionEl.removeAttribute('selected');
+                }
+                if (newOptionEl) {
+                    newOptionEl.setAttribute('selected', 'selected'); // this is sufficient because it also updates the value attr
+                    // trigger change event on dropdown
+                    this.options.el.dispatchEvent(e);
+                } else {
+                    console.warn('Form Dropdown Error: Cannot call setValue(), dropdown has no option element with a ' +
+                    'value attribute of ' + dataValue + '.');
+                }
+
+                if (!isMobile()) {
+                    this._setUISelectedValue(dataValue, newOptionEl.textContent);
+                }
+            }
+
+        },
+
+        /**
+         * Disables the dropdown.
+         */
+        disable: function () {
+            this.getUIElement().kit.classList.add(this.options.disabledClass);
+            this.getFormElement().disabled = true;
+        },
+
+        /**
+         * Enables the dropdown.
+         */
+        enable: function () {
+            this.getUIElement().kit.classList.remove(this.options.disabledClass);
+            this.getFormElement().disabled = false;
+        },
+
+        /**
+         * Returns the text inside the option element that is currently selected.
+         * @returns {*}
+         * @memberOf Dropdown
+         */
+        getDisplayValue: function () {
+            return this.getOptionByDataValue(this.getValue()).textContent;
+        },
+
+        /**
+         * Destruction of this class.
+         * @memberOf Dropdown
+         */
+        destroy: function () {
+            var el = this.options.el;
+            el.kit.removeEventListener('change', '_onSelectChange', this);
+            el.style.display = this._origDisplayValue; // put original display back
+        }
+
+    });
+
+    Form.Dropdown = Dropdown;
 
     return Form;
 

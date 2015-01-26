@@ -1,6 +1,6 @@
 {
   "name": "formjs",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "homepage": "https://github.com/mkay581/formjs",
   "authors": [
     "Mark Kennedy <mkay581@gmail.com>"
@@ -20,6 +20,8 @@
     "css",
     "ui-forms",
     "checkboxes",
+    "dropdowns",
+    "select",
     "input",
     "fields",
     "html",

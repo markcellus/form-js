@@ -20,7 +20,8 @@ require([
     'tests/checkbox-tests',
     'tests/button-toggle-tests',
     'tests/input-field-tests',
-    'tests/form-tests'
+    'tests/form-tests',
+    'tests/dropdown-tests'
 ], function() {
     QUnit.config.requireExpects = true;
     QUnit.start();
