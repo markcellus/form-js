@@ -153,9 +153,20 @@
     };
 
     /**
-     * The function that fires when the input value changes
-     * @callback Form~onValueChange
+     * The function that fires when any form element value changes
+     * @callback Form~onChange
      * @param {Event} event - The event that fired the change
+     */
+
+    /**
+     * Function callback that is fired each time an instance is created to provide custom options
+     * BEWARE: This function fires very rapidly so please make sure any logic in this function is quick,
+     * to the point, and most importantly, non-blocking.
+     * @callback Form~onGetOptions
+     * @param {HTMLElement} el - The event that fired the change
+     * @param {Object} options - The beginning set of default options
+     * @returns {Object} options - Must QUICKLY return the final options object that the Form class will use for the
+     * instantiation of the class for the el given in the first parameter
      */
 
     /**
@@ -163,63 +174,157 @@
      * @class Form
      * @param {object} options - The options
      * @param {HTMLInputElement} options.el - The input field element
-     * @param {Form~onValueChange} [options.onValueChange] - A callback function that fires when the input value changes
+     * @param {Form~onChange} [options.onChange] - A callback function that fires when any form element values change
+     * @param {Function} [options.onGetOptions] - Function callback that is fired each time an instance is created to provide custom options
+     * @param {HTMLCollection|Array} [options.inputFields] - Input field elements that will be used for InputField class instantiations
+     * @param {HTMLCollection|Array} [options.buttonToggles] - Input checkboxes or radio elements that will be used for ButtonToggle class instantiations
+     * @param {HTMLCollection|Array} [options.checkboxes] - Input checkboxes that will be used for Checkboxes class instantiations
+     * @param {HTMLCollection|Array} [options.dropdowns] - Select elements that will be used for Dropdown class instantiations
      */
     var Form = function (options) {
-        this.options = options;
-        this._setupEvents();
+
+        options.el = options.el || document.createDocumentFragment();
+
+        this.options = extend({
+            el: options.el,
+            onChange: null,
+            onGetOptions: null,
+            inputFields: options.el.querySelectorAll('input[type="text"], textarea'),
+            buttonToggles: [],
+            checkboxes: options.el.querySelectorAll('input[type="checkbox"]'),
+            dropdowns: options.el.querySelectorAll('select')
+        }, options);
+
+        this._formInstances = [];
+        this._valuesMap = {};
+
+        this.setup();
     };
 
     Form.prototype = /** @lends Form */{
 
         /**
-         * Sets up change events.
-         * @private
+         * Sets up all sub-class instances.
          */
-        _setupEvents: function () {
-            var i;
-            this.eventEls = this.options.el.elements;
-            for (i = 0; i < this.eventEls.length; i++) {
-                this.eventEls[i].kit.addEventListener('change', '_onValueChange', this);
-            }
+        setup: function () {
+            this._setupInstances(this.options.inputFields, InputField);
+            this._setupInstances(this.options.checkboxes, Checkbox);
+            this._setupInstances(this.options.buttonToggles, ButtonToggle);
+            this._setupInstances(this.options.dropdowns, Dropdown);
         },
 
         /**
          * When any form element's value changes.
+         * @param {HTMLFormElement} formEl - The form element after its value has been updated
+         * @param {HTMLElement} uiEl - The ui representation of the form element
          * @param {Event} e
          * @private
          */
-        _onValueChange: function (e) {
-            if (this.options.onValueChange) {
-                this.options.onValueChange(e);
+        _onValueChange: function (formEl, uiEl, e) {
+            var name = formEl.name,
+                origValue = this._valuesMap[name],
+                value = formEl.value;
+
+            if (origValue && origValue === value) {
+                // new value is same as existing!
+                return;
+            }
+
+            this._valuesMap[name] = value;
+
+            if (this.options.onChange) {
+                this.options.onChange(formEl, uiEl, e);
             }
         },
 
         /**
-         * Disables all form elements.
+         * Disables form and all of its elements.
          */
         disable: function () {
-            this.setPropertyAll('disabled', true);
+            this.triggerMethodAll('disable');
         },
 
         /**
-         * Enables all form elements.
+         * Enables form and all of its elements.
          */
         enable: function () {
-            this.setPropertyAll('disabled', false);
+            this.triggerMethodAll('enable');
         },
 
         /**
-         * Sets a property on all form elements.
-         * @param {string} prop - The property to change
-         * @param {*} value - The value to set
+         * Fires a method on all available form instances.
+         * @param {string} method - The method to call
+         * @param {Array} [args] - The array of args to apply to the method
          */
-        setPropertyAll: function (prop, value) {
-            var i,
-                els = this.options.el.elements;
-            for (i = 0; i < els.length; i++) {
-                els[i][prop] = value;
+        triggerMethodAll: function (method, args) {
+            var instances = this._formInstances,
+                count = instances.length,
+                i;
+            args = args || [];
+            for (i = 0; i < count; i++) {
+                this._formInstances[i][method].apply(this, args);
             }
+        },
+
+        /**
+         * Takes a set of html elements and instantiates the appropriate form sub-class on each of them.
+         * @param {HTMLCollection|Array|NodeList} elements - The elements that will be used
+         * @param {Function} View - The class to instantiate
+         * @param {Object} [options] - The options to be passed to instantiation
+         * @param {string} [elKey] - The key to use as the "el"
+         * @private
+         */
+        _setupInstances: function (elements, View, options, elKey) {
+            var count = elements.length,
+                i,
+                instance;
+            elKey = elKey || 'el';
+            options = options || {};
+            for (i = 0; i < count; i++) {
+                options = this._buildOptions(elements[i], options);
+                options[elKey] = elements[i]; // dont allow custom options to override the el!
+                instance = new View(options);
+                this._formInstances.push(instance);
+
+                // set value map
+                this._valuesMap[instance.getFormElement().name] = instance.getValue();
+            }
+        },
+
+        /**
+         * Builds the initialize options for an element.
+         * @param {HTMLElement} el - The element
+         * @param {Object} options - The beginning set of options
+         * @returns {*|{}}
+         * @private
+         */
+        _buildOptions: function (el, options) {
+            if (this.options.onGetOptions) {
+                options = _.extend({}, options, this.options.onGetOptions(el));
+            }
+            options.onChange = function (value, inputEl, UIElement) {
+                this._onValueChange(value, inputEl, UIElement);
+            }.bind(this);
+
+            return options;
+        },
+
+        /**
+         * Returns the instance (if there is one) of an element with a specified name attribute
+         * @param {string} name - The name attribute of the element whos instance is desired
+         * @returns {Object} Returns the instance that matches the name specified
+         */
+        getInstanceByName: function (name) {
+            var i,
+                instance;
+
+            for (i = 0; i < this._formInstances.length; i++) {
+                instance = this._formInstances[i];
+                if (instance.getFormElement().name === name) {
+                    break;
+                }
+            }
+            return instance;
         },
 
         /**
@@ -253,10 +358,7 @@
          * Kills form functionality.
          */
         destroy: function () {
-            var i;
-            for (i = 0; i < this.eventEls.length; i++) {
-                this.eventEls[i].kit.removeEventListener('change', '_onValueChange', this);
-            }
+            this.triggerMethodAll('destroy');
         }
     };
 
