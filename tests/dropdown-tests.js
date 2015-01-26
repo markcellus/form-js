@@ -170,4 +170,74 @@ define([
         window.orientation = origWindowOrientation;
     });
 
+    QUnit.test('enabling and disabling dropdown', function() {
+        QUnit.expect(18);
+        var origWindowOrientation = window.orientation;
+        window.orientation = undefined; // make sure we're testing for desktop
+        // need the first item to be blank or browser will automatically select the first item
+        var html = '<select>' +
+            '<option value=""></option>' +
+            '<option value="AAPL">Apple</option>' +
+            '<option value="FB">Facebook</option>' +
+            '<option value="GOOG">Google</option>' +
+        '</select>';
+        var fixture = document.getElementById('qunit-fixture');
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var formOptionEls = selectEl.getElementsByTagName('option');
+        var uiContainerClass = 'my-ui-container';
+        var uiOptionsContainerClass = 'my-options-container';
+        var uiOptionsClass = 'my-option';
+        var uiSelectedValueContainerClass = 'my-selected-val-container';
+        var uiOptionsContainerActiveClass = 'active-options-container';
+        var uiDisabledClass = 'ui-disabled';
+        var uiOptionsSelectedClass = 'option-selected';
+        var onChangeSpy = Sinon.spy();
+        selectEl.disabled = true; // pre-disable
+        var dropdown = new Form.Dropdown({
+            el: selectEl,
+            containerClass: uiContainerClass,
+            optionsContainerClass: uiOptionsContainerClass,
+            optionsContainerActiveClass: uiOptionsContainerActiveClass,
+            optionsClass: uiOptionsClass,
+            optionsSelectedClass: uiOptionsSelectedClass,
+            selectedValueContainerClass: uiSelectedValueContainerClass,
+            onChange: onChangeSpy,
+            disabledClass: uiDisabledClass
+        });
+        var uiEl = fixture.getElementsByClassName(uiContainerClass)[0];
+        var uiOptionsContainerEl = uiEl.getElementsByClassName(uiOptionsContainerClass)[0];
+        var uiOptionEls = uiOptionsContainerEl.getElementsByClassName(uiOptionsClass);
+        var uiSelectedValueContainerEl = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
+
+        QUnit.ok(uiEl.classList.contains(uiDisabledClass), 'on initialize, ui element has disabled class because select element was disabled upon instantiation');
+        QUnit.equal(selectEl.value, '', 'select element data value is empty');
+        QUnit.equal(uiSelectedValueContainerEl.getAttribute('data-value'), '', 'ui element selected container data value is empty');
+        QUnit.equal(uiSelectedValueContainerEl.innerHTML, '', 'ui element selected container display value is empty');
+        QUnit.equal(uiOptionsContainerEl.getElementsByClassName(uiOptionsSelectedClass).length, 0, 'there are no selected ui option elements');
+        dropdown.enable();
+        QUnit.ok(!uiEl.classList.contains(uiDisabledClass), 'after enable(), ui element has disabled class has been removed');
+        QUnit.ok(!selectEl.disabled, 'select element disabled property returns false');
+        dropdown.disable();
+        var testOption = formOptionEls[1];
+        dropdown.setValue(testOption.value);
+        QUnit.equal(selectEl.value, '', 'when calling setValue() when the dropdown is disabled, select element data value did not change');
+        QUnit.equal(uiSelectedValueContainerEl.getAttribute('data-value'), '', 'ui element selected container data value is empty');
+        QUnit.equal(uiSelectedValueContainerEl.innerHTML, '', 'ui element selected container display value is empty');
+        QUnit.equal(uiOptionsContainerEl.getElementsByClassName(uiOptionsSelectedClass).length, 0, 'there are no selected ui option elements');
+        QUnit.equal(onChangeSpy.callCount, 0, 'onChange callback did NOT fire');
+        // click on selected value container to show options
+        uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
+        QUnit.ok(uiOptionsContainerEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on selected value container element, options container does NOT have active class');
+        // click on second option element
+        uiOptionEls[1].dispatchEvent(TestUtils.createEvent('click'));
+        QUnit.equal(selectEl.value, '', 'when clicking on an option while the dropdown is disabled, select element data value still did not change');
+        QUnit.equal(uiSelectedValueContainerEl.getAttribute('data-value'), '', 'ui element selected container data value is still empty');
+        QUnit.equal(uiSelectedValueContainerEl.innerHTML, '', 'ui element selected container display value is still empty');
+        QUnit.equal(uiOptionsContainerEl.getElementsByClassName(uiOptionsSelectedClass).length, 0, 'there are still no selected ui option elements');
+        QUnit.equal(onChangeSpy.callCount, 0, 'onChange callback did NOT fire');
+        dropdown.destroy();
+        window.orientation = origWindowOrientation;
+    });
+
 });

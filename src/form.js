@@ -1221,7 +1221,8 @@
                 optionsClass: 'dropdown-option',
                 optionsSelectedClass: 'dropdown-option-selected',
                 selectedValueContainerClass: 'dropdown-value-container',
-                selectedValueContainerActiveClass: 'dropdown-value-container-active'
+                selectedValueContainerActiveClass: 'dropdown-value-container-active',
+                disabledClass: 'dropdown-disabled'
             }, options);
 
             FormElement.prototype.initialize.call(this, this.options);
@@ -1258,6 +1259,10 @@
                 if (selectedOption) {
                     this._setUISelectedValue(selectedOption.value, selectedOption.textContent);
                 }
+
+                if (this.getFormElement().disabled) {
+                    this.disable();
+                }
             }
 
         },
@@ -1275,15 +1280,18 @@
                 selectedClass = this.options.optionsSelectedClass,
                 selectedValueContainerEl = this.getUIElement().getElementsByClassName(this.options.selectedValueContainerClass)[0];
 
-            selectedValueContainerEl.setAttribute('data-value', dataValue);
-            selectedValueContainerEl.innerHTML = newSelectedOptionEl.textContent;
+            if (!this.getFormElement().disabled) {
+                selectedValueContainerEl.setAttribute('data-value', dataValue);
+                selectedValueContainerEl.innerHTML = newSelectedOptionEl.textContent;
 
-            // remove selected class from previously selected option
-            if (prevSelectedOption) {
-                prevSelectedOption.kit.classList.remove(selectedClass)
+                // remove selected class from previously selected option
+                if (prevSelectedOption) {
+                    prevSelectedOption.kit.classList.remove(selectedClass)
+                }
+                // add selected class to new option
+                newSelectedOptionEl.kit.classList.add(selectedClass);
             }
-            // add selected class to new option
-            newSelectedOptionEl.kit.classList.add(selectedClass);
+
         },
 
         /**
@@ -1438,25 +1446,44 @@
             var origOptionEl = this.getOptionByDataValue(this.getValue()),
                 newOptionEl = this.getOptionByDataValue(dataValue),
                 e = document.createEvent('HTMLEvents');
-            
-            e.initEvent('change', false, true);
 
-            // switch selected value because browser doesnt do it for us
-            if (origOptionEl) {
-                origOptionEl.removeAttribute('selected');
-            }
-            if (newOptionEl) {
-                newOptionEl.setAttribute('selected', 'selected'); // this is sufficient because it also updates the value attr
-                // trigger change event on dropdown
-                this.options.el.dispatchEvent(e);
-            } else {
-                console.warn('Form Dropdown Error: Cannot call setValue(), dropdown has no option element with a ' +
-                'value attribute of ' + dataValue + '.');
+            if (!this.getFormElement().disabled) {
+                e.initEvent('change', false, true);
+
+                // switch selected value because browser doesnt do it for us
+                if (origOptionEl) {
+                    origOptionEl.removeAttribute('selected');
+                }
+                if (newOptionEl) {
+                    newOptionEl.setAttribute('selected', 'selected'); // this is sufficient because it also updates the value attr
+                    // trigger change event on dropdown
+                    this.options.el.dispatchEvent(e);
+                } else {
+                    console.warn('Form Dropdown Error: Cannot call setValue(), dropdown has no option element with a ' +
+                    'value attribute of ' + dataValue + '.');
+                }
+
+                if (!isMobile()) {
+                    this._setUISelectedValue(dataValue, newOptionEl.textContent);
+                }
             }
 
-            if (!isMobile()) {
-                this._setUISelectedValue(dataValue, newOptionEl.textContent);
-            }
+        },
+
+        /**
+         * Disables the dropdown.
+         */
+        disable: function () {
+            this.getUIElement().kit.classList.add(this.options.disabledClass);
+            this.getFormElement().disabled = true;
+        },
+
+        /**
+         * Enables the dropdown.
+         */
+        enable: function () {
+            this.getUIElement().kit.classList.remove(this.options.disabledClass);
+            this.getFormElement().disabled = false;
         },
 
         /**
