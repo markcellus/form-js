@@ -23,7 +23,7 @@ To use any classes in FormJS, you must [RequireJS](http://requirejs.org/) to imp
     <option value="MD">Maryland</option>
     <option value="VA">Virginia</option>
     <option value="DC">Washington, DC</option>
-</select>;
+</select>
 ```
 
 ```javascript
