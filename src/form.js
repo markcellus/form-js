@@ -6,7 +6,7 @@
             return factory();
         });
     } else {
-        factory();
+        window.Form = factory();
     }
 })((function () {
     'use strict';
