@@ -141,10 +141,10 @@ define([
         var uiOptionsContainerEl = uiEl.getElementsByClassName(uiOptionsContainerClass)[0];
         var uiOptionEls = uiOptionsContainerEl.getElementsByClassName(uiOptionsClass);
         var uiSelectedValueContainerEl = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
-        QUnit.ok(!uiOptionsContainerEl.classList.contains(uiOptionsContainerActiveClass), 'on initialize, options container element does NOT have active class');
+        QUnit.ok(!uiEl.classList.contains(uiOptionsContainerActiveClass), 'on initialize, options container element does NOT have active class');
         // click on selected value container to show options
         uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
-        QUnit.ok(uiOptionsContainerEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on selected value container element, options container now has active class');
+        QUnit.ok(uiEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on selected value container element, options container now has active class');
         // click on second option element
         uiOptionEls[1].dispatchEvent(TestUtils.createEvent('click'));
         QUnit.equal(dropdown.getValue(), formOptionEls[1].value, 'after clicking on second item, getValue() returns data value of second item correctly');
@@ -228,7 +228,7 @@ define([
         QUnit.equal(onChangeSpy.callCount, 0, 'onChange callback did NOT fire');
         // click on selected value container to show options
         uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
-        QUnit.ok(uiOptionsContainerEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on selected value container element, options container does NOT have active class');
+        QUnit.ok(uiEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on selected value container element, options container does NOT have active class');
         // click on second option element
         uiOptionEls[1].dispatchEvent(TestUtils.createEvent('click'));
         QUnit.equal(selectEl.value, '', 'when clicking on an option while the dropdown is disabled, select element data value still did not change');

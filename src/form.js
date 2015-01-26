@@ -1321,9 +1321,8 @@
          * @memberOf Dropdown
          */
         _onClickUIValueContainer: function (e) {
-            var uiOptionContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0];
             // show/hide options container
-            uiOptionContainer.kit.classList.toggle(this.options.optionsContainerActiveClass);
+            this.getUIElement().kit.classList.toggle(this.options.optionsContainerActiveClass);
         },
 
         /**
