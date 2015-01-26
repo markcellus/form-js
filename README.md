@@ -1,8 +1,7 @@
 # FormJS
 
-Allows you easily restyle a native browser's form elements for consistent look and feel across all browsers and
-falls back to native form elements for mobile. Also, provides a simple javascript API to programmatically manipulate form elements.
-Supports IE9+, all modern browsers, and mobile.
+Allows you easily re-style native form elements across all browsers and falls back to native form elements for mobile devices.
+Also, provides a simple API to manipulate form elements with javascript. Supports IE9+, all modern browsers, and mobile.
 
 UI Elements include:
 
@@ -12,7 +11,7 @@ UI Elements include:
  * Dropdowns
  * Entire forms
 
-## Usage/Examples
+## Usage
 
 To use any classes in FormJS, you must [RequireJS](http://requirejs.org/) to import them. The Classes assume you have a thorough understanding of the [AMD model](https://github.com/amdjs/amdjs-api/wiki/AMD). If not, please see the RequireJS website.
 
@@ -28,7 +27,7 @@ To use any classes in FormJS, you must [RequireJS](http://requirejs.org/) to imp
 
 ```javascript
 var dropdown = new Form.Dropdown({
-    el: document.getElementByTagName('select')[0]
+    el: document.getElementsByTagName('select')[0]
 });
 
 dropdown.setValue('DC'); // set the selected value programmatically
