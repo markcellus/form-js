@@ -36,10 +36,12 @@ dropdown.getValue(); => "DC"
 dropdown.getDisplayValue(); => "Washington, DC"
 ```
 
-### Input Fields
+### Input Fields with placeholder support
+
+Input fields come with automatic support for the [native placeholder attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input#attr-placeholder) (even for older browsers) along with a few other goodies. Here's an example:
 
 ```html
-<input type="text" value="" />
+<input type="text" value="" placeholder="Enter text here" />
 ```
 
 ```javascript
