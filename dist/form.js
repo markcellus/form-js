@@ -1,5 +1,5 @@
 /** 
-* FormJS - v0.3.0.
+* FormJS - v0.3.2.
 * https://github.com/mkay581/formjs.git
 * Copyright 2015. Licensed MIT.
 */
