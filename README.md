@@ -13,7 +13,9 @@ UI Elements include:
 
 ## Usage
 
-To use any classes in FormJS, you must [RequireJS](http://requirejs.org/) to import them. The Classes assume you have a thorough understanding of the [AMD model](https://github.com/amdjs/amdjs-api/wiki/AMD). If not, please see the RequireJS website.
+To use any classes in FormJS, you must [RequireJS](http://requirejs.org/) to import them. The Classes assume
+you have a thorough understanding of the [AMD model](https://github.com/amdjs/amdjs-api/wiki/AMD). If not,
+please see the RequireJS website.
 
 ### Dropdowns
 
@@ -32,13 +34,15 @@ var dropdown = new Form.Dropdown({
 
 dropdown.setValue('DC'); // set the selected value programmatically
 
-dropdown.getValue(); => "DC"
-dropdown.getDisplayValue(); => "Washington, DC"
+dropdown.getValue(); // => "DC"
+dropdown.getDisplayValue(); // => "Washington, DC"
 ```
 
 ### Input Fields with placeholder support
 
-Input fields come with automatic support for the [native placeholder attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input#attr-placeholder) (even for older browsers) along with a few other goodies. Here's an example:
+Input fields come with automatic support for the [native placeholder
+attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input#attr-placeholder)
+(even for older browsers, like IE9) along with a few other goodies. Here's an example:
 
 ```html
 <input type="text" value="" placeholder="Enter text here" />
@@ -54,6 +58,9 @@ var inputField = new Form.InputField({
         // the user has typed a key into the field!
     }
 });
+
+inputField.setValue('My text'); // set new value
+inputField.getValue(); // => "My text"
 ```
 
 
