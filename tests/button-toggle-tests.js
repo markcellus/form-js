@@ -1,15 +1,10 @@
-define([
-    'sinon',
-    'qunit',
-    'test-utils',
-    'src/form'
-], function(
-    Sinon,
-    QUnit,
-    TestUtils,
-    Form
-){
-    "use strict";
+"use strict";
+var Sinon = require('sinon');
+var QUnit = require('qunit');
+var TestUtils = require('test-utils');
+var ButtonToggle = require('../src/button-toggle');
+
+module.exports = (function () {
 
     QUnit.module('Button Toggle Tests');
 
@@ -39,7 +34,7 @@ define([
         fixture.appendChild(wrapper);
         var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
         var containers = wrapper.getElementsByTagName('label');
-        var instance = new Form.ButtonToggle({inputs: inputs});
+        var instance = new ButtonToggle({inputs: inputs});
         var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
         QUnit.ok(UIElements[0].childNodes[0].isEqualNode(inputs[0]), 'after init, ui button toggle wrapper html was created for first el');
         QUnit.ok(UIElements[1].childNodes[0].isEqualNode(inputs[1]), 'ui button toggle wrapper html was created for second el');
@@ -57,7 +52,7 @@ define([
         fixture.appendChild(wrapper);
         var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
         var containers = wrapper.getElementsByTagName('label');
-        var instance = new Form.ButtonToggle({container: wrapper});
+        var instance = new ButtonToggle({container: wrapper});
         var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
         QUnit.ok(UIElements[0].childNodes[0].isEqualNode(inputs[0]), 'after init, ui button toggle wrapper html was created for first el');
         QUnit.ok(UIElements[1].childNodes[0].isEqualNode(inputs[1]), 'ui button toggle wrapper html was created for second el');
@@ -75,7 +70,7 @@ define([
         fixture.appendChild(wrapper);
         var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
         var onChangeSpy = Sinon.spy();
-        var instance = new Form.ButtonToggle({inputs: inputs, onChange: onChangeSpy});
+        var instance = new ButtonToggle({inputs: inputs, onChange: onChangeSpy});
         var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
         var onChangeCallCount = 0;
         // select first toggle
@@ -114,7 +109,7 @@ define([
         fixture.appendChild(wrapper);
         var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
         var onChangeSpy = Sinon.spy();
-        var instance = new Form.ButtonToggle({inputs: inputs, onChange: onChangeSpy});
+        var instance = new ButtonToggle({inputs: inputs, onChange: onChangeSpy});
         var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
         // click first input
         inputs[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
@@ -147,7 +142,7 @@ define([
         var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
         var labels = wrapper.getElementsByTagName('label');
         var onChangeSpy = Sinon.spy();
-        var instance = new Form.ButtonToggle({inputs: inputs, onChange: onChangeSpy});
+        var instance = new ButtonToggle({inputs: inputs, onChange: onChangeSpy});
         var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
         // click first label
         labels[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
@@ -179,7 +174,7 @@ define([
         fixture.appendChild(wrapper);
         var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
         var onChangeSpy = Sinon.spy();
-        var instance = new Form.ButtonToggle({inputs: inputs, onChange: onChangeSpy});
+        var instance = new ButtonToggle({inputs: inputs, onChange: onChangeSpy});
         var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
         // select first toggle
         instance.select(0);
@@ -227,7 +222,7 @@ define([
         fixture.appendChild(wrapper);
         var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
         var onChangeSpy = Sinon.spy();
-        var instance = new Form.ButtonToggle({inputs: inputs, onChange: onChangeSpy});
+        var instance = new ButtonToggle({inputs: inputs, onChange: onChangeSpy});
         var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
         // click first toggle
         inputs[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
@@ -264,7 +259,7 @@ define([
         var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
         var labels = wrapper.getElementsByTagName('label');
         var onChangeSpy = Sinon.spy();
-        var instance = new Form.ButtonToggle({inputs: inputs, onChange: onChangeSpy});
+        var instance = new ButtonToggle({inputs: inputs, onChange: onChangeSpy});
         var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
         // click first label
         labels[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
@@ -310,7 +305,7 @@ define([
         var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
         var labels = wrapper.getElementsByTagName('label');
         var onChangeSpy = Sinon.spy();
-        var instance = new Form.ButtonToggle({inputs: inputs, onChange: onChangeSpy});
+        var instance = new ButtonToggle({inputs: inputs, onChange: onChangeSpy});
         var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
         // click first label
         labels[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
@@ -343,12 +338,12 @@ define([
         QUnit.expect(2);
         var wrapper = TestUtils.createHtmlElement(radioHtml);
         var radios = wrapper.getElementsByClassName('ui-button-toggle-input');
-        var instance = new Form.ButtonToggle({inputs: radios});
+        var instance = new ButtonToggle({inputs: radios});
         QUnit.equal(instance.getElementKey(), 'buttonToggleRadio', 'getElementKey() method was called and returned "buttonToggleRadio"');
         instance.destroy();
         var wrapper = TestUtils.createHtmlElement(checkboxHtml);
         var checkboxes = wrapper.getElementsByClassName('ui-button-toggle-input');
-        var instance = new Form.ButtonToggle({inputs: checkboxes});
+        var instance = new ButtonToggle({inputs: checkboxes});
         QUnit.equal(instance.getElementKey(), 'buttonToggleCheckbox', 'getElementKey() method was called and returned "buttonToggleCheckbox"');
         instance.destroy();
     });
@@ -359,7 +354,7 @@ define([
         var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
         inputs[0].checked = true; // make it so that input is checked initially
         var onSelectedSpy = Sinon.spy();
-        var instance = new Form.ButtonToggle({inputs: inputs});
+        var instance = new ButtonToggle({inputs: inputs});
         var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
         QUnit.equal(inputs[0].checked, true, 'first input\'s checked property returns true initially');
         QUnit.ok(UIElements[0].classList.contains(selectedClass), 'first ui element toggle has active class initially because original input was checked initially');
@@ -371,7 +366,7 @@ define([
         QUnit.expect(18);
         var wrapper = TestUtils.createHtmlElement(radioHtml);
         var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
-        var instance = new Form.ButtonToggle({inputs: inputs});
+        var instance = new ButtonToggle({inputs: inputs});
         var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
         QUnit.ok(!UIElements[0].classList.contains(disabledClass), 'first toggle does not have active class initially');
         QUnit.ok(!inputs[0].disabled, 'first toggle input\'s disabled property returns falsy');
@@ -401,7 +396,7 @@ define([
         var wrapper = TestUtils.createHtmlElement(radioHtml);
         var inputs = wrapper.getElementsByClassName('ui-button-toggle-input');
         inputs[0].disabled = true; // disable input field initially
-        var instance = new Form.ButtonToggle({inputs: inputs});
+        var instance = new ButtonToggle({inputs: inputs});
         var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
         QUnit.ok(inputs[0].disabled, 'first toggle input was disabled initially');
         QUnit.ok(UIElements[0].classList.contains(disabledClass), 'first toggle element has disabled class initially because original input was disabled initially');
@@ -416,7 +411,7 @@ define([
         var radios = wrapper.getElementsByClassName('ui-button-toggle-input');
         var firstRadioValue = radios[0].value;
         var secondRadioValue = radios[1].value;
-        var instance = new Form.ButtonToggle({inputs: radios});
+        var instance = new ButtonToggle({inputs: radios});
         var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
         QUnit.equal(instance.getValue(), '', 'calling getValue() when there is no currently set value returns empty string');
         // click first toggle
@@ -428,5 +423,4 @@ define([
         instance.destroy();
     });
 
-
-});
+})();

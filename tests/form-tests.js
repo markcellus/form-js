@@ -1,15 +1,11 @@
-define([
-    'sinon',
-    'qunit',
-    'test-utils',
-    'src/form'
-], function(
-    Sinon,
-    QUnit,
-    TestUtils,
-    Form
-){
-    "use strict";
+"use strict";
+var Sinon = require('sinon');
+var QUnit = require('qunit');
+var TestUtils = require('test-utils');
+var ElementKit = require('element-kit');
+var Form = require('../src/form');
+
+module.exports = (function () {
 
     QUnit.module('Form Tests');
 
@@ -95,4 +91,4 @@ define([
         instance.destroy();
     });
 
-});
+})();
