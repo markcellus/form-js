@@ -39,9 +39,6 @@
     "sinon": "^1.14.1",
     "underscore": "^1.8.2"
   },
-  "browser": {
-    "device": "./node_modules/rogue/src/device.js"
-  },
   "scripts": {
     "build": "grunt bt:build",
     "start": "grunt bt:server",

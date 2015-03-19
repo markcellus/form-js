@@ -1,7 +1,7 @@
 'use strict';
 var _ = require('underscore');
 var FormElement = require('./form-element');
-var Device = require('device');
+var Device = require('./../node_modules/rogue/src/device.js');
 
 require('element-kit');
 /**
@@ -17,7 +17,7 @@ require('element-kit');
  * Falls back to native dropdowns on mobile devices.
  * @constructor Dropdown
  * @param {object} options - Options to pass
- * @param {HTMLSelectElement} options.el - The container of the tooltip
+ * @param {HTMLSelectElement} options.el - The container of the dropdown
  * @param {Dropdown~onChange} [options.onChange] - A callback function that fires when the selected dropdown value changes
  * @param {Boolean} [options.autoSetup] - When to automatically setup the dropdown (add event listeners, etc)
  * @param {string} [options.containerClass] - The css class to use for the dropdown container for the ui representation of the dropdown
@@ -71,27 +71,20 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
 
         el.kit.addEventListener('change', '_onSelectChange', this);
 
-        if(!Device.isMobile()){
-            // user is on desktop!
-            // hide original select element
-            this._origDisplayValue = el.style.display;
-            el.style.display = 'none';
+        // build html
+        el.insertAdjacentHTML('afterend',
+            '<div class="' + this.options.containerClass + '">' +
+            this._buildSelectedValueHtml() + this._buildOptionsHtml() +
+            '</div>');
 
-            // build html
-            el.insertAdjacentHTML('afterend',
-                '<div class="' + this.options.containerClass + '">' +
-                this._buildSelectedValueHtml() + this._buildOptionsHtml() +
-                '</div>');
+        this._setupEvents();
 
-            this._setupEvents();
+        if (selectedOption) {
+            this._setUISelectedValue(selectedOption.value);
+        }
 
-            if (selectedOption) {
-                this._setUISelectedValue(selectedOption.value, selectedOption.textContent);
-            }
-
-            if (this.getFormElement().disabled) {
-                this.disable();
-            }
+        if (this.getFormElement().disabled) {
+            this.disable();
         }
 
     },
@@ -169,7 +162,7 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
             // set the current value of the REAL dropdown
             this.setValue(newDataValue);
             // set value of ui dropdown
-            this._setUISelectedValue(newDataValue, newDisplayValue);
+            this._setUISelectedValue(newDataValue);
         }
     },
 
@@ -221,8 +214,10 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
      * @memberOf Dropdown
      */
     _onSelectChange: function (e) {
+        var value = this.getValue();
+        this._setUISelectedValue(value);
         if (this.options.onChange) {
-            this.options.onChange(this.getFormElement(), this.getUIElement(), e);
+            this.options.onChange(value, this.getFormElement(), this.getUIElement(), e);
         }
     },
 
@@ -295,9 +290,7 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
                 'value attribute of ' + dataValue + '.');
             }
 
-            if (!Device.isMobile()) {
-                this._setUISelectedValue(dataValue, newOptionEl.textContent);
-            }
+            this._setUISelectedValue(dataValue);
         }
 
     },
