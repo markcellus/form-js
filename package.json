@@ -1,6 +1,6 @@
 {
   "name": "formjs",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Create better ui form elements. Supports IE9+, all modern browsers, and mobile.",
   "repository": {
     "type": "git",
@@ -38,9 +38,6 @@
     "load-grunt-tasks": "0.6.0",
     "sinon": "^1.14.1",
     "underscore": "^1.8.2"
-  },
-  "browser": {
-    "device": "./node_modules/rogue/src/device.js"
   },
   "scripts": {
     "build": "grunt bt:build",
