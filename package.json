@@ -6,6 +6,10 @@
     "type": "git",
     "url": "https://github.com/mkay581/formjs.git"
   },
+  "author": {
+    "name": "Mark Kennedy",
+    "url": "http://heyimmark.com"
+  },
   "keywords": [
     "forms",
     "form",
@@ -23,32 +27,29 @@
     "toggles",
     "buttons"
   ],
-  "main": "dist/form.js",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
-    "element-kit": "^2.0.0",
     "grunt": "0.4.5",
-    "grunt-banner": "^0.2.3",
-    "grunt-bump": "0.0.16",
-    "grunt-contrib-clean": "^0.6.0",
-    "grunt-contrib-connect": "~0.8.0",
-    "grunt-contrib-copy": "^0.6.0",
-    "grunt-contrib-jshint": "0.10.0",
-    "grunt-contrib-qunit": "~0.5.2",
-    "grunt-contrib-requirejs": "0.4.4",
-    "grunt-contrib-uglify": "^0.6.0",
+    "grunt-build-tools": "~0.5.2",
     "grunt-github-pages": "0.0.4",
     "grunt-jsdoc": "0.5.7",
     "load-grunt-tasks": "0.6.0",
-    "phantomjs": "~1.9.7",
-    "qunitjs": "1.14.0",
-    "requirejs": "2.1.15"
+    "sinon": "^1.14.1",
+    "underscore": "^1.8.2"
+  },
+  "browser": {
+    "device": "./node_modules/rogue/src/device.js"
   },
   "scripts": {
-    "build": "grunt build",
-    "start": "grunt server",
-    "test": "grunt test"
+    "build": "grunt bt:build",
+    "start": "grunt bt:server",
+    "test": "grunt bt:test"
+  },
+  "dependencies": {
+    "element-kit": "^0.5.0",
+    "rogue": "^3.1.1",
+    "underscore": "^1.8.2"
   }
 }
