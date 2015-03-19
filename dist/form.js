@@ -1,9 +1,69 @@
 /** 
-* formjs - v0.4.0.
+* formjs - v0.4.1.
 * https://github.com/mkay581/formjs.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Form = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+var queue = [];
+var draining = false;
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    draining = true;
+    var currentQueue;
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        var i = -1;
+        while (++i < len) {
+            currentQueue[i]();
+        }
+        len = queue.length;
+    }
+    draining = false;
+}
+process.nextTick = function (fun) {
+    queue.push(fun);
+    if (!draining) {
+        setTimeout(drainQueue, 0);
+    }
+};
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],2:[function(require,module,exports){
 'use strict';
 
 var Element = require('./element');
@@ -61,7 +121,7 @@ module.exports = (function () {
     return new ElementKit();
 
 })();
-},{"./element":2,"./image-element":3}],2:[function(require,module,exports){
+},{"./element":3,"./image-element":4}],3:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -508,7 +568,7 @@ Element.prototype = /** @lends Element */{
 };
 
 module.exports = Element;
-},{"./element-kit":1,"./utils":4}],3:[function(require,module,exports){
+},{"./element-kit":2,"./utils":5}],4:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -618,7 +678,7 @@ ImageElement.prototype = utils.extend({}, Element.prototype, {
 });
 
 module.exports = ImageElement;
-},{"./element":2,"./utils":4}],4:[function(require,module,exports){
+},{"./element":3,"./utils":5}],5:[function(require,module,exports){
 module.exports = {
     /**
      * Creates an HTML Element from an html string.
@@ -656,75 +716,15 @@ module.exports = {
         return merged;
     }
 };
-},{}],5:[function(require,module,exports){
-// shim for using process in browser
-
-var process = module.exports = {};
-var queue = [];
-var draining = false;
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    draining = true;
-    var currentQueue;
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        var i = -1;
-        while (++i < len) {
-            currentQueue[i]();
-        }
-        len = queue.length;
-    }
-    draining = false;
-}
-process.nextTick = function (fun) {
-    queue.push(fun);
-    if (!draining) {
-        setTimeout(drainQueue, 0);
-    }
-};
-
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-// TODO(shtylman)
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
 },{}],6:[function(require,module,exports){
-arguments[4][1][0].apply(exports,arguments)
-},{"./element":7,"./image-element":8,"dup":1}],7:[function(require,module,exports){
 arguments[4][2][0].apply(exports,arguments)
-},{"./element-kit":6,"./utils":9,"dup":2}],8:[function(require,module,exports){
+},{"./element":7,"./image-element":8,"dup":2}],7:[function(require,module,exports){
 arguments[4][3][0].apply(exports,arguments)
-},{"./element":7,"./utils":9,"dup":3}],9:[function(require,module,exports){
+},{"./element-kit":6,"./utils":9,"dup":3}],8:[function(require,module,exports){
 arguments[4][4][0].apply(exports,arguments)
-},{"dup":4}],10:[function(require,module,exports){
+},{"./element":7,"./utils":9,"dup":4}],9:[function(require,module,exports){
+arguments[4][5][0].apply(exports,arguments)
+},{"dup":5}],10:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./lib/core.js')
@@ -1145,7 +1145,7 @@ module.exports = asap;
 
 
 }).call(this,require('_process'))
-},{"_process":5}],16:[function(require,module,exports){
+},{"_process":1}],16:[function(require,module,exports){
 'use strict';
 
 var EventManager = require('event-manager');
@@ -3459,7 +3459,7 @@ ButtonToggle.prototype = _.extend({}, FormElement.prototype, /** @lends ButtonTo
 });
 
 module.exports = ButtonToggle;
-},{"./form-element":24,"element-kit":1,"underscore":20}],22:[function(require,module,exports){
+},{"./form-element":24,"element-kit":2,"underscore":20}],22:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 var FormElement = require('./form-element');
@@ -3674,11 +3674,11 @@ Checkbox.prototype = _.extend({}, FormElement.prototype, /** @lends Checkbox.pro
 });
 
 module.exports = Checkbox;
-},{"./form-element":24,"element-kit":1,"underscore":20}],23:[function(require,module,exports){
+},{"./form-element":24,"element-kit":2,"underscore":20}],23:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 var FormElement = require('./form-element');
-var Device = require('device');
+var Device = require('./../node_modules/rogue/src/device.js');
 
 require('element-kit');
 /**
@@ -3694,7 +3694,7 @@ require('element-kit');
  * Falls back to native dropdowns on mobile devices.
  * @constructor Dropdown
  * @param {object} options - Options to pass
- * @param {HTMLSelectElement} options.el - The container of the tooltip
+ * @param {HTMLSelectElement} options.el - The container of the dropdown
  * @param {Dropdown~onChange} [options.onChange] - A callback function that fires when the selected dropdown value changes
  * @param {Boolean} [options.autoSetup] - When to automatically setup the dropdown (add event listeners, etc)
  * @param {string} [options.containerClass] - The css class to use for the dropdown container for the ui representation of the dropdown
@@ -3748,27 +3748,20 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
 
         el.kit.addEventListener('change', '_onSelectChange', this);
 
-        if(!Device.isMobile()){
-            // user is on desktop!
-            // hide original select element
-            this._origDisplayValue = el.style.display;
-            el.style.display = 'none';
+        // build html
+        el.insertAdjacentHTML('afterend',
+            '<div class="' + this.options.containerClass + '">' +
+            this._buildSelectedValueHtml() + this._buildOptionsHtml() +
+            '</div>');
 
-            // build html
-            el.insertAdjacentHTML('afterend',
-                '<div class="' + this.options.containerClass + '">' +
-                this._buildSelectedValueHtml() + this._buildOptionsHtml() +
-                '</div>');
+        this._setupEvents();
 
-            this._setupEvents();
+        if (selectedOption) {
+            this._setUISelectedValue(selectedOption.value);
+        }
 
-            if (selectedOption) {
-                this._setUISelectedValue(selectedOption.value, selectedOption.textContent);
-            }
-
-            if (this.getFormElement().disabled) {
-                this.disable();
-            }
+        if (this.getFormElement().disabled) {
+            this.disable();
         }
 
     },
@@ -3846,7 +3839,7 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
             // set the current value of the REAL dropdown
             this.setValue(newDataValue);
             // set value of ui dropdown
-            this._setUISelectedValue(newDataValue, newDisplayValue);
+            this._setUISelectedValue(newDataValue);
         }
     },
 
@@ -3898,8 +3891,10 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
      * @memberOf Dropdown
      */
     _onSelectChange: function (e) {
+        var value = this.getValue();
+        this._setUISelectedValue(value);
         if (this.options.onChange) {
-            this.options.onChange(this.getFormElement(), this.getUIElement(), e);
+            this.options.onChange(value, this.getFormElement(), this.getUIElement(), e);
         }
     },
 
@@ -3972,9 +3967,7 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
                 'value attribute of ' + dataValue + '.');
             }
 
-            if (!Device.isMobile()) {
-                this._setUISelectedValue(dataValue, newOptionEl.textContent);
-            }
+            this._setUISelectedValue(dataValue);
         }
 
     },
@@ -4017,7 +4010,7 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
 });
 
 module.exports = Dropdown;
-},{"./form-element":24,"device":16,"element-kit":1,"underscore":20}],24:[function(require,module,exports){
+},{"./../node_modules/rogue/src/device.js":16,"./form-element":24,"element-kit":2,"underscore":20}],24:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 require('element-kit');
@@ -4119,7 +4112,7 @@ FormElement.prototype = /** @lends FormElement.prototype */{
 };
 
 module.exports = FormElement;
-},{"element-kit":1,"underscore":20}],25:[function(require,module,exports){
+},{"element-kit":2,"underscore":20}],25:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 require('element-kit');
@@ -4234,7 +4227,7 @@ Form.prototype = /** @lends Form */{
 };
 
 module.exports = Form;
-},{"element-kit":1,"underscore":20}],26:[function(require,module,exports){
+},{"element-kit":2,"underscore":20}],26:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 var FormElement = require('./form-element');
@@ -4559,5 +4552,5 @@ InputField.prototype = _.extend({}, FormElement.prototype, /** @lends InputField
 });
 
 module.exports = InputField;
-},{"./form-element":24,"element-kit":1,"underscore":20}]},{},[21,22,23,24,25,26])(26)
+},{"./form-element":24,"element-kit":2,"underscore":20}]},{},[21,22,23,24,25,26])(26)
 });
