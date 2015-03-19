@@ -1,7 +1,6 @@
 'use strict';
 var _ = require('underscore');
 var FormElement = require('./form-element');
-var Device = require('./../node_modules/rogue/src/device.js');
 
 require('element-kit');
 /**
