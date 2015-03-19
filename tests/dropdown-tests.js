@@ -1,15 +1,10 @@
-define([
-    'sinon',
-    'qunit',
-    'test-utils',
-    'src/form'
-], function(
-    Sinon,
-    QUnit,
-    TestUtils,
-    Form
-){
-    "use strict";
+"use strict";
+var Sinon = require('sinon');
+var QUnit = require('qunit');
+var Dropdown = require('../src/dropdown');
+var Device = require('device');
+
+module.exports = (function (){
 
     QUnit.module('Dropdown Tests');
 
@@ -23,14 +18,15 @@ define([
     QUnit.test('setting and getting dropdown values (mobile)', function() {
         QUnit.expect(7);
         var fixture = document.getElementById('qunit-fixture');
-        var selectEl = TestUtils.createHtmlElement(html);
-        fixture.appendChild(selectEl);
+        fixture.innerHTML = html;
+        var selectEl = fixture.childNodes[0];
         var origWindowOrientation = window.orientation;
         window.orientation = true; // make sure we're testing for mobile
         var options = selectEl.getElementsByTagName('option');
         options[1].selected = true; // make second item selected initially
         var onChangeSpy = Sinon.spy();
-        var dropdown = new Form.Dropdown({el: selectEl, onChange: onChangeSpy});
+        var isMobileStub = Sinon.stub(Device, 'isMobile').returns(true);
+        var dropdown = new Dropdown({el: selectEl, onChange: onChangeSpy});
         QUnit.equal(dropdown.getValue(), options[1].value, 'calling getValue() returns second item\'s value since it is was designated as selected initially');
         QUnit.equal(dropdown.getDisplayValue(), options[1].textContent, 'calling getDisplayValue() returns second item\'s display value');
         QUnit.equal(onChangeSpy.callCount, 0, 'onChange callback was NOT fired because value hasnt been changed yet');
@@ -42,6 +38,7 @@ define([
         QUnit.equal(dropdown.getDisplayValue(), options[2].textContent, 'calling getDisplayValue() returns third item\'s display value');
         QUnit.equal(selectChangeSpy.callCount, 1, 'selects native change event was fired');
         QUnit.deepEqual(onChangeSpy.args[0], [selectEl, selectEl, selectChangeSpy.args[0][0]], 'onChange callback was fired with third items args');
+        isMobileStub.restore();
         dropdown.destroy();
         window.orientation = origWindowOrientation;
     });
@@ -51,7 +48,8 @@ define([
         var origWindowOrientation = window.orientation;
         window.orientation = undefined; // make sure we're testing for desktop
         var fixture = document.getElementById('qunit-fixture');
-        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.innerHTML = html;
+        var selectEl = fixture.childNodes[0];
         fixture.appendChild(selectEl);
         // test
         var uiContainerClass = 'my-ui-container';
@@ -60,7 +58,7 @@ define([
         var uiSelectedValueContainerClass = 'my-selected-val-container';
         var originalDisplayType = 'inline-block';
         selectEl.style.display = originalDisplayType; // set to inline block to test if put back on destroy
-        var dropdown = new Form.Dropdown({
+        var dropdown = new Dropdown({
             el: selectEl,
             containerClass: uiContainerClass,
             optionsContainerClass: uiOptionsContainerClass,
@@ -85,8 +83,8 @@ define([
         var origWindowOrientation = window.orientation;
         window.orientation = undefined; // make sure we're testing for desktop
         var fixture = document.getElementById('qunit-fixture');
-        var selectEl = TestUtils.createHtmlElement(html);
-        fixture.appendChild(selectEl);
+        fixture.innerHTML = html;
+        var selectEl = fixture.childNodes[0];
         var formOptionEls = selectEl.getElementsByTagName('option');
         var uiContainerClass = 'my-ui-container';
         var uiOptionsContainerClass = 'my-options-container';
@@ -94,7 +92,7 @@ define([
         var uiSelectedValueContainerClass = 'my-selected-val-container';
         var uiOptionsSelectedClass = 'my-option-selected';
         formOptionEls[1].setAttribute('selected', 'selected'); // set the second dropdown as selected
-        var dropdown = new Form.Dropdown({
+        var dropdown = new Dropdown({
             el: selectEl,
             containerClass: uiContainerClass,
             optionsContainerClass: uiOptionsContainerClass,
@@ -117,8 +115,8 @@ define([
         var origWindowOrientation = window.orientation;
         window.orientation = undefined; // make sure we're testing for desktop
         var fixture = document.getElementById('qunit-fixture');
-        var selectEl = TestUtils.createHtmlElement(html);
-        fixture.appendChild(selectEl);
+        fixture.innerHTML = html;
+        var selectEl = fixture.childNodes[0];
         var formOptionEls = selectEl.getElementsByTagName('option');
         var uiContainerClass = 'my-ui-container';
         var uiOptionsContainerClass = 'my-options-container';
@@ -126,7 +124,7 @@ define([
         var uiSelectedValueContainerClass = 'my-selected-val-container';
         var uiOptionsContainerActiveClass = 'active-options-container';
         var onChangeSpy = Sinon.spy();
-        var dropdown = new Form.Dropdown({
+        var dropdown = new Dropdown({
             el: selectEl,
             containerClass: uiContainerClass,
             optionsContainerClass: uiOptionsContainerClass,
@@ -143,10 +141,14 @@ define([
         var uiSelectedValueContainerEl = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
         QUnit.ok(!uiEl.classList.contains(uiOptionsContainerActiveClass), 'on initialize, options container element does NOT have active class');
         // click on selected value container to show options
-        uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('click', false, false, null);
+        uiSelectedValueContainerEl.dispatchEvent(event);
         QUnit.ok(uiEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on selected value container element, options container now has active class');
         // click on second option element
-        uiOptionEls[1].dispatchEvent(TestUtils.createEvent('click'));
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('click', false, false, null);
+        uiOptionEls[1].dispatchEvent(event);
         QUnit.equal(dropdown.getValue(), formOptionEls[1].value, 'after clicking on second item, getValue() returns data value of second item correctly');
         QUnit.equal(uiSelectedValueContainerEl.getAttribute('data-value'), formOptionEls[1].value, 'selected value container reflects the second item data value');
         QUnit.deepEqual(onChangeSpy.args[0], [selectEl, uiEl, selectChangeSpy.args[0][0]], 'onChange callback was fired with correct args');
@@ -160,10 +162,10 @@ define([
         var origWindowOrientation = window.orientation;
         window.orientation = true; // test for mobile but would work for desktops too
         var fixture = document.getElementById('qunit-fixture');
-        var selectEl = TestUtils.createHtmlElement(html);
-        fixture.appendChild(selectEl);
+        fixture.innerHTML = html;
+        var selectEl = fixture.childNodes[0];
         var options = selectEl.getElementsByTagName('option');
-        var dropdown = new Form.Dropdown({el: selectEl});
+        var dropdown = new Dropdown({el: selectEl});
         QUnit.equal(dropdown.getOptionByDisplayValue(options[1].innerHTML), options[1], 'calling getOptionByDisplayValue() with second items display value returns the second item option el');
         QUnit.equal(dropdown.getOptionByDataValue(options[1].value), options[1], 'calling getOptionByDataValue() with second items display value returns the second item option el');
         dropdown.destroy();
@@ -182,8 +184,8 @@ define([
             '<option value="GOOG">Google</option>' +
         '</select>';
         var fixture = document.getElementById('qunit-fixture');
-        var selectEl = TestUtils.createHtmlElement(html);
-        fixture.appendChild(selectEl);
+        fixture.innerHTML = html;
+        var selectEl = fixture.childNodes[0];
         var formOptionEls = selectEl.getElementsByTagName('option');
         var uiContainerClass = 'my-ui-container';
         var uiOptionsContainerClass = 'my-options-container';
@@ -194,7 +196,7 @@ define([
         var uiOptionsSelectedClass = 'option-selected';
         var onChangeSpy = Sinon.spy();
         selectEl.disabled = true; // pre-disable
-        var dropdown = new Form.Dropdown({
+        var dropdown = new Dropdown({
             el: selectEl,
             containerClass: uiContainerClass,
             optionsContainerClass: uiOptionsContainerClass,
@@ -227,10 +229,14 @@ define([
         QUnit.equal(uiOptionsContainerEl.getElementsByClassName(uiOptionsSelectedClass).length, 0, 'there are no selected ui option elements');
         QUnit.equal(onChangeSpy.callCount, 0, 'onChange callback did NOT fire');
         // click on selected value container to show options
-        uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('click', false, false, null);
+        uiSelectedValueContainerEl.dispatchEvent(event);
         QUnit.ok(uiEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on selected value container element, options container does NOT have active class');
         // click on second option element
-        uiOptionEls[1].dispatchEvent(TestUtils.createEvent('click'));
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('click', false, false, null);
+        uiOptionEls[1].dispatchEvent(event);
         QUnit.equal(selectEl.value, '', 'when clicking on an option while the dropdown is disabled, select element data value still did not change');
         QUnit.equal(uiSelectedValueContainerEl.getAttribute('data-value'), '', 'ui element selected container data value is still empty');
         QUnit.equal(uiSelectedValueContainerEl.innerHTML, '', 'ui element selected container display value is still empty');
@@ -240,4 +246,4 @@ define([
         window.orientation = origWindowOrientation;
     });
 
-});
+})();

@@ -1,6 +1,6 @@
 {
   "name": "formjs",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "homepage": "https://github.com/mkay581/formjs",
   "authors": [
     "Mark Kennedy <mkay581@gmail.com>"
@@ -36,14 +36,5 @@
     "bower_components",
     "test",
     "tests"
-  ],
-  "dependencies": {
-    "element-kit": "~0.1.1",
-    "underscore": "~1.7.0"
-  },
-  "devDependencies": {
-    "sinonjs": "~1.10.2",
-    "qunit": "~1.16.0",
-    "requirejs": "~2.1.15"
-  }
+  ]
 }
