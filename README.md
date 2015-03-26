@@ -37,7 +37,7 @@ please see the RequireJS website.
 ```
 
 ```javascript
-var dropdown = new Form.Dropdown({
+var dropdown = new Dropdown({
     el: document.getElementsByTagName('select')[0]
 });
 
@@ -47,18 +47,15 @@ dropdown.getValue(); // => "DC"
 dropdown.getDisplayValue(); // => "Washington, DC"
 ```
 
-### Input Fields with placeholder support
+### Input Fields
 
-Input fields come with automatic support for the [native placeholder
-attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input#attr-placeholder)
-(even for older browsers, like IE9) along with a few other goodies. Here's an example:
 
 ```html
 <input type="text" value="" placeholder="Enter text here" />
 ```
 
 ```javascript
-var inputField = new Form.InputField({
+var inputField = new InputField({
     el: document.getElementsByTagName('input')[0],
     onChange: function (el) {
         // user has finished typing into the field!
@@ -85,4 +82,4 @@ Examples can be found in the [examples](https://github.com/mkay581/formjs/blob/m
 
 ## Release History
 
- * 2014-12-08   v0.1.0  Official release.
+ * 2015-03-26   v1.0.0  Official release.
