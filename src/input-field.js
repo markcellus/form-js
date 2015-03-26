@@ -31,7 +31,6 @@ require('element-kit');
  * @param {string} [options.inputClass] - The css class that will be applied to the the input field element
  * @param {string} [options.disabledClass] - The css class that will be applied to the input field container element when disabled
  * @param {string} [options.activeClass] - The css class that will be applied to the input field container element when in focus
- * @param {string} [options.placeholderClass] - The css class that is added when the placeholder text shows (removed when hidden)
  */
 var InputField = function (options) {
     this.initialize(options);
@@ -52,8 +51,7 @@ InputField.prototype = _.extend({}, FormElement.prototype, /** @lends InputField
             containerClass: 'ui-input-text',
             inputClass: 'ui-input-text-input',
             disabledClass: 'ui-input-text-disabled',
-            activeClass: 'ui-input-text-active',
-            placeholderClass: 'ui-input-text-placeholder'
+            activeClass: 'ui-input-text-active'
         }, options);
 
         FormElement.prototype.initialize.call(this, this.options);
@@ -84,11 +82,6 @@ InputField.prototype = _.extend({}, FormElement.prototype, /** @lends InputField
         }
 
         this._bindEvents();
-
-        // setup placeholder text
-        if (!this.origInputValue) {
-            this.showPlaceholder();
-        }
 
     },
 
@@ -142,32 +135,13 @@ InputField.prototype = _.extend({}, FormElement.prototype, /** @lends InputField
     },
 
     /**
-     * Checks whether placeholder attribute are supported by the browser.
-     * @returns {boolean} Returns true if browser supports it
-     */
-    isPlaceholderSupported: function () {
-        var version = getIEVersion();
-        return !version || (version !== 8 && version !== 9);
-    },
-
-    /**
-     * Shows placeholder text.
-     */
-    showPlaceholder: function () {
-        if (!this.isPlaceholderSupported()) {
-            this.getFormElement().value = this.getPlaceholder();
-            this.getUIElement().kit.classList.add(this.options.placeholderClass);
-        }
-    },
-
-    /**
      * Sets the value of the input field.
      * @param {string} value - The new input field value
      */
     setValue: function (value) {
         var input = this.getFormElement(),
             currentVal = input.value;
-        if (value !== currentVal && value !== this.getPlaceholder()) {
+        if (value !== currentVal) {
             this.getFormElement().value = value;
             this._triggerChange();
         }
@@ -182,16 +156,6 @@ InputField.prototype = _.extend({}, FormElement.prototype, /** @lends InputField
     },
 
     /**
-     * Clears placeholder text.
-     */
-    clearPlaceholder: function () {
-        if (!this.isPlaceholderSupported()) {
-            this.getFormElement().value = '';
-            this.getUIElement().kit.classList.remove(this.options.placeholderClass);
-        }
-    },
-
-    /**
      * Builds the UI-friendly version of input field by wrapping it inside of a container.
      * @param {HTMLInputElement} inputEl - The input element
      * @returns {HTMLElement} Returns the input element wrapped in its container
@@ -202,26 +166,10 @@ InputField.prototype = _.extend({}, FormElement.prototype, /** @lends InputField
     },
 
     /**
-     * Gets the current placeholder text.
-     * @returns {string}
-     */
-    getPlaceholder: function () {
-        var value = this.getFormElement().getAttribute('placeholder');
-        // silly IE returns "null" for inputs that dont have a placeholder attribute
-        if (value === null) {
-            value = '';
-        }
-        return value;
-    },
-
-    /**
      * When the input gains focus.
      * @private
      */
     _onInputFocus: function () {
-        if (this.getValue() === this.getPlaceholder()) {
-            this.clearPlaceholder();
-        }
         this.getUIElement().kit.classList.add(this.options.activeClass);
     },
 
@@ -230,9 +178,6 @@ InputField.prototype = _.extend({}, FormElement.prototype, /** @lends InputField
      * @private
      */
     _onInputBlur: function () {
-        if (!this.getValue()) {
-            this.showPlaceholder();
-        }
         this.getUIElement().kit.classList.remove(this.options.activeClass);
     },
 

@@ -195,7 +195,7 @@ module.exports = (function (){
     });
 
     QUnit.test('new value changed on select dropdown updates its ui counterpart', function() {
-        QUnit.expect(1);
+        QUnit.expect(2);
         var fixture = document.getElementById('qunit-fixture');
         var selectEl = TestUtils.createHtmlElement(html);
         fixture.appendChild(selectEl);
