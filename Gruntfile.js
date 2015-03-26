@@ -22,20 +22,25 @@ module.exports = function(grunt) {
         },
         bt: {
             dist: 'dist',
-            uglify: {
+            min: {
                 files: {
-                    'dist/form-min.js': ['dist/form.js']
+                    'dist/form-min.js': ['dist/form.js'],
+                    'dist/button-toggle-min.js': ['dist/button-toggle.js'],
+                    'dist/checkbox-min.js': ['dist/checkbox.js'],
+                    'dist/dropdown-min.js': ['dist/dropdown.js'],
+                    'dist/input-field-min.js': ['dist/input-field.js']
                 }
             },
-            browserify: {
+            build: {
                 files: {
-                    'dist/form.js': ['src/**/*.js']
+                    'dist/form.js': ['src/form.js'],
+                    'dist/button-toggle.js': ['src/button-toggle.js'],
+                    'dist/checkbox.js': ['src/checkbox.js'],
+                    'dist/dropdown.js': ['src/dropdown.js'],
+                    'dist/input-field.js': ['src/input-field.js']
                 },
-                options: {
-                    browserifyOptions: {
-                        standalone: 'Form'
-                    }
-
+                browserifyOptions: {
+                    standalone: 'Form'
                 }
             },
             tests: {
