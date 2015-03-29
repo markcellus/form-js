@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mkay581/formjs.svg?branch=master)](https://travis-ci.org/mkay581/formjs)
+
 # FormJS
 
 Allows you easily re-style native form elements across all browsers and falls back to native form elements for mobile devices.
