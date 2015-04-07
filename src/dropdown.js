@@ -163,6 +163,8 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
             // set value of ui dropdown
             this._setUISelectedValue(newDataValue);
         }
+        this.getUIElement().kit.classList.remove(this.options.optionsContainerActiveClass);
+
     },
 
     /**

@@ -212,5 +212,34 @@ module.exports = (function (){
         dropdown.destroy();
     });
 
+    QUnit.test('clicking a ui dropdown selection should remove active class from dropdown container element', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var uiContainerClass = 'my-ui-container';
+        var uiOptionsContainerClass = 'my-options-container';
+        var uiOptionsClass = 'my-option';
+        var uiSelectedValueContainerClass = 'my-selected-val-container';
+        var uiOptionsContainerActiveClass = 'active-options-container';
+        var dropdown = new Dropdown({
+            el: selectEl,
+            containerClass: uiContainerClass,
+            optionsContainerClass: uiOptionsContainerClass,
+            optionsClass: uiOptionsClass,
+            optionsContainerActiveClass: uiOptionsContainerActiveClass,
+            selectedValueContainerClass: uiSelectedValueContainerClass
+        });
+        var uiEl = fixture.getElementsByClassName(uiContainerClass)[0];
+        var uiOptionEls = uiEl.getElementsByClassName(uiOptionsClass);
+        var uiSelectedValueContainerEl = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
+        // click on selected value container to show options
+        uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
+        // click on second option element
+        uiOptionEls[1].dispatchEvent(TestUtils.createEvent('click'));
+        QUnit.ok(!uiEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on an option ui item, dropdown container no longer has active class');
+        dropdown.destroy();
+    });
+
 
 })();
