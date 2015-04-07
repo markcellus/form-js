@@ -1,7 +1,9 @@
+[![Build Status](https://travis-ci.org/mkay581/formjs.svg?branch=master)](https://travis-ci.org/mkay581/formjs)
+
 # FormJS
 
 Allows you easily re-style native form elements across all browsers and falls back to native form elements for mobile devices.
-Also, provides a simple API to manipulate form elements with javascript. Supports IE9+, all modern browsers, and mobile.
+Also, provides a simple API to manipulate form elements with javascript. Supports IE10+, all modern browsers, and mobile.
 
 UI Elements include:
 
@@ -11,48 +13,70 @@ UI Elements include:
  * Dropdowns
  * Entire forms
 
-## Dependencies
-
-To use FormJS, you'll need:
-
-* [RequireJS](http://requirejs.org/) - AMD and dependency management
-* [ElementKit](https://github.com/mkay581/element-kit) - Fast DOM manipulation for Elements
-
-Of course, if you use [Bower's](http://bower.io/) `bower install` to install this project, it will automatically inject all of the above dependencies for you.
-
 ## Usage
 
-To use any classes in FormJS, you must [RequireJS](http://requirejs.org/) to import them. The Classes assume
-you have a thorough understanding of the [AMD model](https://github.com/amdjs/amdjs-api/wiki/AMD). If not,
-please see the RequireJS website.
+### Styling form elements
 
-### Dropdowns
+Let's say you wanted to style a dropdown menu with the following html:
 
 ```html
 <select>
     <option value="MD">Maryland</option>
-    <option value="VA">Virginia</option>
+    <option value="VA" selected>Virginia</option>
     <option value="DC">Washington, DC</option>
 </select>
 ```
+
+With this library, you can do this:
 
 ```javascript
 var dropdown = new Dropdown({
     el: document.getElementsByTagName('select')[0]
 });
+```
 
-dropdown.setValue('DC'); // set the selected value programmatically
+Which will add the following adjacent html into the DOM:
 
+```html
+<div class="dropdown-container">
+    <div class="dropdown-value-container">Virginia</div>
+    <div class="dropdown-option-container">
+        <div class="dropdown-option" data-value="MD">Maryland</div>
+        <div class="dropdown-option dropdown-option-selected" data-value="VA">Virginia</div>
+        <div class="dropdown-option" data-value="DC">Washington, DC</div>
+    </div>
+</div>
+```
+
+Then you can style the dropdown using CSS.
+
+
+### Programmatically change the element's value
+
+Each class comes with a set of utility methods so you can change the elements via JS. Using the example above, you
+could do the following:
+
+```javascript
+// set the selected value programmatically
+dropdown.setValue('DC');
+
+// get the new data value
 dropdown.getValue(); // => "DC"
+
+// get the display value
 dropdown.getDisplayValue(); // => "Washington, DC"
 ```
 
-### Input Fields
+### Listening to change events
+
+You can also listen to events on form elements. Given the following input element...
 
 
 ```html
 <input type="text" value="" placeholder="Enter text here" />
 ```
+
+You can do the following:
 
 ```javascript
 var inputField = new InputField({
@@ -64,17 +88,11 @@ var inputField = new InputField({
         // the user has typed a key into the field!
     }
 });
-
+// set the value
 inputField.setValue('My text'); // set new value
+// get the new value
 inputField.getValue(); // => "My text"
 ```
-
-
-## Dependencies
-
-* [RequireJS](http://requirejs.org/) - AMD and dependency management
-* [ElementKit](https://github.com/mkay581/element-kit) - Fast DOM manipulation for html elements
-
 
 ## Examples
  

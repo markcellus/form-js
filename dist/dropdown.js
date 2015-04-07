@@ -1,5 +1,5 @@
 /** 
-* formjs - v1.1.0.
+* formjs - v1.1.1.
 * https://github.com/mkay581/formjs.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -2361,6 +2361,8 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
             // set value of ui dropdown
             this._setUISelectedValue(newDataValue);
         }
+        this.getUIElement().kit.classList.remove(this.options.optionsContainerActiveClass);
+
     },
 
     /**
