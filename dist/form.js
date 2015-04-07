@@ -1,5 +1,5 @@
 /** 
-* formjs - v1.1.0.
+* formjs - v1.1.1.
 * https://github.com/mkay581/formjs.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -2963,6 +2963,8 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
             // set value of ui dropdown
             this._setUISelectedValue(newDataValue);
         }
+        this.getUIElement().kit.classList.remove(this.options.optionsContainerActiveClass);
+
     },
 
     /**
@@ -3263,7 +3265,7 @@ require('element-kit');
  * @param {object} options - The options
  * @param {HTMLFormElement} [options.el] - The form element
  * @param {HTMLFormElement} options.el - The form element
- * @param {Form~onValueChange} [options.onValueChange] - A callback function that fires when the input value changes
+ * @param {Form~onValueChange} [options.onValueChange] - A callback function that fires when the value of any form element changes
  * @param {Function} [options.onGetOptions] - Function callback that is fired upon instantiation to provide custom options
  * @param {string} [options.dropdownClass] - The css class used to query the set of dropdown elements that should be included
  * @param {string} [options.checkboxClass] - The css class used to query the set of checkbox elements that should be included
