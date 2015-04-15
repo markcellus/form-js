@@ -30,24 +30,20 @@ require('element-kit');
  * Turns input radio or checkbox html elements into a Button Toggle.
  * @class ButtonToggle
  * @extends FormElement
- * @param {Array|HTMLInputElement} options.inputs - The collection of input elements to be made into toggle items
- * @param {ButtonToggle~onChange} [options.onChange] - A callback function that fires when one of the toggle elements are selected
- * @param {string} [options.containerClass] - The css class that will be applied to each toggle item's container
- * @param {string} [options.inputClass] - The css class that will be applied to each toggle item (input element)
- * @param {ButtonToggle~onSelect} [options.onSelect] - A callback function that fires when the button toggle element is selected
- * @param {ButtonToggle~onDeselect} [options.onDeselect] - A callback function that fires when the button toggle element is deselected
- * @param {string} [options.selectedClass] - The css class that will be applied to a button toggle item (UI-version) when it is selected
- * @param {string} [options.disabledClass] - The css class that will be applied to a button toggle item (UI-version) when it is disabled
  */
-var ButtonToggle = function (options) {
-    this.initialize(options);
-};
-
-ButtonToggle.prototype = _.extend({}, FormElement.prototype, /** @lends ButtonToggle.prototype */{
+var ButtonToggle = FormElement.extend({
 
     /**
      * Initialization.
      * @param {object} options - Options passed into instance
+     * @param {Array|HTMLInputElement} options.inputs - The collection of input elements to be made into toggle items
+     * @param {ButtonToggle~onChange} [options.onChange] - A callback function that fires when one of the toggle elements are selected
+     * @param {string} [options.containerClass] - The css class that will be applied to each toggle item's container
+     * @param {string} [options.inputClass] - The css class that will be applied to each toggle item (input element)
+     * @param {ButtonToggle~onSelect} [options.onSelect] - A callback function that fires when the button toggle element is selected
+     * @param {ButtonToggle~onDeselect} [options.onDeselect] - A callback function that fires when the button toggle element is deselected
+     * @param {string} [options.selectedClass] - The css class that will be applied to a button toggle item (UI-version) when it is selected
+     * @param {string} [options.disabledClass] - The css class that will be applied to a button toggle item (UI-version) when it is disabled
      */
     initialize: function (options) {
 

@@ -1,5 +1,6 @@
 'use strict';
 var _ = require('underscore');
+var Module = require('module.js');
 var Dropdown = require('./dropdown');
 var InputField = require('./input-field');
 var Checkbox = require('./checkbox');
@@ -23,25 +24,19 @@ require('element-kit');
 /**
  * Utility class for form elements.
  * @class Form
- * @param {object} options - The options
- * @param {HTMLFormElement} [options.el] - The form element
- * @param {HTMLFormElement} options.el - The form element
- * @param {Form~onValueChange} [options.onValueChange] - A callback function that fires when the value of any form element changes
- * @param {Function} [options.onGetOptions] - Function callback that is fired upon instantiation to provide custom options
- * @param {string} [options.dropdownClass] - The css class used to query the set of dropdown elements that should be included
- * @param {string} [options.checkboxClass] - The css class used to query the set of checkbox elements that should be included
- * @param {string} [options.inputFieldClass] - The css class used to query the set of text input elements that should be included
  */
-var Form = function (options) {
-    this.initialize(options);
-};
-
-Form.prototype = /** @lends Form */{
+var Form = Module.extend({
 
     /**
      * Sets up the form.
      * @param {object} options - The options
-
+     * @param {HTMLFormElement} [options.el] - The form element
+     * @param {HTMLFormElement} options.el - The form element
+     * @param {Form~onValueChange} [options.onValueChange] - A callback function that fires when the value of any form element changes
+     * @param {Function} [options.onGetOptions] - Function callback that is fired upon instantiation to provide custom options
+     * @param {string} [options.dropdownClass] - The css class used to query the set of dropdown elements that should be included
+     * @param {string} [options.checkboxClass] - The css class used to query the set of checkbox elements that should be included
+     * @param {string} [options.inputFieldClass] - The css class used to query the set of text input elements that should be included
      */
     initialize: function (options) {
 
@@ -232,6 +227,6 @@ Form.prototype = /** @lends Form */{
             this._formInstances[i].destroy();
         }
     }
-};
+});
 
 module.exports = Form;

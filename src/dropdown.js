@@ -15,27 +15,22 @@ require('element-kit');
  * Adds JS functionality to a select element and creates a ui representation of it to allow custom styling.
  * Falls back to native dropdowns on mobile devices.
  * @constructor Dropdown
- * @param {object} options - Options to pass
- * @param {HTMLSelectElement} options.el - The container of the dropdown
- * @param {Dropdown~onChange} [options.onChange] - A callback function that fires when the selected dropdown value changes
- * @param {Boolean} [options.autoSetup] - When to automatically setup the dropdown (add event listeners, etc)
- * @param {string} [options.containerClass] - The css class to use for the dropdown container for the ui representation of the dropdown
- * @param {string} [options.optionsContainerClass] - The css class to use for the options container of the ui representation of the dropdown
- * @param {string} [options.optionsContainerActiveClass] - The css class that will applied to the ui representation of an option element when it should be visible to the user
- * @param {string} [options.optionsClass] - The css class to use for the ui representation of all options elements
- * @param {string} [options.optionsSelectedClass] - The css class to use for the option element of the ui representation of the dropdown when it is selected
- * @param {string} [options.selectedValueContainerClass] - The css class to use for the selected value container of the dropdown
- * @param {string} [options.selectedValueContainerActiveClass] - The css class that will be applied to the selected value container when it should be visible to the user
  */
-var Dropdown = function (options) {
-    this.initialize(options);
-};
-
-Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.prototype */{
+var Dropdown = FormElement.extend({
 
     /**
      * When instantiated.
      * @param options
+     * @param {HTMLSelectElement} options.el - The container of the dropdown
+     * @param {Dropdown~onChange} [options.onChange] - A callback function that fires when the selected dropdown value changes
+     * @param {Boolean} [options.autoSetup] - When to automatically setup the dropdown (add event listeners, etc)
+     * @param {string} [options.containerClass] - The css class to use for the dropdown container for the ui representation of the dropdown
+     * @param {string} [options.optionsContainerClass] - The css class to use for the options container of the ui representation of the dropdown
+     * @param {string} [options.optionsContainerActiveClass] - The css class that will applied to the ui representation of an option element when it should be visible to the user
+     * @param {string} [options.optionsClass] - The css class to use for the ui representation of all options elements
+     * @param {string} [options.optionsSelectedClass] - The css class to use for the option element of the ui representation of the dropdown when it is selected
+     * @param {string} [options.selectedValueContainerClass] - The css class to use for the selected value container of the dropdown
+     * @param {string} [options.selectedValueContainerActiveClass] - The css class that will be applied to the selected value container when it should be visible to the user
      */
     initialize: function (options) {
 

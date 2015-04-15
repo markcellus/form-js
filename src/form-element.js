@@ -1,21 +1,18 @@
 'use strict';
 var _ = require('underscore');
+var Module = require('module.js');
 require('element-kit');
 
 /**
  * @class FormElement
  * @description An extendable base class that provides common functionality among all form elements.
- * @param {Object} options - Instantiation options
  */
-var FormElement = function (options) {
-    this.initialize(options);
-};
-
-FormElement.prototype = /** @lends FormElement.prototype */{
+var FormElement = Module.extend({
 
     /**
      * Sets up stuff.
      * @abstract
+     * @param {Object} options - Instantiation options
      */
     initialize: function (options) {
         this.options = options || {};
@@ -96,6 +93,6 @@ FormElement.prototype = /** @lends FormElement.prototype */{
      */
     destroy: function () {}
 
-};
+});
 
 module.exports = FormElement;
