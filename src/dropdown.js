@@ -101,17 +101,15 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
             selectedClass = this.options.optionsSelectedClass,
             selectedValueContainerEl = this.getUIElement().getElementsByClassName(this.options.selectedValueContainerClass)[0];
 
-        if (!this.getFormElement().disabled) {
-            selectedValueContainerEl.setAttribute('data-value', dataValue);
-            selectedValueContainerEl.innerHTML = newSelectedOptionEl.textContent;
+        selectedValueContainerEl.setAttribute('data-value', dataValue);
+        selectedValueContainerEl.innerHTML = newSelectedOptionEl.textContent;
 
-            // remove selected class from previously selected option
-            if (prevSelectedOption) {
-                prevSelectedOption.kit.classList.remove(selectedClass)
-            }
-            // add selected class to new option
-            newSelectedOptionEl.kit.classList.add(selectedClass);
+        // remove selected class from previously selected option
+        if (prevSelectedOption) {
+            prevSelectedOption.kit.classList.remove(selectedClass)
         }
+        // add selected class to new option
+        newSelectedOptionEl.kit.classList.add(selectedClass);
 
     },
 
@@ -272,27 +270,25 @@ Dropdown.prototype = _.extend({}, FormElement.prototype, /** @lends Dropdown.pro
             e = document.createEvent('HTMLEvents'),
             formEl = this.getFormElement();
 
-        if (!formEl.disabled) {
-            e.initEvent('change', false, true);
+        e.initEvent('change', false, true);
 
-            // switch selected value because browser doesnt do it for us
-            if (origOptionEl) {
-                origOptionEl.removeAttribute('selected');
-            }
-            if (newOptionEl) {
-                newOptionEl.setAttribute('selected', 'selected');
-                // in most cases, setting attribute (above) also updates the dropdown's value
-                // but for some browsers (like phantomjs), we need to manually set it
-                formEl.value = dataValue;
-                // trigger change event on dropdown
-                formEl.dispatchEvent(e);
-            } else {
-                console.warn('Form Dropdown Error: Cannot call setValue(), dropdown has no option element with a ' +
-                'value attribute of ' + dataValue + '.');
-            }
-
-            this._setUISelectedValue(dataValue);
+        // switch selected value because browser doesnt do it for us
+        if (origOptionEl) {
+            origOptionEl.removeAttribute('selected');
         }
+        if (newOptionEl) {
+            newOptionEl.setAttribute('selected', 'selected');
+            // in most cases, setting attribute (above) also updates the dropdown's value
+            // but for some browsers (like phantomjs), we need to manually set it
+            formEl.value = dataValue;
+            // trigger change event on dropdown
+            formEl.dispatchEvent(e);
+        } else {
+            console.warn('Form Dropdown Error: Cannot call setValue(), dropdown has no option element with a ' +
+            'value attribute of ' + dataValue + '.');
+        }
+
+        this._setUISelectedValue(dataValue);
 
     },
 
