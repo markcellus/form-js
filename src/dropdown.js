@@ -135,8 +135,46 @@ var Dropdown = FormElement.extend({
      * @memberOf Dropdown
      */
     _onClickUIValueContainer: function (e) {
-        // show/hide options container
-        this.getUIElement().kit.classList.toggle(this.options.optionsContainerActiveClass);
+        if (this.isOptionsContainerActive()) {
+            this.hideOptionsContainer();
+        } else {
+            this.showOptionsContainer();
+        }
+    },
+
+    /**
+     * Shows the UI options container element.
+     */
+    showOptionsContainer: function () {
+        this.getUIElement().kit.classList.add(this.options.optionsContainerActiveClass);
+        document.body.kit.addEventListener('click', 'onClickDocument', this);
+    },
+
+    /**
+     * Hides the UI options container element.
+     */
+    hideOptionsContainer: function () {
+        this.getUIElement().kit.classList.remove(this.options.optionsContainerActiveClass);
+        document.body.kit.removeEventListener('click', 'onClickDocument', this);
+    },
+
+    /**
+     * Whether the UI options container element is open.
+     * @returns {boolean} Returns true if container is open
+     */
+    isOptionsContainerActive: function () {
+        return this.getUIElement().kit.classList.contains(this.options.optionsContainerActiveClass);
+    },
+
+    /**
+     * When document is clicked.
+     * @param {Event} e
+     */
+    onClickDocument: function (e) {
+        if (e.currentTarget.getClosestAncestorElementByClassName(this.options.optionsContainerClass)) {
+            // clicked outside of container element!
+            this.hideOptionsContainer();
+        }
     },
 
     /**
@@ -147,8 +185,7 @@ var Dropdown = FormElement.extend({
      */
     _onClickUIOption: function (e) {
         var selectedOption = e.currentTarget,
-            newDataValue = selectedOption.kit.dataset.value,
-            newDisplayValue = selectedOption.textContent;
+            newDataValue = selectedOption.kit.dataset.value;
 
         if (this.getValue() !== newDataValue) {
             // set the current value of the REAL dropdown

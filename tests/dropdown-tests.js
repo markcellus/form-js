@@ -285,5 +285,23 @@ module.exports = (function (){
         dropdown.destroy();
     });
 
+    QUnit.test('clicking outside the ui options container element while it is open should close it', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var uiContainerClass = 'my-ui-container';
+        var uiOptionsContainerActiveClass = 'active-options-container';
+        var dropdown = new Dropdown({
+            el: selectEl,
+            containerClass: uiContainerClass,
+            optionsContainerActiveClass: uiOptionsContainerActiveClass
+        });
+        var uiEl = fixture.getElementsByClassName(uiContainerClass)[0];
+        fixture.dispatchEvent(TestUtils.createEvent('click')); // click on selected value container to show options
+        QUnit.ok(!uiEl.classList.contains(uiOptionsContainerActiveClass), 'since click was NOT in ui options container, ui options container element no longer has active class');
+        dropdown.destroy();
+    });
+
 
 })();
