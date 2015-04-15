@@ -285,21 +285,50 @@ module.exports = (function (){
         dropdown.destroy();
     });
 
-    QUnit.test('clicking outside the ui options container element while it is open should close it', function() {
+    QUnit.test('clicking anywhere outside the ui element when its ui options container element is open should hide the ui options container element', function() {
         QUnit.expect(1);
         var fixture = document.getElementById('qunit-fixture');
         var selectEl = TestUtils.createHtmlElement(html);
         fixture.appendChild(selectEl);
         var uiContainerClass = 'my-ui-container';
         var uiOptionsContainerActiveClass = 'active-options-container';
+        var uiSelectedValueContainerClass = 'my-selected-val-container';
         var dropdown = new Dropdown({
             el: selectEl,
             containerClass: uiContainerClass,
-            optionsContainerActiveClass: uiOptionsContainerActiveClass
+            optionsContainerActiveClass: uiOptionsContainerActiveClass,
+            selectedValueContainerClass: uiSelectedValueContainerClass
         });
         var uiEl = fixture.getElementsByClassName(uiContainerClass)[0];
-        fixture.dispatchEvent(TestUtils.createEvent('click')); // click on selected value container to show options
+        var uiSelectedValueContainerEl = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
+        // click on selected value container to show options
+        uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
+        // click outside
+        fixture.dispatchEvent(TestUtils.createEvent('click'));
         QUnit.ok(!uiEl.classList.contains(uiOptionsContainerActiveClass), 'since click was NOT in ui options container, ui options container element no longer has active class');
+        dropdown.destroy();
+    });
+
+    QUnit.test('clicking on the ui element and anywhere inside of it while ui options container is open does NOT close ui options container', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var uiContainerClass = 'my-ui-container';
+        var uiOptionsContainerActiveClass = 'active-options-container';
+        var uiSelectedValueContainerClass = 'my-selected-val-container';
+        var dropdown = new Dropdown({
+            el: selectEl,
+            containerClass: uiContainerClass,
+            optionsContainerActiveClass: uiOptionsContainerActiveClass,
+            selectedValueContainerClass: uiSelectedValueContainerClass
+        });
+        var uiEl = fixture.getElementsByClassName(uiContainerClass)[0];
+        var uiSelectedValueContainerEl = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
+        // click on selected value container to show options
+        uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
+        // click outside
+        QUnit.ok(uiEl.classList.contains(uiOptionsContainerActiveClass), 'ui options container element still has active class after clicking anywhere inside of ui options container');
         dropdown.destroy();
     });
 

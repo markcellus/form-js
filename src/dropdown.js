@@ -171,8 +171,8 @@ var Dropdown = FormElement.extend({
      * @param {Event} e
      */
     onClickDocument: function (e) {
-        if (e.currentTarget.getClosestAncestorElementByClassName(this.options.optionsContainerClass)) {
-            // clicked outside of container element!
+        if (!e.target.kit.getClosestAncestorElementByClassName(this.options.containerClass)) {
+            // clicked outside of ui element!
             this.hideOptionsContainer();
         }
     },
