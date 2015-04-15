@@ -30,9 +30,10 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
+  "main": "src/form.js",
   "devDependencies": {
+    "build-tools": "^1.3.1",
     "grunt": "0.4.5",
-    "grunt-build-tools": "^1.1.3",
     "grunt-github-pages": "0.0.4",
     "grunt-jsdoc": "0.5.7",
     "load-grunt-tasks": "0.6.0",

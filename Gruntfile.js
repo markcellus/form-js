@@ -21,16 +21,8 @@ module.exports = function(grunt) {
             }
         },
         bt: {
+
             dist: 'dist',
-            min: {
-                files: {
-                    'dist/form-min.js': ['dist/form.js'],
-                    'dist/button-toggle-min.js': ['dist/button-toggle.js'],
-                    'dist/checkbox-min.js': ['dist/checkbox.js'],
-                    'dist/dropdown-min.js': ['dist/dropdown.js'],
-                    'dist/input-field-min.js': ['dist/input-field.js']
-                }
-            },
             build: {
                 files: {
                     'dist/form.js': ['src/form.js'],
@@ -43,6 +35,18 @@ module.exports = function(grunt) {
                     standalone: 'Form'
                 }
             },
+            min: {
+                files: {
+                    'dist/form-min.js': ['dist/form.js'],
+                    'dist/button-toggle-min.js': ['dist/button-toggle.js'],
+                    'dist/checkbox-min.js': ['dist/checkbox.js'],
+                    'dist/dropdown-min.js': ['dist/dropdown.js'],
+                    'dist/input-field-min.js': ['dist/input-field.js']
+                }
+            },
+            banner: {
+                files: ['dist/*']
+            },
             tests: {
                 qunit: {
                     src: ['tests/*.js']
@@ -51,6 +55,7 @@ module.exports = function(grunt) {
         }
     });
 
+    grunt.loadNpmTasks('build-tools');
     require("load-grunt-tasks")(grunt);
 
     grunt.registerTask("publish_docs", [
