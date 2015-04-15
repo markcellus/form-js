@@ -23,24 +23,19 @@ require('element-kit');
  * Adds JS functionality to an input checkbox.
  * @class Checkbox
  * @extends FormElement
- * @param {object} options - Options to pass
- * @param {HTMLInputElement} options.el - The input element checkbox
- * @param {Checkbox~onChecked} [options.onChecked] - A callback function that fires when the checkbox is checked
- * @param {Checkbox~onUnchecked} [options.onUnchecked] - A callback function that fires when the checkbox is un-checked
- * @param {string} [options.containerClass] - The css class that will be applied to the UI-version of the checkbox
- * @param {string} [options.inputClass] - The css class that will be applied to the form version of the checkbox
- * @param {string} [options.checkedClass] - The css class that will be applied to the checkbox (UI-version) when it is checked
- * @param {string} [options.disabledClass] - The css class that will be applied to the checkbox (UI-version) when it is disabled
  */
-var Checkbox = function (options) {
-    this.initialize(options);
-};
-
-Checkbox.prototype = _.extend({}, FormElement.prototype, /** @lends Checkbox.prototype */{
+var Checkbox = FormElement.extend({
 
     /**
      * Initialization.
      * @param {object} options - Options passed into instantiation.
+     * @param {HTMLInputElement} options.el - The input element checkbox
+     * @param {Checkbox~onChecked} [options.onChecked] - A callback function that fires when the checkbox is checked
+     * @param {Checkbox~onUnchecked} [options.onUnchecked] - A callback function that fires when the checkbox is un-checked
+     * @param {string} [options.containerClass] - The css class that will be applied to the UI-version of the checkbox
+     * @param {string} [options.inputClass] - The css class that will be applied to the form version of the checkbox
+     * @param {string} [options.checkedClass] - The css class that will be applied to the checkbox (UI-version) when it is checked
+     * @param {string} [options.disabledClass] - The css class that will be applied to the checkbox (UI-version) when it is disabled
      */
     initialize: function (options) {
 

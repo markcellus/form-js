@@ -1,6 +1,6 @@
 {
   "name": "formjs",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Create better ui form elements. Supports IE9+, all modern browsers, and mobile.",
   "repository": {
     "type": "git",
@@ -36,6 +36,7 @@
     "grunt-github-pages": "0.0.4",
     "grunt-jsdoc": "0.5.7",
     "load-grunt-tasks": "0.6.0",
+    "module.js": "^1.0.5",
     "sinon": "^1.14.1",
     "underscore": "^1.8.2"
   },

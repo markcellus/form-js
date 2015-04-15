@@ -1,6 +1,7 @@
 'use strict';
 var _ = require('underscore');
 var FormElement = require('./form-element');
+
 require('element-kit');
 /**
  * The function that fires when the input value changes
@@ -24,23 +25,19 @@ require('element-kit');
  * Adds useful logic to an input field.
  * @class InputField
  * @extends FormElement
- * @param {HTMLInputElement} options.el - The input field element
- * @param {InputField~onChange} [options.onChange] - A callback function that fires when the input value changes
- * @param {InputField~onKeyDownChange} [options.onKeyDownChange] - A callback function that fires when input has changed after key down press
- * @param {string} [options.containerClass] - The css class that will be applied to the container that is wrapped around the input field
- * @param {string} [options.inputClass] - The css class that will be applied to the the input field element
- * @param {string} [options.disabledClass] - The css class that will be applied to the input field container element when disabled
- * @param {string} [options.activeClass] - The css class that will be applied to the input field container element when in focus
  */
-var InputField = function (options) {
-    this.initialize(options);
-};
-
-InputField.prototype = _.extend({}, FormElement.prototype, /** @lends InputField */{
+var InputField = FormElement.extend({
 
     /**
      * Initializes the Input Field class.
      * @param {object} options - Options passed into instance
+     * @param {HTMLInputElement} options.el - The input field element
+     * @param {InputField~onChange} [options.onChange] - A callback function that fires when the input value changes
+     * @param {InputField~onKeyDownChange} [options.onKeyDownChange] - A callback function that fires when input has changed after key down press
+     * @param {string} [options.containerClass] - The css class that will be applied to the container that is wrapped around the input field
+     * @param {string} [options.inputClass] - The css class that will be applied to the the input field element
+     * @param {string} [options.disabledClass] - The css class that will be applied to the input field container element when disabled
+     * @param {string} [options.activeClass] - The css class that will be applied to the input field container element when in focus
      */
     initialize: function (options) {
 
