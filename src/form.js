@@ -4,7 +4,7 @@ var Module = require('module.js');
 var Dropdown = require('./dropdown');
 var InputField = require('./input-field');
 var Checkbox = require('./checkbox');
-var ButtonToggle = require('./button-toggle');
+var SubmitButton = require('./submit-button');
 
 require('element-kit');
 
@@ -19,6 +19,12 @@ require('element-kit');
  * @callback Form~onGetOptions
  * @param {HTMLElement} el - The element on which to use the custom options
  * @returns {Object} Return the custom set of options
+ */
+
+/**
+ * The function that fires when the submit button is clicked
+ * @callback Form~onSubmitButtonClick
+ * @returns {Event} Returns the click event
  */
 
 /**
@@ -37,6 +43,9 @@ var Form = Module.extend({
      * @param {string} [options.dropdownClass] - The css class used to query the set of dropdown elements that should be included
      * @param {string} [options.checkboxClass] - The css class used to query the set of checkbox elements that should be included
      * @param {string} [options.inputFieldClass] - The css class used to query the set of text input elements that should be included
+     * @param {string} [options.submitButtonClass] - The css class used to query the submit button
+     * @param {string} [options.submitButtonDisabledClass] - The class that will be applied to the submit button when its disabled
+     * @param {string} [options.onSubmitButtonClick] - Function that is called when the submit button is clicked
      */
     initialize: function (options) {
 
@@ -46,7 +55,10 @@ var Form = Module.extend({
             onGetOptions: null,
             dropdownClass: null,
             checkboxClass: null,
-            inputFieldClass: null
+            inputFieldClass: null,
+            submitButtonClass: null,
+            submitButtonDisabledClass: null,
+            onSubmitButtonClick: null
         }, options);
 
         this.options = options;
@@ -55,6 +67,7 @@ var Form = Module.extend({
         this.formEls = this.options.el.elements;
 
         this._formInstances = [];
+        Module.prototype.initialize.call(this, this.options);
     },
 
     /**
@@ -64,6 +77,14 @@ var Form = Module.extend({
         this._setupInstances(this.options.dropdownClass, Dropdown);
         this._setupInstances(this.options.checkboxClass, Checkbox);
         this._setupInstances(this.options.inputFieldClass, InputField);
+
+        if (this.options.submitButtonClass) {
+            this.subModules.submitButton = new SubmitButton({
+                el: this.options.el.getElementsByClassName(this.options.submitButtonClass)[0],
+                disabledClass: this.options.submitButtonDisabledClass,
+                onClick: this.options.onSubmitButtonClick
+            });
+        }
     },
 
     /**
@@ -89,7 +110,7 @@ var Form = Module.extend({
                 el = elements[i];
                 finalOptions = this._buildOptions(el, options);
                 finalOptions[elKey] = el; // dont allow custom options to override the el!
-                instance = new View(finalOptions);
+                instance = this.subModules['fe' + elKey + cssClass + i] = new View(finalOptions);
                 this._formInstances.push(instance);
             }
         }
@@ -155,12 +176,17 @@ var Form = Module.extend({
      */
     disable: function () {
         var els = this.formEls,
-            i;
+            i,
+            submitButton = this.getSubmitButtonInstance();
         this.setPropertyAll('disabled', true);
         // add disabled css classes
         for (i = 0; i < els.length; i++) {
             els[i].kit.classList.add('disabled');
         }
+        if (submitButton) {
+            submitButton.disable();
+        }
+
     },
 
     /**
@@ -168,16 +194,21 @@ var Form = Module.extend({
      */
     enable: function () {
         var els = this.formEls,
-            i;
+            i,
+            submitButton = this.getSubmitButtonInstance();
         this.setPropertyAll('disabled', false);
         // remove disabled css classes
         for (i = 0; i < els.length; i++) {
             els[i].kit.classList.remove('disabled');
         }
+        if (submitButton) {
+            submitButton.disable();
+        }
     },
 
     /**
      * Sets a property on all form elements.
+     * @TODO: this function still exists until this class can cover ALL possible form elements (i.e. radio buttons)
      * @param {string} prop - The property to change
      * @param {*} value - The value to set
      */
@@ -186,6 +217,21 @@ var Form = Module.extend({
             els = this.formEls;
         for (i = 0; i < els.length; i++) {
             els[i][prop] = value;
+        }
+    },
+
+    /**
+     * Triggers a method on all form instances.
+     * @param {string} method - The method
+     * @param {...*} params - Any params for the method from here, onward
+     */
+    triggerMethodAll: function (method, params) {
+        var args = Array.prototype.slice.call(arguments, 1),
+            i, instance;
+
+        for (i = 0; i < this._formInstances.length; i++) {
+            instance = this._formInstances[i];
+            instance[method].apply(instance, args);
         }
     },
 
@@ -217,16 +263,13 @@ var Form = Module.extend({
     },
 
     /**
-     * Kills form functionality and destroys instances.
+     * Returns the submit button instance.
+     * @returns {Object}
      */
-    destroy: function () {
-        var instances = this._formInstances,
-            count = instances.length,
-            i;
-        for (i = 0; i < count; i++) {
-            this._formInstances[i].destroy();
-        }
+    getSubmitButtonInstance: function () {
+        return this.subModules.submitButton;
     }
+
 });
 
 module.exports = Form;
