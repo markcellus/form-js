@@ -122,9 +122,28 @@ var Dropdown = FormElement.extend({
         // add click events on container
         uiValueContainer.kit.addEventListener('click', '_onClickUIValueContainer', this);
 
-        // add click events on options
+        this.bindUIOptionClickEvents(uiOptionEls);
+    },
+
+    /**
+     * Adds click events on option elements.
+     * @param optionEls
+     */
+    bindUIOptionClickEvents: function (optionEls) {
+        var i, count = optionEls.length;
         for (i = 0; i < count; i++) {
-            uiOptionEls[i].kit.addEventListener('click', '_onClickUIOption', this);
+            optionEls[i].kit.addEventListener('click', '_onClickUIOption', this);
+        }
+    },
+
+    /**
+     * Removes click events from option elements.
+     * @param optionEls
+     */
+    unbindUIOptionClickEvents: function (optionEls) {
+        var i, count = optionEls.length;
+        for (i = 0; i < count; i++) {
+            optionEls[i].kit.removeEventListener('click', '_onClickUIOption', this);
         }
     },
 
@@ -328,6 +347,48 @@ var Dropdown = FormElement.extend({
     },
 
     /**
+     * Updates markup to show new dropdown option values.
+     * @param {Array} optionsData - An array of objects that maps the new data values to display values desired
+     */
+    updateOptions: function (optionsData) {
+        var el = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+            frag = document.createDocumentFragment(),
+            optionEl;
+
+        this._updateFormOptionElements(optionsData);
+
+        optionsData.forEach(function (obj) {
+            optionEl = document.createElement('div');
+            optionEl.setAttribute('data-value', obj.dataValue);
+            optionEl.classList.add(this.options.optionsClass);
+            optionEl.innerHTML = obj.displayValue;
+            frag.appendChild(optionEl);
+        }.bind(this));
+        el.innerHTML = '';
+        this.bindUIOptionClickEvents(frag.children);
+        el.appendChild(frag);
+    },
+
+    /**
+     * Updates markup to show new form elements.
+     * @param {Array} optionsData - An array of objects that maps the new data values to display values desired
+     * @private
+     */
+    _updateFormOptionElements: function (optionsData) {
+        var formEl = this.getFormElement(),
+            frag = document.createDocumentFragment(),
+            optionEl;
+        optionsData.forEach(function (obj) {
+            optionEl = document.createElement('option');
+            optionEl.setAttribute('value', obj.dataValue);
+            optionEl.innerHTML = obj.displayValue;
+            frag.appendChild(optionEl);
+        });
+        formEl.innerHTML = '';
+        formEl.appendChild(frag);
+    },
+
+    /**
      * Disables the dropdown.
      */
     disable: function () {
@@ -357,7 +418,9 @@ var Dropdown = FormElement.extend({
      * @memberOf Dropdown
      */
     destroy: function () {
-        var el = this.options.el;
+        var el = this.options.el,
+            uiOptionEls = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0];
+        this.unbindUIOptionClickEvents(uiOptionEls);
         el.kit.removeEventListener('change', '_onSelectChange', this);
         el.style.display = this._origDisplayValue; // put original display back
     }
