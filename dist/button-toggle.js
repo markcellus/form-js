@@ -1,5 +1,5 @@
 /** 
-* formjs - v1.3.0.
+* formjs - v1.4.0.
 * https://github.com/mkay581/formjs.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
