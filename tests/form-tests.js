@@ -7,6 +7,7 @@ var Dropdown = require('../src/dropdown');
 var InputField = require('../src/input-field');
 var Checkbox = require('../src/checkbox');
 var ButtonToggle = require('../src/button-toggle');
+var Module = require('module.js');
 
 module.exports = (function () {
 
@@ -80,6 +81,17 @@ module.exports = (function () {
         ];
         QUnit.deepEqual(instance.getCurrentValues(), assertedValues, 'after appending a new input field to the form, getCurrentValues() returns correct object map of values');
         instance.destroy();
+    });
+
+    QUnit.test('should call initialize method of Module super class when instantiated', function () {
+        QUnit.expect(1);
+        var formEl = TestUtils.createHtmlElement('<form></form>');
+        var formOptions = {el: formEl};
+        var moduleInitializeStub = Sinon.stub(Module.prototype, 'initialize');
+        var formInstance = new Form(formOptions);
+        QUnit.deepEqual(moduleInitializeStub.args[0][0], formOptions, 'initialized with form options');
+        formInstance.destroy();
+        moduleInitializeStub.restore();
     });
 
     QUnit.test('should instantiate Dropdown with correct el and destroy it correctly', function () {
@@ -308,14 +320,17 @@ module.exports = (function () {
     //    datePickerInitializeStub.restore();
     //});
     //
-    //QUnit.test('getInstanceByName()', function () {
-    //    QUnit.expect(1);
-    //    var el = $(formHtml)[0];
-    //    var instance = new Form({el: el});
-    //    var toggleEl = el.getElementsByClassName('form-toggle-input1')[0];
-    //    instance.setup();
-    //    QUnit.deepEqual(instance.getInstanceByName('test_toggle1').getFormElement(), toggleEl, 'querying getInstanceByName() returns correct instance');
-    //    instance.destroy();
-    //});
+
+    QUnit.test('getInstanceByName()', function () {
+        QUnit.expect(1);
+        var formElementClass = 'form-toggle-input1';
+        var formNameValue = 'test_toggle1';
+        var formEl = TestUtils.createHtmlElement('<form><input type="text" name="' + formNameValue + '" class="' + formElementClass + '" /></form>');
+        var instance = new Form({el: formEl, inputFieldClass: formElementClass});
+        var inputEl = formEl.getElementsByClassName(formElementClass)[0];
+        instance.setup();
+        QUnit.deepEqual(instance.getInstanceByName(formNameValue).getFormElement(), inputEl, 'querying getInstanceByName() returns correct instance');
+        instance.destroy();
+    });
 
 })();

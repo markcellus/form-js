@@ -85,13 +85,7 @@ var FormElement = Module.extend({
      */
     getElementKey: function () {
         return 'element';
-    },
-
-    /**
-     * Destruction of this class.
-     * @abstract
-     */
-    destroy: function () {}
+    }
 
 });
 

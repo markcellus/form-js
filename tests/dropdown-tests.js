@@ -191,7 +191,7 @@ module.exports = (function (){
         var uiSelectedValueContainerEl = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
         dropdown.disable();
         uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
-        QUnit.ok(uiEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on selected value container element while disabled, active class is not applied to ui element');
+        QUnit.ok(!uiEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on selected value container element while disabled, active class is not applied to ui element');
         dropdown.destroy();
     });
 
@@ -330,6 +330,50 @@ module.exports = (function (){
         // click outside
         QUnit.ok(uiEl.classList.contains(uiOptionsContainerActiveClass), 'ui options container element still has active class after clicking anywhere inside of ui options container');
         dropdown.destroy();
+    });
+
+    QUnit.test('clicking on another ui dropdown element inside of the same form should hide the ui options container element', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var html =
+            '<form>' +
+                '<select>' +
+                    '<option value="AAPL">Apple</option>' +
+                    '<option value="FB">Facebook</option>' +
+                    '<option value="GOOG">Google</option>' +
+                '</select>' +
+                '<select>' +
+                    '<option value="Apple">Apple</option>' +
+                    '<option value="Orange">Orange</option>' +
+                '</select>' +
+            '</form>';
+        var formEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(formEl);
+        var uiContainerClass = 'my-ui-container';
+        var uiOptionsContainerActiveClass = 'active-options-container';
+        var uiSelectedValueContainerClass = 'my-selected-val-container';
+        var selectEls = formEl.getElementsByTagName('select');
+        var firstDropdown = new Dropdown({
+            el: selectEls[0],
+            containerClass: uiContainerClass,
+            optionsContainerActiveClass: uiOptionsContainerActiveClass,
+            selectedValueContainerClass: uiSelectedValueContainerClass
+        });
+        var secondDropdown = new Dropdown({
+            el: selectEls[1],
+            containerClass: uiContainerClass,
+            optionsContainerActiveClass: uiOptionsContainerActiveClass,
+            selectedValueContainerClass: uiSelectedValueContainerClass
+        });
+        // click on selected value container of first element to show its options
+        var firstUIElement = fixture.getElementsByClassName(uiContainerClass)[0];
+        firstUIElement.getElementsByClassName(uiSelectedValueContainerClass)[0].dispatchEvent(TestUtils.createEvent('click'));
+        // click on selected value container of second element to show its options
+        var secondUIElement = fixture.getElementsByClassName(uiContainerClass)[1];
+        secondUIElement.getElementsByClassName(uiSelectedValueContainerClass)[0].dispatchEvent(TestUtils.createEvent('click'));
+        QUnit.ok(!firstUIElement.classList.contains(uiOptionsContainerActiveClass), 'clicking on second ui value container closes the first');
+        firstDropdown.destroy();
+        secondDropdown.destroy();
     });
 
 

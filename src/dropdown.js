@@ -135,7 +135,9 @@ var Dropdown = FormElement.extend({
      * @memberOf Dropdown
      */
     _onClickUIValueContainer: function (e) {
-        if (this.isOptionsContainerActive()) {
+        if (this.getFormElement().disabled) {
+            return false;
+        } else if (this.isOptionsContainerActive()) {
             this.hideOptionsContainer();
         } else {
             this.showOptionsContainer();
@@ -171,7 +173,8 @@ var Dropdown = FormElement.extend({
      * @param {Event} e
      */
     onClickDocument: function (e) {
-        if (!e.target.kit.getClosestAncestorElementByClassName(this.options.containerClass)) {
+        var closestUIContainer = e.target.kit.getClosestAncestorElementByClassName(this.options.containerClass);
+        if (!closestUIContainer || closestUIContainer !== this.getUIElement()) {
             // clicked outside of ui element!
             this.hideOptionsContainer();
         }
