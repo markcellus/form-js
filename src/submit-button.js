@@ -26,6 +26,16 @@ var SubmitButton = Module.extend({
     },
 
     /**
+     * When the submit button is clicked.
+     * @param e
+     */
+    onClick: function (e) {
+        if (this.options.onClick) {
+            this.options.onClick(e);
+        }
+    },
+
+    /**
      * Returns the submit button element
      * @returns {HTMLElement} the submit button
      * @abstract
