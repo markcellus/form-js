@@ -135,7 +135,9 @@ var Dropdown = FormElement.extend({
      * @memberOf Dropdown
      */
     _onClickUIValueContainer: function (e) {
-        if (this.isOptionsContainerActive()) {
+        if (this.getFormElement().disabled) {
+            return false;
+        } else if (this.isOptionsContainerActive()) {
             this.hideOptionsContainer();
         } else {
             this.showOptionsContainer();

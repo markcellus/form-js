@@ -191,7 +191,7 @@ module.exports = (function (){
         var uiSelectedValueContainerEl = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
         dropdown.disable();
         uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
-        QUnit.ok(uiEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on selected value container element while disabled, active class is not applied to ui element');
+        QUnit.ok(!uiEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on selected value container element while disabled, active class is not applied to ui element');
         dropdown.destroy();
     });
 
