@@ -1,10 +1,441 @@
 /** 
-* formjs - v1.2.0.
+* formjs - v1.3.0.
 * https://github.com/mkay581/formjs.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
 
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/*global define:false require:false */
+module.exports = (function(){
+	// Import Events
+	var events = require('events')
+
+	// Export Domain
+	var domain = {}
+	domain.createDomain = domain.create = function(){
+		var d = new events.EventEmitter()
+
+		function emitError(e) {
+			d.emit('error', e)
+		}
+
+		d.add = function(emitter){
+			emitter.on('error', emitError)
+		}
+		d.remove = function(emitter){
+			emitter.removeListener('error', emitError)
+		}
+		d.bind = function(fn){
+			return function(){
+				var args = Array.prototype.slice.call(arguments)
+				try {
+					fn.apply(null, args)
+				}
+				catch (err){
+					emitError(err)
+				}
+			}
+		}
+		d.intercept = function(fn){
+			return function(err){
+				if ( err ) {
+					emitError(err)
+				}
+				else {
+					var args = Array.prototype.slice.call(arguments, 1)
+					try {
+						fn.apply(null, args)
+					}
+					catch (err){
+						emitError(err)
+					}
+				}
+			}
+		}
+		d.run = function(fn){
+			try {
+				fn()
+			}
+			catch (err) {
+				emitError(err)
+			}
+			return this
+		};
+		d.dispose = function(){
+			this.removeAllListeners()
+			return this
+		};
+		d.enter = d.exit = function(){
+			return this
+		}
+		return d
+	};
+	return domain
+}).call(this)
+},{"events":2}],2:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+function EventEmitter() {
+  this._events = this._events || {};
+  this._maxListeners = this._maxListeners || undefined;
+}
+module.exports = EventEmitter;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+EventEmitter.defaultMaxListeners = 10;
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!isNumber(n) || n < 0 || isNaN(n))
+    throw TypeError('n must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+
+EventEmitter.prototype.emit = function(type) {
+  var er, handler, len, args, i, listeners;
+
+  if (!this._events)
+    this._events = {};
+
+  // If there is no 'error' event listener then throw.
+  if (type === 'error') {
+    if (!this._events.error ||
+        (isObject(this._events.error) && !this._events.error.length)) {
+      er = arguments[1];
+      if (er instanceof Error) {
+        throw er; // Unhandled 'error' event
+      }
+      throw TypeError('Uncaught, unspecified "error" event.');
+    }
+  }
+
+  handler = this._events[type];
+
+  if (isUndefined(handler))
+    return false;
+
+  if (isFunction(handler)) {
+    switch (arguments.length) {
+      // fast cases
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      // slower
+      default:
+        len = arguments.length;
+        args = new Array(len - 1);
+        for (i = 1; i < len; i++)
+          args[i - 1] = arguments[i];
+        handler.apply(this, args);
+    }
+  } else if (isObject(handler)) {
+    len = arguments.length;
+    args = new Array(len - 1);
+    for (i = 1; i < len; i++)
+      args[i - 1] = arguments[i];
+
+    listeners = handler.slice();
+    len = listeners.length;
+    for (i = 0; i < len; i++)
+      listeners[i].apply(this, args);
+  }
+
+  return true;
+};
+
+EventEmitter.prototype.addListener = function(type, listener) {
+  var m;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events)
+    this._events = {};
+
+  // To avoid recursion in the case that type === "newListener"! Before
+  // adding it to the listeners, first emit "newListener".
+  if (this._events.newListener)
+    this.emit('newListener', type,
+              isFunction(listener.listener) ?
+              listener.listener : listener);
+
+  if (!this._events[type])
+    // Optimize the case of one listener. Don't need the extra array object.
+    this._events[type] = listener;
+  else if (isObject(this._events[type]))
+    // If we've already got an array, just append.
+    this._events[type].push(listener);
+  else
+    // Adding the second element, need to change to array.
+    this._events[type] = [this._events[type], listener];
+
+  // Check for listener leak
+  if (isObject(this._events[type]) && !this._events[type].warned) {
+    var m;
+    if (!isUndefined(this._maxListeners)) {
+      m = this._maxListeners;
+    } else {
+      m = EventEmitter.defaultMaxListeners;
+    }
+
+    if (m && m > 0 && this._events[type].length > m) {
+      this._events[type].warned = true;
+      console.error('(node) warning: possible EventEmitter memory ' +
+                    'leak detected. %d listeners added. ' +
+                    'Use emitter.setMaxListeners() to increase limit.',
+                    this._events[type].length);
+      if (typeof console.trace === 'function') {
+        // not supported in IE 10
+        console.trace();
+      }
+    }
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.once = function(type, listener) {
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  var fired = false;
+
+  function g() {
+    this.removeListener(type, g);
+
+    if (!fired) {
+      fired = true;
+      listener.apply(this, arguments);
+    }
+  }
+
+  g.listener = listener;
+  this.on(type, g);
+
+  return this;
+};
+
+// emits a 'removeListener' event iff the listener was removed
+EventEmitter.prototype.removeListener = function(type, listener) {
+  var list, position, length, i;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events || !this._events[type])
+    return this;
+
+  list = this._events[type];
+  length = list.length;
+  position = -1;
+
+  if (list === listener ||
+      (isFunction(list.listener) && list.listener === listener)) {
+    delete this._events[type];
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+
+  } else if (isObject(list)) {
+    for (i = length; i-- > 0;) {
+      if (list[i] === listener ||
+          (list[i].listener && list[i].listener === listener)) {
+        position = i;
+        break;
+      }
+    }
+
+    if (position < 0)
+      return this;
+
+    if (list.length === 1) {
+      list.length = 0;
+      delete this._events[type];
+    } else {
+      list.splice(position, 1);
+    }
+
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.removeAllListeners = function(type) {
+  var key, listeners;
+
+  if (!this._events)
+    return this;
+
+  // not listening for removeListener, no need to emit
+  if (!this._events.removeListener) {
+    if (arguments.length === 0)
+      this._events = {};
+    else if (this._events[type])
+      delete this._events[type];
+    return this;
+  }
+
+  // emit removeListener for all listeners on all events
+  if (arguments.length === 0) {
+    for (key in this._events) {
+      if (key === 'removeListener') continue;
+      this.removeAllListeners(key);
+    }
+    this.removeAllListeners('removeListener');
+    this._events = {};
+    return this;
+  }
+
+  listeners = this._events[type];
+
+  if (isFunction(listeners)) {
+    this.removeListener(type, listeners);
+  } else {
+    // LIFO order
+    while (listeners.length)
+      this.removeListener(type, listeners[listeners.length - 1]);
+  }
+  delete this._events[type];
+
+  return this;
+};
+
+EventEmitter.prototype.listeners = function(type) {
+  var ret;
+  if (!this._events || !this._events[type])
+    ret = [];
+  else if (isFunction(this._events[type]))
+    ret = [this._events[type]];
+  else
+    ret = this._events[type].slice();
+  return ret;
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  var ret;
+  if (!emitter._events || !emitter._events[type])
+    ret = 0;
+  else if (isFunction(emitter._events[type]))
+    ret = 1;
+  else
+    ret = emitter._events[type].length;
+  return ret;
+};
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+
+},{}],3:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+var queue = [];
+var draining = false;
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    draining = true;
+    var currentQueue;
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        var i = -1;
+        while (++i < len) {
+            currentQueue[i]();
+        }
+        len = queue.length;
+    }
+    draining = false;
+}
+process.nextTick = function (fun) {
+    queue.push(fun);
+    if (!draining) {
+        setTimeout(drainQueue, 0);
+    }
+};
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],4:[function(require,module,exports){
 'use strict';
 
 var Element = require('./element');
@@ -62,7 +493,7 @@ module.exports = (function () {
     return new ElementKit();
 
 })();
-},{"./element":2,"./image-element":3}],2:[function(require,module,exports){
+},{"./element":5,"./image-element":6}],5:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -509,7 +940,7 @@ Element.prototype = /** @lends Element */{
 };
 
 module.exports = Element;
-},{"./element-kit":1,"./utils":4}],3:[function(require,module,exports){
+},{"./element-kit":4,"./utils":7}],6:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -619,7 +1050,7 @@ ImageElement.prototype = utils.extend({}, Element.prototype, {
 });
 
 module.exports = ImageElement;
-},{"./element":2,"./utils":4}],4:[function(require,module,exports){
+},{"./element":5,"./utils":7}],7:[function(require,module,exports){
 module.exports = {
     /**
      * Creates an HTML Element from an html string.
@@ -657,437 +1088,6 @@ module.exports = {
         return merged;
     }
 };
-},{}],5:[function(require,module,exports){
-/*global define:false require:false */
-module.exports = (function(){
-	// Import Events
-	var events = require('events')
-
-	// Export Domain
-	var domain = {}
-	domain.createDomain = domain.create = function(){
-		var d = new events.EventEmitter()
-
-		function emitError(e) {
-			d.emit('error', e)
-		}
-
-		d.add = function(emitter){
-			emitter.on('error', emitError)
-		}
-		d.remove = function(emitter){
-			emitter.removeListener('error', emitError)
-		}
-		d.bind = function(fn){
-			return function(){
-				var args = Array.prototype.slice.call(arguments)
-				try {
-					fn.apply(null, args)
-				}
-				catch (err){
-					emitError(err)
-				}
-			}
-		}
-		d.intercept = function(fn){
-			return function(err){
-				if ( err ) {
-					emitError(err)
-				}
-				else {
-					var args = Array.prototype.slice.call(arguments, 1)
-					try {
-						fn.apply(null, args)
-					}
-					catch (err){
-						emitError(err)
-					}
-				}
-			}
-		}
-		d.run = function(fn){
-			try {
-				fn()
-			}
-			catch (err) {
-				emitError(err)
-			}
-			return this
-		};
-		d.dispose = function(){
-			this.removeAllListeners()
-			return this
-		};
-		d.enter = d.exit = function(){
-			return this
-		}
-		return d
-	};
-	return domain
-}).call(this)
-},{"events":6}],6:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-function EventEmitter() {
-  this._events = this._events || {};
-  this._maxListeners = this._maxListeners || undefined;
-}
-module.exports = EventEmitter;
-
-// Backwards-compat with node 0.10.x
-EventEmitter.EventEmitter = EventEmitter;
-
-EventEmitter.prototype._events = undefined;
-EventEmitter.prototype._maxListeners = undefined;
-
-// By default EventEmitters will print a warning if more than 10 listeners are
-// added to it. This is a useful default which helps finding memory leaks.
-EventEmitter.defaultMaxListeners = 10;
-
-// Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!isNumber(n) || n < 0 || isNaN(n))
-    throw TypeError('n must be a positive number');
-  this._maxListeners = n;
-  return this;
-};
-
-EventEmitter.prototype.emit = function(type) {
-  var er, handler, len, args, i, listeners;
-
-  if (!this._events)
-    this._events = {};
-
-  // If there is no 'error' event listener then throw.
-  if (type === 'error') {
-    if (!this._events.error ||
-        (isObject(this._events.error) && !this._events.error.length)) {
-      er = arguments[1];
-      if (er instanceof Error) {
-        throw er; // Unhandled 'error' event
-      }
-      throw TypeError('Uncaught, unspecified "error" event.');
-    }
-  }
-
-  handler = this._events[type];
-
-  if (isUndefined(handler))
-    return false;
-
-  if (isFunction(handler)) {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        len = arguments.length;
-        args = new Array(len - 1);
-        for (i = 1; i < len; i++)
-          args[i - 1] = arguments[i];
-        handler.apply(this, args);
-    }
-  } else if (isObject(handler)) {
-    len = arguments.length;
-    args = new Array(len - 1);
-    for (i = 1; i < len; i++)
-      args[i - 1] = arguments[i];
-
-    listeners = handler.slice();
-    len = listeners.length;
-    for (i = 0; i < len; i++)
-      listeners[i].apply(this, args);
-  }
-
-  return true;
-};
-
-EventEmitter.prototype.addListener = function(type, listener) {
-  var m;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events)
-    this._events = {};
-
-  // To avoid recursion in the case that type === "newListener"! Before
-  // adding it to the listeners, first emit "newListener".
-  if (this._events.newListener)
-    this.emit('newListener', type,
-              isFunction(listener.listener) ?
-              listener.listener : listener);
-
-  if (!this._events[type])
-    // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  else if (isObject(this._events[type]))
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-  else
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-
-  // Check for listener leak
-  if (isObject(this._events[type]) && !this._events[type].warned) {
-    var m;
-    if (!isUndefined(this._maxListeners)) {
-      m = this._maxListeners;
-    } else {
-      m = EventEmitter.defaultMaxListeners;
-    }
-
-    if (m && m > 0 && this._events[type].length > m) {
-      this._events[type].warned = true;
-      console.error('(node) warning: possible EventEmitter memory ' +
-                    'leak detected. %d listeners added. ' +
-                    'Use emitter.setMaxListeners() to increase limit.',
-                    this._events[type].length);
-      if (typeof console.trace === 'function') {
-        // not supported in IE 10
-        console.trace();
-      }
-    }
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.once = function(type, listener) {
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  var fired = false;
-
-  function g() {
-    this.removeListener(type, g);
-
-    if (!fired) {
-      fired = true;
-      listener.apply(this, arguments);
-    }
-  }
-
-  g.listener = listener;
-  this.on(type, g);
-
-  return this;
-};
-
-// emits a 'removeListener' event iff the listener was removed
-EventEmitter.prototype.removeListener = function(type, listener) {
-  var list, position, length, i;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events || !this._events[type])
-    return this;
-
-  list = this._events[type];
-  length = list.length;
-  position = -1;
-
-  if (list === listener ||
-      (isFunction(list.listener) && list.listener === listener)) {
-    delete this._events[type];
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-
-  } else if (isObject(list)) {
-    for (i = length; i-- > 0;) {
-      if (list[i] === listener ||
-          (list[i].listener && list[i].listener === listener)) {
-        position = i;
-        break;
-      }
-    }
-
-    if (position < 0)
-      return this;
-
-    if (list.length === 1) {
-      list.length = 0;
-      delete this._events[type];
-    } else {
-      list.splice(position, 1);
-    }
-
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.removeAllListeners = function(type) {
-  var key, listeners;
-
-  if (!this._events)
-    return this;
-
-  // not listening for removeListener, no need to emit
-  if (!this._events.removeListener) {
-    if (arguments.length === 0)
-      this._events = {};
-    else if (this._events[type])
-      delete this._events[type];
-    return this;
-  }
-
-  // emit removeListener for all listeners on all events
-  if (arguments.length === 0) {
-    for (key in this._events) {
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-    this.removeAllListeners('removeListener');
-    this._events = {};
-    return this;
-  }
-
-  listeners = this._events[type];
-
-  if (isFunction(listeners)) {
-    this.removeListener(type, listeners);
-  } else {
-    // LIFO order
-    while (listeners.length)
-      this.removeListener(type, listeners[listeners.length - 1]);
-  }
-  delete this._events[type];
-
-  return this;
-};
-
-EventEmitter.prototype.listeners = function(type) {
-  var ret;
-  if (!this._events || !this._events[type])
-    ret = [];
-  else if (isFunction(this._events[type]))
-    ret = [this._events[type]];
-  else
-    ret = this._events[type].slice();
-  return ret;
-};
-
-EventEmitter.listenerCount = function(emitter, type) {
-  var ret;
-  if (!emitter._events || !emitter._events[type])
-    ret = 0;
-  else if (isFunction(emitter._events[type]))
-    ret = 1;
-  else
-    ret = emitter._events[type].length;
-  return ret;
-};
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-
-},{}],7:[function(require,module,exports){
-// shim for using process in browser
-
-var process = module.exports = {};
-var queue = [];
-var draining = false;
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    draining = true;
-    var currentQueue;
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        var i = -1;
-        while (++i < len) {
-            currentQueue[i]();
-        }
-        len = queue.length;
-    }
-    draining = false;
-}
-process.nextTick = function (fun) {
-    queue.push(fun);
-    if (!draining) {
-        setTimeout(drainQueue, 0);
-    }
-};
-
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-// TODO(shtylman)
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
 },{}],8:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.3
@@ -11083,7 +11083,7 @@ function requestFlush() {
 
 
 }).call(this,require('_process'))
-},{"_process":7,"domain":5}],19:[function(require,module,exports){
+},{"_process":3,"domain":1}],19:[function(require,module,exports){
 var Promise = require('promise');
 
 /**
@@ -14632,389 +14632,6 @@ module.exports = Module;
 var _ = require('underscore');
 var FormElement = require('./form-element');
 require('element-kit');
-/**
- * A callback function that fires when one of the button toggle elements are selected
- * @callback ButtonToggle~onChange
- * @param {string} value - The value of the input element that was changed
- * @param {HTMLInputElement} input - The input element that was changed
- * @param {HTMLElement} UIElement - The container of the input element that was changed
- */
-
-/**
- * A callback function that fires when one of the button toggle elements are selected
- * @callback ButtonToggle~onSelect
- * @param {string} value - The value of the input element that was selected
- * @param {HTMLInputElement} input - The input element that was selected
- * @param {HTMLElement} UIElement - The container of the input element that was selected
- */
-
-/**
- * A callback function that fires when one of the button toggle elements are de-selected
- * @callback ButtonToggle~onDeselect
- * @param {string} value - The value of the input element that was de-selected
- * @param {HTMLInputElement} input - The input element that was de-selected
- * @param {HTMLElement} UIElement - The container of the input element that was de-selected
- */
-
-/**
- * Turns input radio or checkbox html elements into a Button Toggle.
- * @class ButtonToggle
- * @extends FormElement
- */
-var ButtonToggle = FormElement.extend({
-
-    /**
-     * Initialization.
-     * @param {object} options - Options passed into instance
-     * @param {Array|HTMLInputElement} options.inputs - The collection of input elements to be made into toggle items
-     * @param {ButtonToggle~onChange} [options.onChange] - A callback function that fires when one of the toggle elements are selected
-     * @param {string} [options.containerClass] - The css class that will be applied to each toggle item's container
-     * @param {string} [options.inputClass] - The css class that will be applied to each toggle item (input element)
-     * @param {ButtonToggle~onSelect} [options.onSelect] - A callback function that fires when the button toggle element is selected
-     * @param {ButtonToggle~onDeselect} [options.onDeselect] - A callback function that fires when the button toggle element is deselected
-     * @param {string} [options.selectedClass] - The css class that will be applied to a button toggle item (UI-version) when it is selected
-     * @param {string} [options.disabledClass] - The css class that will be applied to a button toggle item (UI-version) when it is disabled
-     */
-    initialize: function (options) {
-
-        this.options = _.extend({
-            inputs: [],
-            onChange: null,
-            containerClass: 'ui-button-toggle',
-            inputClass: 'ui-button-toggle-input',
-            selectedClass: 'ui-button-toggle-selected',
-            disabledClass: 'ui-button-toggle-disabled'
-        }, options);
-
-        FormElement.prototype.initialize.call(this, this.options);
-
-        this._container = this.options.container;
-
-        if (!this.options.inputs.length && this._container) {
-            this.options.inputs = this._container.querySelectorAll('input');
-        }
-
-        if (!this.options.inputs.length) {
-            console.error('could not build toggle items: no toggle input items were passed');
-        } else {
-            this._formElements = Array.prototype.slice.call(this.options.inputs); // convert to real array if HTMLCollection
-            this._UIElements = this._buildUIElements(this._formElements);
-        }
-
-        this.setup();
-
-    },
-
-    /**
-     * Sets up html.
-     */
-    setup: function () {
-        // add initial class
-        this._triggerAll(function (formElement) {
-            formElement.kit.classList.add(this.options.inputClass);
-        }.bind(this));
-        this._setupEvents();
-    },
-
-    /**
-     * Sets up events.
-     * @private
-     */
-    _setupEvents: function () {
-        this._triggerAll(function (formElement) {
-            formElement.kit.addEventListener('click', '_onFormElementClick', this);
-        }.bind(this));
-    },
-
-    /**
-     * Gets all the current input toggles.
-     * @returns {Array|*}
-     */
-    getFormElements: function () {
-        return this._formElements;
-    },
-
-    /**
-     * Gets all current ui-versions of input toggles.
-     * @returns {Array|*}
-     */
-    getUIElements: function () {
-        return this._UIElements;
-    },
-
-    /**
-     * Private delegator that triggers a callback on each of the current button toggle elements.
-     * Useful for performing an operation across all elements
-     * @param {Function} callback - The function that should be executed for each input item
-     * @private
-     */
-    _triggerAll: function (callback) {
-        var i,
-            formElements = this.getFormElements(),
-            UIElements = this.getUIElements();
-        for (i = 0; i < formElements.length; i++) {
-            callback(formElements[i], UIElements[i], i);
-        }
-    },
-
-    /**
-     * When the input field is clicked.
-     * @param {Event} e
-     * @private
-     */
-    _onFormElementClick: function (e) {
-        var formEl = e.currentTarget.getElementsByClassName(this.options.inputClass)[0],
-            UIElement = e.currentTarget.getElementsByClassName(this.options.containerClass)[0];
-
-        // this function will fire multiple times do to events bubbling up
-        // we only care when the event bubbles up to the input field
-        if (e.currentTarget === e.target) {
-            formEl = e.target;
-            UIElement = e.target.parentElement;
-            this._delegateClick(formEl, UIElement);
-        }
-
-    },
-
-    /**
-     * Delegates a click as a radio button or checkbox.
-     * @param {HTMLInputElement} formElement
-     * @param {HTMLElement} UIElement
-     * @private
-     */
-    _delegateClick: function (formElement, UIElement) {
-        if (this.isRadio()) {
-            this._processRadioClick(formElement, UIElement);
-        } else {
-            this._processCheckboxClick(formElement, UIElement);
-        }
-    },
-
-    /**
-     * When a button toggle is clicked that is a radio input element.
-     * @param {HTMLInputElement} formElement - The radio button element
-     * @param {HTMLElement} UIElement - The ui element
-     * @private
-     */
-    _processRadioClick: function (formElement, UIElement) {
-        // radio buttons should only trigger a change if the clicked item isnt already selected
-        if (this._lastRadioClicked !== formElement) {
-            this._triggerAll(function (formElement, UIElement) {
-                UIElement.kit.classList.remove(this.options.selectedClass);
-                formElement.checked = false;
-            }.bind(this));
-            this._onToggleSelect(formElement, UIElement);
-            this._lastRadioClicked = formElement;
-        }
-    },
-
-    /**
-     * When a button toggle is clicked that is a checkbox input element.
-     * @param {HTMLInputElement} formElement - The checkbox element
-     * @param {HTMLElement} UIElement - The ui element
-     * @private
-     */
-    _processCheckboxClick: function (formElement, UIElement) {
-        if (!UIElement.kit.classList.contains(this.options.selectedClass)) {
-            this._onToggleSelect(formElement, UIElement);
-        } else {
-            this._onToggleDeselect(formElement, UIElement);
-        }
-    },
-
-    /**
-     * When a toggle is selected.
-     * @param {HTMLInputElement} formElement - The input element
-     * @param {HTMLElement} UIElement - The ui element
-     * @private
-     */
-    _onToggleSelect: function (formElement, UIElement) {
-        formElement.checked = true;
-        UIElement.kit.classList.add(this.options.selectedClass);
-        this._triggerChange(formElement, UIElement);
-    },
-
-    /**
-     * When a toggle is deselected.
-     * @param {HTMLInputElement} formElement - The input element
-     * @param {HTMLElement} UIElement - The ui element
-     * @private
-     */
-    _onToggleDeselect: function (formElement, UIElement) {
-        formElement.checked = false;
-        UIElement.kit.classList.remove(this.options.selectedClass);
-        this._triggerChange(formElement, UIElement);
-    },
-
-    /**
-     * Builds the UI-friendly version of the toggle inputs and wraps them in their appropriate containers.
-     * @param {Array} elements - The input elements
-     * @returns {Array} Returns an array of the ui-versions of the elements
-     * @private
-     */
-    _buildUIElements: function (elements) {
-        var count = elements.length,
-            arr = [],
-            i,
-            formElement,
-            UIElement;
-        for (i = 0; i < count; i++) {
-            formElement = elements[i];
-            UIElement = formElement.kit.appendOuterHtml('<div class="' + this.options.containerClass + '"></div>');
-            // add selected class if selected initially
-            if (formElement.checked) {
-                UIElement.kit.classList.add(this.options.selectedClass);
-            }
-            if (formElement.disabled) {
-                UIElement.kit.classList.add(this.options.disabledClass);
-            }
-            arr.push(UIElement);
-        }
-        return arr;
-    },
-
-    /**
-     * Checks whether input is a radio button.
-     * @returns {boolean}
-     */
-    isRadio: function () {
-        return this.getFormElements()[0].getAttribute('type') === 'radio';
-    },
-
-    /**
-     * Triggers a change on the button toggle.
-     * @param {HTMLInputElement} formElement - The input element
-     * @param {HTMLElement} UIElement - The ui element
-     * @private
-     */
-    _triggerChange: function (formElement, UIElement) {
-        if (this.options.onChange) {
-            this.options.onChange(formElement.value, formElement, UIElement);
-        }
-    },
-
-    /**
-     * Selects the toggle item.
-     * @param {Number} index - The index of the toggle item
-     */
-    select: function (index) {
-        var input = this.getFormElement(index),
-            toggle = this.getUIElement(index);
-        if (!input.checked) {
-            input.checked = true;
-            toggle.kit.classList.add(this.options.selectedClass);
-            this._triggerChange(input, toggle);
-        }
-
-        if (this.isRadio()) {
-            this._triggerAll(function (formElement, UIElement, idx) {
-                if (!formElement.checked) {
-                    // deselect all other toggles if they are radio buttons
-                    this.deselect(idx);
-                }
-            }.bind(this));
-        }
-
-    },
-
-    /**
-     * Gets the selected value of the button toggle.
-     * @returns {string} Returns the value of the currently selected toggle
-     */
-    getValue: function () {
-        var selectedEl = this.getFormElements().filter(function (el) {
-            return el.checked;
-        }, this);
-        if (selectedEl.length) {
-            return selectedEl[0].value;
-        } else {
-            return '';
-        }
-    },
-
-    /**
-     * De-selects the toggle item.
-     * @param {Number} index - The index of the toggle item
-     */
-    deselect: function (index) {
-        var input = this.getFormElement(index),
-            toggle = this.getUIElement(index);
-        toggle.kit.classList.remove(this.options.selectedClass);
-        if (input.checked) {
-            input.checked = false;
-            this._triggerChange(input, toggle);
-        }
-    },
-
-    /**
-     * Gets the toggle input element by an index.
-     * @param {Number} [index] - The index of the toggle input element
-     * @returns {HTMLInputElement} Returns the checkbox input element
-     */
-    getFormElement: function (index) {
-        return this.getFormElements()[(index || 0)];
-    },
-
-    /**
-     * Gets the ui-version of the toggle element.
-     * @param {Number} [index] - The index of the toggle element
-     * @returns {HTMLElement} Returns the checkbox div element.
-     */
-    getUIElement: function (index) {
-        return this.getUIElements()[(index || 0)];
-    },
-
-    /**
-     * Enables the button toggle.
-     */
-    enable: function () {
-        this._triggerAll(function (formElement, UIElement) {
-            formElement.disabled = false;
-            UIElement.kit.classList.remove(this.options.disabledClass);
-        }.bind(this));
-    },
-
-    /**
-     * Disables the button toggle.
-     */
-    disable: function () {
-        this._triggerAll(function (formElement, UIElement) {
-            formElement.disabled = true;
-            UIElement.kit.classList.add(this.options.disabledClass);
-        }.bind(this));
-    },
-
-    /**
-     * Gets the unique identifier for button toggles.
-     * @returns {string}
-     */
-    getElementKey: function () {
-        if (this.isRadio()) {
-            return 'buttonToggleRadio';
-        } else {
-            return 'buttonToggleCheckbox';
-        }
-    },
-
-    /**
-     * Destruction of this class.
-     */
-    destroy: function () {
-        this._triggerAll(function (formElement, UIElement) {
-            UIElement.parentNode.replaceChild(formElement, UIElement);
-            formElement.addEventListener('click', '_onFormElementClick', this);
-        }.bind(this));
-        FormElement.prototype.destroy.call(this);
-    }
-
-});
-
-module.exports = ButtonToggle;
-},{"./form-element":26,"element-kit":1,"underscore":22}],24:[function(require,module,exports){
-'use strict';
-var _ = require('underscore');
-var FormElement = require('./form-element');
-require('element-kit');
 
 /**
  * A callback function that fires when the checkbox is checked
@@ -15220,7 +14837,7 @@ var Checkbox = FormElement.extend({
 });
 
 module.exports = Checkbox;
-},{"./form-element":26,"element-kit":1,"underscore":22}],25:[function(require,module,exports){
+},{"./form-element":25,"element-kit":4,"underscore":22}],24:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 var FormElement = require('./form-element');
@@ -15358,8 +14975,49 @@ var Dropdown = FormElement.extend({
      * @memberOf Dropdown
      */
     _onClickUIValueContainer: function (e) {
-        // show/hide options container
-        this.getUIElement().kit.classList.toggle(this.options.optionsContainerActiveClass);
+        if (this.getFormElement().disabled) {
+            return false;
+        } else if (this.isOptionsContainerActive()) {
+            this.hideOptionsContainer();
+        } else {
+            this.showOptionsContainer();
+        }
+    },
+
+    /**
+     * Shows the UI options container element.
+     */
+    showOptionsContainer: function () {
+        this.getUIElement().kit.classList.add(this.options.optionsContainerActiveClass);
+        document.body.kit.addEventListener('click', 'onClickDocument', this);
+    },
+
+    /**
+     * Hides the UI options container element.
+     */
+    hideOptionsContainer: function () {
+        this.getUIElement().kit.classList.remove(this.options.optionsContainerActiveClass);
+        document.body.kit.removeEventListener('click', 'onClickDocument', this);
+    },
+
+    /**
+     * Whether the UI options container element is open.
+     * @returns {boolean} Returns true if container is open
+     */
+    isOptionsContainerActive: function () {
+        return this.getUIElement().kit.classList.contains(this.options.optionsContainerActiveClass);
+    },
+
+    /**
+     * When document is clicked.
+     * @param {Event} e
+     */
+    onClickDocument: function (e) {
+        var closestUIContainer = e.target.kit.getClosestAncestorElementByClassName(this.options.containerClass);
+        if (!closestUIContainer || closestUIContainer !== this.getUIElement()) {
+            // clicked outside of ui element!
+            this.hideOptionsContainer();
+        }
     },
 
     /**
@@ -15370,8 +15028,7 @@ var Dropdown = FormElement.extend({
      */
     _onClickUIOption: function (e) {
         var selectedOption = e.currentTarget,
-            newDataValue = selectedOption.kit.dataset.value,
-            newDisplayValue = selectedOption.textContent;
+            newDataValue = selectedOption.kit.dataset.value;
 
         if (this.getValue() !== newDataValue) {
             // set the current value of the REAL dropdown
@@ -15548,7 +15205,7 @@ var Dropdown = FormElement.extend({
 });
 
 module.exports = Dropdown;
-},{"./form-element":26,"element-kit":1,"underscore":22}],26:[function(require,module,exports){
+},{"./form-element":25,"element-kit":4,"underscore":22}],25:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 var Module = require('module.js');
@@ -15636,25 +15293,19 @@ var FormElement = Module.extend({
      */
     getElementKey: function () {
         return 'element';
-    },
-
-    /**
-     * Destruction of this class.
-     * @abstract
-     */
-    destroy: function () {}
+    }
 
 });
 
 module.exports = FormElement;
-},{"element-kit":1,"module.js":21,"underscore":22}],27:[function(require,module,exports){
+},{"element-kit":4,"module.js":21,"underscore":22}],26:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 var Module = require('module.js');
 var Dropdown = require('./dropdown');
 var InputField = require('./input-field');
 var Checkbox = require('./checkbox');
-var ButtonToggle = require('./button-toggle');
+var SubmitButton = require('./submit-button');
 
 require('element-kit');
 
@@ -15669,6 +15320,12 @@ require('element-kit');
  * @callback Form~onGetOptions
  * @param {HTMLElement} el - The element on which to use the custom options
  * @returns {Object} Return the custom set of options
+ */
+
+/**
+ * The function that fires when the submit button is clicked
+ * @callback Form~onSubmitButtonClick
+ * @returns {Event} Returns the click event
  */
 
 /**
@@ -15687,6 +15344,9 @@ var Form = Module.extend({
      * @param {string} [options.dropdownClass] - The css class used to query the set of dropdown elements that should be included
      * @param {string} [options.checkboxClass] - The css class used to query the set of checkbox elements that should be included
      * @param {string} [options.inputFieldClass] - The css class used to query the set of text input elements that should be included
+     * @param {string} [options.submitButtonClass] - The css class used to query the submit button
+     * @param {string} [options.submitButtonDisabledClass] - The class that will be applied to the submit button when its disabled
+     * @param {string} [options.onSubmitButtonClick] - Function that is called when the submit button is clicked
      */
     initialize: function (options) {
 
@@ -15696,7 +15356,10 @@ var Form = Module.extend({
             onGetOptions: null,
             dropdownClass: null,
             checkboxClass: null,
-            inputFieldClass: null
+            inputFieldClass: null,
+            submitButtonClass: null,
+            submitButtonDisabledClass: null,
+            onSubmitButtonClick: null
         }, options);
 
         this.options = options;
@@ -15705,6 +15368,7 @@ var Form = Module.extend({
         this.formEls = this.options.el.elements;
 
         this._formInstances = [];
+        Module.prototype.initialize.call(this, this.options);
     },
 
     /**
@@ -15714,6 +15378,14 @@ var Form = Module.extend({
         this._setupInstances(this.options.dropdownClass, Dropdown);
         this._setupInstances(this.options.checkboxClass, Checkbox);
         this._setupInstances(this.options.inputFieldClass, InputField);
+
+        if (this.options.submitButtonClass) {
+            this.subModules.submitButton = new SubmitButton({
+                el: this.options.el.getElementsByClassName(this.options.submitButtonClass)[0],
+                disabledClass: this.options.submitButtonDisabledClass,
+                onClick: this.options.onSubmitButtonClick
+            });
+        }
     },
 
     /**
@@ -15739,7 +15411,7 @@ var Form = Module.extend({
                 el = elements[i];
                 finalOptions = this._buildOptions(el, options);
                 finalOptions[elKey] = el; // dont allow custom options to override the el!
-                instance = new View(finalOptions);
+                instance = this.subModules['fe' + elKey + cssClass + i] = new View(finalOptions);
                 this._formInstances.push(instance);
             }
         }
@@ -15805,12 +15477,17 @@ var Form = Module.extend({
      */
     disable: function () {
         var els = this.formEls,
-            i;
+            i,
+            submitButton = this.getSubmitButtonInstance();
         this.setPropertyAll('disabled', true);
         // add disabled css classes
         for (i = 0; i < els.length; i++) {
             els[i].kit.classList.add('disabled');
         }
+        if (submitButton) {
+            submitButton.disable();
+        }
+
     },
 
     /**
@@ -15818,16 +15495,21 @@ var Form = Module.extend({
      */
     enable: function () {
         var els = this.formEls,
-            i;
+            i,
+            submitButton = this.getSubmitButtonInstance();
         this.setPropertyAll('disabled', false);
         // remove disabled css classes
         for (i = 0; i < els.length; i++) {
             els[i].kit.classList.remove('disabled');
         }
+        if (submitButton) {
+            submitButton.disable();
+        }
     },
 
     /**
      * Sets a property on all form elements.
+     * @TODO: this function still exists until this class can cover ALL possible form elements (i.e. radio buttons)
      * @param {string} prop - The property to change
      * @param {*} value - The value to set
      */
@@ -15836,6 +15518,21 @@ var Form = Module.extend({
             els = this.formEls;
         for (i = 0; i < els.length; i++) {
             els[i][prop] = value;
+        }
+    },
+
+    /**
+     * Triggers a method on all form instances.
+     * @param {string} method - The method
+     * @param {...*} params - Any params for the method from here, onward
+     */
+    triggerMethodAll: function (method, params) {
+        var args = Array.prototype.slice.call(arguments, 1),
+            i, instance;
+
+        for (i = 0; i < this._formInstances.length; i++) {
+            instance = this._formInstances[i];
+            instance[method].apply(instance, args);
         }
     },
 
@@ -15867,20 +15564,17 @@ var Form = Module.extend({
     },
 
     /**
-     * Kills form functionality and destroys instances.
+     * Returns the submit button instance.
+     * @returns {Object}
      */
-    destroy: function () {
-        var instances = this._formInstances,
-            count = instances.length,
-            i;
-        for (i = 0; i < count; i++) {
-            this._formInstances[i].destroy();
-        }
+    getSubmitButtonInstance: function () {
+        return this.subModules.submitButton;
     }
+
 });
 
 module.exports = Form;
-},{"./button-toggle":23,"./checkbox":24,"./dropdown":25,"./input-field":28,"element-kit":1,"module.js":21,"underscore":22}],28:[function(require,module,exports){
+},{"./checkbox":23,"./dropdown":24,"./input-field":27,"./submit-button":28,"element-kit":4,"module.js":21,"underscore":22}],27:[function(require,module,exports){
 'use strict';
 var _ = require('underscore');
 var FormElement = require('./form-element');
@@ -16147,4 +15841,81 @@ var InputField = FormElement.extend({
 });
 
 module.exports = InputField;
-},{"./form-element":26,"element-kit":1,"underscore":22}]},{},[27]);
+},{"./form-element":25,"element-kit":4,"underscore":22}],28:[function(require,module,exports){
+'use strict';
+var _ = require('underscore');
+var Module = require('module.js');
+require('element-kit');
+
+/**
+ * @class SubmitButton
+ */
+var SubmitButton = Module.extend({
+
+    /**
+     * Sets up stuff.
+     * @abstract
+     * @param {Object} options - Instantiation options
+     */
+    initialize: function (options) {
+        this.options = _.extend({
+            el: null,
+            disabledClass: 'disabled',
+            onClick: null
+        }, options);
+
+        Module.prototype.initialize.call(this, this.options);
+
+        this.options.el.kit.addEventListener('click', 'onClick', this);
+    },
+
+    /**
+     * When the submit button is clicked.
+     * @param e
+     */
+    onClick: function (e) {
+        if (this.options.onClick) {
+            this.options.onClick(e);
+        }
+    },
+
+    /**
+     * Returns the submit button element
+     * @returns {HTMLElement} the submit button
+     * @abstract
+     */
+    getSubmitButton: function () {
+        return this.options.el;
+    },
+
+    /**
+     * Enables the form element.
+     * @abstract
+     */
+    enable: function () {
+        var btn = this.getSubmitButton();
+        btn.disabled = false;
+        btn.classList.remove(this.options.disabledClass);
+    },
+
+    /**
+     * Disables the form element.
+     * @abstract
+     */
+    disable: function () {
+        var btn = this.getSubmitButton();
+        btn.disabled = true;
+        btn.classList.add(this.options.disabledClass);
+    },
+
+    /**
+     * Removes event listeners.
+     */
+    destroy: function () {
+        this.options.el.kit.removeEventListener('click', 'onClick', this);
+        Module.prototype.destroy.call(this);
+    }
+});
+
+module.exports = SubmitButton;
+},{"element-kit":4,"module.js":21,"underscore":22}]},{},[26]);
