@@ -263,6 +263,14 @@ var Form = Module.extend({
     },
 
     /**
+     * Resets the form back to its original values.
+     */
+    reset: function () {
+        this.options.el.reset();
+        this.triggerMethodAll('reset');
+    },
+
+    /**
      * Returns the submit button instance.
      * @returns {Object}
      */

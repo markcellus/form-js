@@ -67,7 +67,7 @@ var InputField = FormElement.extend({
         input.kit.classList.add(this.options.inputClass);
 
         this._container = this._buildUIElement(input);
-        this._inputEl = this._container.getElementsByClassName(this.options.inputClass)[0];
+        this._inputEl = input;
 
         this.origInputValue = input.value;
         this.isInitDisabled = input.disabled;

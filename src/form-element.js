@@ -16,6 +16,8 @@ var FormElement = Module.extend({
      */
     initialize: function (options) {
         this.options = options || {};
+
+        this.origValue = options.el.value;
     },
 
     /**
@@ -85,6 +87,13 @@ var FormElement = Module.extend({
      */
     getElementKey: function () {
         return 'element';
+    },
+
+    /**
+     * Resets the form element to its default value.
+     */
+    reset: function () {
+        this.setValue(this.origValue);
     }
 
 });
