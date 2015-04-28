@@ -1,5 +1,5 @@
 /** 
-* formjs - v1.4.0.
+* formjs - v1.5.0.
 * https://github.com/mkay581/formjs.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -15617,8 +15617,11 @@ var Form = Module.extend({
                 obj = {
                     name: field.name,
                     // fallback to value attribute when .value can't be trusted (i.e. input[type=date])
-                    value: field.value
+                    value: field.value,
                     //value: field.value || field.getAttribute('value')
+                    required: field.required,
+                    disabled: field.disabled,
+                    formElement: field
                 };
                 map.push(obj);
             }
