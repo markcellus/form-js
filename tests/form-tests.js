@@ -37,49 +37,63 @@ module.exports = (function () {
     //    '<input type="submit" class="submit-button" value="Submit" />' +
     //    '</form>';
 
-
-    QUnit.test('getting current values', function () {
-        QUnit.expect(3);
+    QUnit.test('getCurrentValues() returns correct array objects on initialize', function () {
+        QUnit.expect(6);
         var fixture = document.getElementById('qunit-fixture');
         var el = TestUtils.createHtmlElement(formHtml);
         fixture.appendChild(el);
         var instance = new Form({el: el});
-        var textInputs = el.querySelectorAll('[type="text"]');
-        var assertedValues = [
-            {name: 'test_input_field', value: 'text1'},
-            {name: 'test_toggle1', value: 'toggle1'},
-            {name: 'test_toggle2', value: 'toggle2'},
-            {name: 'test_input_email', value: 'hey@test.com'},
-            {name: 'chk_group', value: 'value1'},
-            {name: 'chk_group', value: 'value2'}
-        ];
-        var textInput = textInputs[0];
-        QUnit.deepEqual(instance.getCurrentValues(), assertedValues, 'after setting up, getCurrentValues() returns correct object map of values');
-        var newInputValue = 'newval';
-        textInput.value = newInputValue; // change inputs value
-        assertedValues = [
-            {name: 'test_input_field', value: newInputValue},
-            {name: 'test_toggle1', value: 'toggle1'},
-            {name: 'test_toggle2', value: 'toggle2'},
-            {name: 'test_input_email', value: 'hey@test.com'},
-            {name: 'chk_group', value: 'value1'},
-            {name: 'chk_group', value: 'value2'}
-        ];
-        QUnit.deepEqual(instance.getCurrentValues(), assertedValues, 'after changing the input values, getCurrentValues() returns correct object map of values');
+        var inputs = el.querySelectorAll('[name]');
+        var values = instance.getCurrentValues();
+        var assertedValue = {name: 'test_input_field', value: 'text1', required: inputs[0].required, disabled: inputs[0].disabled, formElement: inputs[0]};
+        QUnit.deepEqual(values[0], assertedValue, 'object 1 was correct');
+        assertedValue = {name: 'test_toggle1', value: 'toggle1', required: inputs[1].required, disabled: inputs[1].disabled, formElement: inputs[1]};
+        QUnit.deepEqual(values[1], assertedValue, 'object 2 was correct');
+        assertedValue = {name: 'test_toggle2', value: 'toggle2', required: inputs[2].required, disabled: inputs[2].disabled, formElement: inputs[2]};
+        QUnit.deepEqual(values[2], assertedValue, 'object 3 was correct');
+        assertedValue = {name: 'test_input_email', value: 'hey@test.com', required: inputs[3].required, disabled: inputs[3].disabled, formElement: inputs[3]};
+        QUnit.deepEqual(values[3], assertedValue, 'object 4 was correct');
+        assertedValue = {name: 'chk_group', value: 'value1', required: inputs[4].required, disabled: inputs[4].disabled, formElement: inputs[4]};
+        QUnit.deepEqual(values[4], assertedValue, 'object 5 was correct');
+        assertedValue = {name: 'chk_group', value: 'value2', required: inputs[5].required, disabled: inputs[5].disabled, formElement: inputs[5]};
+        QUnit.deepEqual(values[5], assertedValue, 'object 6 was correct');
+        instance.destroy();
+    });
+
+    QUnit.test('getCurrentValues() returns new object after changing its associated value', function () {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var formHtml = ' ' +
+            '<form>' +
+                '<input type="text" name="test_input_field" value="text1" />' +
+            '</form>';
+        var el = TestUtils.createHtmlElement(formHtml);
+        fixture.appendChild(el);
+        var instance = new Form({el: el});
+        var inputText = el.getElementsByTagName('input')[0];
+        var newInputValue = 't2';
+        inputText.value = newInputValue; // change inputs value
+        QUnit.deepEqual(instance.getCurrentValues()[0].value, newInputValue, 'object was returned with new value');
+        instance.destroy();
+    });
+
+    QUnit.test('getCurrentValues() returns updated object after appending a new input field to the DOM inside of the form', function () {
+        QUnit.expect(2);
+        var fixture = document.getElementById('qunit-fixture');
+        var formHtml = ' ' +
+            '<form>' +
+                '<input type="text" name="test_input_field" value="text1" />' +
+            '</form>';
+        var el = TestUtils.createHtmlElement(formHtml);
+        fixture.appendChild(el);
+        var instance = new Form({el: el});
         var newInputFieldValue = 'pht';
         var newInputFieldName = 'phantom_val';
         var newInputField = TestUtils.createHtmlElement('<input type="text" class="form-field-text" name="' + newInputFieldName + '" value="' + newInputFieldValue + '" />');
         el.appendChild(newInputField); // attach new input field to form with new value
-        assertedValues = [
-            {name: 'test_input_field', value: newInputValue},
-            {name: 'test_toggle1', value: 'toggle1'},
-            {name: 'test_toggle2', value: 'toggle2'},
-            {name: 'test_input_email', value: 'hey@test.com'},
-            {name: 'chk_group', value: 'value1'},
-            {name: 'chk_group', value: 'value2'},
-            {name: 'phantom_val', value: 'pht'}
-        ];
-        QUnit.deepEqual(instance.getCurrentValues(), assertedValues, 'after appending a new input field to the form, getCurrentValues() returns correct object map of values');
+        var testValueObj = instance.getCurrentValues()[1];
+        QUnit.deepEqual(testValueObj.value, newInputFieldValue, 'object was returned with new value');
+        QUnit.deepEqual(testValueObj.name, newInputFieldName, 'object was returned with new name attribute');
         instance.destroy();
     });
 

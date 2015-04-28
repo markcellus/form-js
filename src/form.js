@@ -253,8 +253,11 @@ var Form = Module.extend({
                 obj = {
                     name: field.name,
                     // fallback to value attribute when .value can't be trusted (i.e. input[type=date])
-                    value: field.value
+                    value: field.value,
                     //value: field.value || field.getAttribute('value')
+                    required: field.required,
+                    disabled: field.disabled,
+                    formElement: field
                 };
                 map.push(obj);
             }
