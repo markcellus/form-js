@@ -13,33 +13,21 @@ module.exports = (function () {
 
     QUnit.module('Form Tests');
 
-    var formHtml = ' ' +
-        '<form>' +
-            '<input type="text" name="test_input_field" value="text1" />' +
-            '<div>' +
-                '<input type="checkbox" name="test_toggle1" value="toggle1" />' +
-                '<input type="checkbox" name="test_toggle2" value="toggle2" />' +
-            '</div>' +
-            '<input type="email" name="test_input_email" value="hey@test.com" />' +
-            '<input type="checkbox" name="chk_group" value="value1" />Value 1<br />' +
-            '<input type="checkbox" name="chk_group" value="value2" />Value 2<br />' +
-            '<input type="submit" class="submit-button" value="Submit" />' +
-        '</form>';
-
-    //var formHtml = ' ' +
-    //    '<form>' +
-    //    '<input type="text" name="test_input_field" class="form-field-text" value="text1" />' +
-    //    '<div class="form-toggle-group">' +
-    //    '<input type="checkbox" name="test_toggle1" class="form-toggle-input1" value="toggle1" />' +
-    //    '<input type="checkbox" name="test_toggle2" class="form-toggle-input2" value="toggle2" />' +
-    //    '</div>' +
-    //    '<input type="date" name="test_input_date" class="form-field-date" value="date1" />' +
-    //    '<input type="submit" class="submit-button" value="Submit" />' +
-    //    '</form>';
-
     QUnit.test('getCurrentValues() returns correct array objects on initialize', function () {
         QUnit.expect(6);
         var fixture = document.getElementById('qunit-fixture');
+        var formHtml = ' ' +
+            '<form>' +
+                '<input type="text" name="test_input_field" value="text1" />' +
+                '<div>' +
+                    '<input type="checkbox" name="test_toggle1" value="toggle1" />' +
+                    '<input type="checkbox" name="test_toggle2" value="toggle2" />' +
+                '</div>' +
+                '<input type="email" name="test_input_email" value="hey@test.com" />' +
+                '<input type="checkbox" name="chk_group" value="value1" />Value 1<br />' +
+                '<input type="checkbox" name="chk_group" value="value2" />Value 2<br />' +
+                '<input type="submit" class="submit-button" value="Submit" />' +
+            '</form>';
         var el = TestUtils.createHtmlElement(formHtml);
         fixture.appendChild(el);
         var instance = new Form({el: el});
@@ -108,7 +96,7 @@ module.exports = (function () {
         moduleInitializeStub.restore();
     });
 
-    QUnit.test('should instantiate Dropdown with correct el and destroy it correctly', function () {
+    QUnit.test('Dropdown class should be instantiated with correct select element and get destroyed correctly', function () {
         QUnit.expect(3);
         var dropdownClass = 'form-dropdown-select';
         var formEl = TestUtils.createHtmlElement(' ' +
@@ -131,7 +119,7 @@ module.exports = (function () {
         dropdownInitialize.restore();
     });
 
-    QUnit.test('should instantiate InputField with correct el and destroy it correctly', function () {
+    QUnit.test('InputField class should be instantiated with correct input element and get destroyed correctly', function () {
         QUnit.expect(3);
         var inputClass = 'text-field';
         var formEl = TestUtils.createHtmlElement(' ' +
@@ -152,7 +140,7 @@ module.exports = (function () {
         inputFieldInitialize.restore();
     });
 
-    QUnit.test('should instantiate checkbox elements with Checkbox class with correct els and destroys them correctly', function () {
+    QUnit.test('Checkbox class should be instantiated with checkbox elements and get destroyed correctly', function () {
         QUnit.expect(3);
         var checkboxClass = 'checkbox';
         var formEl = TestUtils.createHtmlElement(' ' +
@@ -174,166 +162,50 @@ module.exports = (function () {
         checkboxInitializeStub.restore();
     });
 
+    QUnit.test('ButtonToggle class should be instantiated with radio button elements with the same name attribute and get destroyed correctly', function () {
+        QUnit.expect(4);
+        var radioClass = 'radio';
+        var formEl = TestUtils.createHtmlElement(' ' +
+            '<form>' +
+                '<input type="radio" name="test" class="' + radioClass + '" value="radioA" />' +
+                '<input type="radio" name="test" class="' + radioClass + '" value="radioB" />' +
+            '</form>');
+        var radioEls = formEl.getElementsByClassName(radioClass);
+        var buttonToggleInitializeStub = Sinon.stub(ButtonToggle.prototype, 'initialize');
+        var buttonToggleDestroyStub = Sinon.stub(ButtonToggle.prototype, 'destroy');
 
+        var formInstance = new Form({el: formEl, buttonToggleClass: radioClass});
+        formInstance.setup();
+        QUnit.equal(buttonToggleInitializeStub.args[0][0].inputs[0], radioEls[0], 'after setting up, ButtonToggle class was instantiated with first radio element');
+        QUnit.equal(buttonToggleInitializeStub.args[0][0].inputs[1], radioEls[1], 'ButtonToggle class was instantiated with second radio element');
+        QUnit.equal(buttonToggleInitializeStub.callCount, 1, 'ButtonToggle class was only instantiated once');
+        formInstance.destroy();
+        QUnit.equal(buttonToggleDestroyStub.callCount, 1, 'ButtonToggle instance was destroyed');
+        buttonToggleDestroyStub.restore();
+        buttonToggleInitializeStub.restore();
+    });
 
-    //QUnit.test('setting up and destroying elements', function () {
-    //    QUnit.expect(16);
-    //    var el = $(formHtml)[0];
-    //
-    //    // setup stubs
-    //    var inputFieldInitializeSpy = Sinon.spy(InputField.prototype, 'initialize');
-    //    var inputFieldDestroySpy = Sinon.spy(InputField.prototype, 'destroy');
-    //    var buttonToggleInitializeSpy = Sinon.spy(ButtonToggle.prototype, 'initialize');
-    //    var buttonToggleDestroySpy = Sinon.spy(ButtonToggle.prototype, 'destroy');
-    //    var datePickerInitializeSpy = Sinon.spy(DatePicker.prototype, 'initialize');
-    //    var datePickerDestroySpy = Sinon.spy(DatePicker.prototype, 'destroy');
-    //
-    //    // cache els
-    //    var inputField = el.getElementsByClassName('form-field-text')[0];
-    //    var toggleContainer = el.getElementsByClassName('form-toggle-group')[0];
-    //    var datepickerEl = el.getElementsByClassName('form-field-date')[0];
-    //
-    //    var formInstance = new Form({el: el});
-    //
-    //    // test setup
-    //    QUnit.equal(inputFieldInitializeSpy.callCount, 0, 'InputField class was not yet initialized because setup() wasnt triggered yet');
-    //    QUnit.equal(buttonToggleInitializeSpy.callCount, 0, 'ButtonToggle class was not yet initialized');
-    //    QUnit.equal(datePickerInitializeSpy.callCount, 0, 'DatePicker class was not yet initialized');
-    //    formInstance.setup();
-    //    QUnit.deepEqual(inputFieldInitializeSpy.args[0][0].el, inputField, 'after setting up, InputField class was instantiated with correct options');
-    //    QUnit.deepEqual(buttonToggleInitializeSpy.args[0][0].container, toggleContainer, 'ButtonToggle class was instantiated with correct container option');
-    //    QUnit.equal(buttonToggleInitializeSpy.args[0][0].inputClass, 'form-toggle-input', 'ButtonToggle class was instantiated with correct inputClass option');
-    //    QUnit.equal(buttonToggleInitializeSpy.args[0][0].containerClass, 'form-toggle', 'ButtonToggle class was instantiated with correct containerClass option');
-    //    QUnit.equal(buttonToggleInitializeSpy.args[0][0].selectedClass, 'form-toggle-selected', 'ButtonToggle class was instantiated with correct selectedClass option');
-    //    QUnit.equal(buttonToggleInitializeSpy.args[0][0].disabledClass, 'form-toggle-disabled', 'ButtonToggle class was instantiated with correct disabledClass option');
-    //    QUnit.deepEqual(datePickerInitializeSpy.args[0][0].el, datepickerEl, 'InputField class was instantiated with correct options');
-    //
-    //    // test destruction
-    //    QUnit.equal(inputFieldDestroySpy.callCount, 0, 'InputField class destroy() method was not yet triggered because destroy() wasnt called');
-    //    QUnit.equal(buttonToggleDestroySpy.callCount, 0, 'ButtonToggle class destroy() method was not yet triggered');
-    //    QUnit.equal(datePickerDestroySpy.callCount, 0, 'DatePicker class destroy() method was not yet triggered');
-    //    formInstance.destroy();
-    //    QUnit.equal(inputFieldDestroySpy.callCount, 1, 'after destroy() is called, InputField class instance was destroyed');
-    //    QUnit.equal(buttonToggleDestroySpy.callCount, 1, 'ButtonToggle class instance was destroyed');
-    //    QUnit.equal(datePickerDestroySpy.callCount, 1, 'DatePicker class instance was destroyed');
-    //
-    //    inputFieldDestroySpy.restore();
-    //    inputFieldInitializeSpy.restore();
-    //    buttonToggleDestroySpy.restore();
-    //    buttonToggleInitializeSpy.restore();
-    //    datePickerDestroySpy.restore();
-    //    datePickerInitializeSpy.restore();
-    //});
-    //
-    //// TODO: fix/enable the following tests that pass but fail in phantomjs
-    ////QUnit.test('change events for datepicker', function () {
-    ////    QUnit.expect(3);
-    ////    var $fixture = $('#qunit-fixture');
-    ////    var el = $(formHtml)[0];
-    ////    $fixture.append(el);
-    ////    var datePickerInitializeSpy = Sinon.spy(DatePicker.prototype, 'initialize');
-    ////    var onChangeSpy = Sinon.spy();
-    ////    var instance = new Form({el: el, onValueChange: onChangeSpy});
-    ////    instance.setup();
-    ////    QUnit.equal(onChangeSpy.callCount, 0, 'onValueChange callback was NOT yet fired because no change event was triggered');
-    ////    // test date picker change event
-    ////    var datepickerEl = el.getElementsByClassName('form-field-date')[0];
-    ////    var changeEvent = document.createEvent('CustomEvent');
-    ////    changeEvent.initCustomEvent('change', false, false);
-    ////    datepickerEl.dispatchEvent(changeEvent);
-    ////    QUnit.deepEqual(onChangeSpy.args[0], [datepickerEl.value, datepickerEl, undefined], 'after change event was triggered, onValueChange callback was fired with correct args');
-    ////    instance.destroy();
-    ////    var changeEvent = document.createEvent('CustomEvent');
-    ////    changeEvent.initCustomEvent('change', false, false);
-    ////    datepickerEl.dispatchEvent(changeEvent);
-    ////    QUnit.equal(onChangeSpy.callCount, 1, 'after destroy, onValueChange was not triggered after change event happens');
-    ////    datePickerInitializeSpy.restore();
-    ////});
-    //
-    //QUnit.test('input field change events', function () {
-    //    QUnit.expect(3);
-    //    var formEl = $(formHtml)[0];
-    //    var onChangeSpy = Sinon.spy();
-    //    var instance = new Form({el: formEl, onValueChange: onChangeSpy});
-    //    instance.setup();
-    //    QUnit.equal(onChangeSpy.callCount, 0, 'onValueChange callback was NOT yet fired because no change event was triggered');
-    //    // test change event
-    //    var inputEl = formEl.getElementsByClassName('form-field-text')[0];
-    //    var changeEvent = document.createEvent('CustomEvent');
-    //    changeEvent.initCustomEvent('change', false, false);
-    //    var testNewValue = 'newVal';
-    //    inputEl.value = testNewValue; // reflect change in inputs value
-    //    inputEl.dispatchEvent(changeEvent);
-    //    QUnit.equal(onChangeSpy.args[0][0], testNewValue, 'after change event was triggered, onValueChange callback was fired with correct first arg');
-    //    QUnit.deepEqual(onChangeSpy.args[0][1], inputEl, 'onValueChange callback was passed correct second arg');
-    //    instance.destroy();
-    //    // TODO: figure out why the following test doesnt pass!
-    //    //var changeEvent = document.createEvent('CustomEvent');
-    //    //changeEvent.initCustomEvent('change', false, false);
-    //    //inputEl.dispatchEvent(changeEvent);
-    //    //QUnit.equal(onChangeSpy.callCount, 1, 'after destroy, onValueChange was not triggered after change event happens');
-    //});
-    //
-    //QUnit.test('getting current values', function () {
-    //    QUnit.expect(1);
-    //    var el = $(formHtml)[0];
-    //    var currentValues = [{test: 'one'}];
-    //    var elementKitFormGetCurrentValuesStub = Sinon.stub(FormJS.prototype, 'getCurrentValues');
-    //    elementKitFormGetCurrentValuesStub.returns(currentValues);
-    //    var instance = new Form({el: el});
-    //    instance.setup();
-    //    QUnit.deepEqual(instance.getCurrentValues(), currentValues, 'calling getCurrentValues() returns Element Kit\'s getCurrentValues method');
-    //    instance.destroy();
-    //    elementKitFormGetCurrentValuesStub.restore();
-    //});
-    //
-    //QUnit.test('using custom initialize options', function () {
-    //    QUnit.expect(14);
-    //    var el = $(formHtml)[0];
-    //    var onGetOptionsStub = Sinon.stub();
-    //    // setup for input field
-    //    var inputField = el.getElementsByClassName('form-field-text')[0];
-    //    var inputFieldInitializeStub = Sinon.spy(InputField.prototype, 'initialize');
-    //    var inputFieldOptions = {el: null, option2: 'text', onChange: Sinon.spy()};
-    //    onGetOptionsStub.withArgs(inputField).returns(inputFieldOptions);
-    //    // setup for toggle
-    //    var buttonToggleInitializeStub = Sinon.spy(ButtonToggle.prototype, 'initialize');
-    //    var toggleContainer = el.getElementsByClassName('form-toggle-group')[0];
-    //    var toggleOptions = {el: null, togOption: 'tg2', onChange: Sinon.spy()};
-    //    onGetOptionsStub.withArgs(toggleContainer).returns(toggleOptions);
-    //    // setup for date picker
-    //    var datePickerInitializeStub = Sinon.spy(DatePicker.prototype, 'initialize');
-    //    var datepickerEl = el.getElementsByClassName('form-field-date')[0];
-    //    var datepickerOptions = {el: null, dp: 'test', onChange: Sinon.spy()};
-    //    onGetOptionsStub.withArgs(datepickerEl).returns(datepickerOptions);
-    //    // begin test
-    //    var formInstance = new Form({el: el, onGetOptions: onGetOptionsStub});
-    //    QUnit.equal(onGetOptionsStub.callCount, 0, 'onGetOptions callback was not fired because setup() hasnt been triggered yet');
-    //    // test setup
-    //    formInstance.setup();
-    //    // test input field instantiation
-    //    QUnit.deepEqual(onGetOptionsStub.args[0], [inputField], 'after setup(), onGetOptions callback\'s first call was passed correct element');
-    //    QUnit.deepEqual(inputFieldInitializeStub.args[0][0].el, inputField, 'InputField class was instantiated with correct el option');
-    //    QUnit.deepEqual(inputFieldInitializeStub.args[0][0].option2, 'text', 'InputField class was instantiated with correct custom second option');
-    //    // test toggle instantiation
-    //    QUnit.deepEqual(onGetOptionsStub.args[1], [toggleContainer], 'onGetOptions callback\'s second call was passed correct element');
-    //    QUnit.deepEqual(buttonToggleInitializeStub.args[0][0].container, toggleContainer, 'ButtonToggle class was instantiated with correct container option');
-    //    QUnit.equal(buttonToggleInitializeStub.args[0][0].inputClass, 'form-toggle-input', 'ButtonToggle class was instantiated with correct inputClass option');
-    //    QUnit.equal(buttonToggleInitializeStub.args[0][0].containerClass, 'form-toggle', 'ButtonToggle class was instantiated with correct containerClass option');
-    //    QUnit.equal(buttonToggleInitializeStub.args[0][0].selectedClass, 'form-toggle-selected', 'ButtonToggle class was instantiated with correct selectedClass option');
-    //    QUnit.equal(buttonToggleInitializeStub.args[0][0].disabledClass, 'form-toggle-disabled', 'ButtonToggle class was instantiated with correct disabledClass option');
-    //    QUnit.equal(buttonToggleInitializeStub.args[0][0].togOption, 'tg2', 'ButtonToggle class was instantiated with correct custom option');
-    //    // test date picker instantiation
-    //    QUnit.deepEqual(onGetOptionsStub.args[2], [datepickerEl], 'onGetOptions callback\'s third call was passed correct element');
-    //    QUnit.deepEqual(datePickerInitializeStub.args[0][0].el, datepickerEl, 'DatePicker class was instantiated with correct el option');
-    //    QUnit.deepEqual(datePickerInitializeStub.args[0][0].dp, 'test', 'DatePicker class was instantiated with correct custom option');
-    //
-    //    formInstance.destroy();
-    //    inputFieldInitializeStub.restore();
-    //    buttonToggleInitializeStub.restore();
-    //    datePickerInitializeStub.restore();
-    //});
-    //
+    QUnit.test('multiple ButtonToggle classes should be instantiated with radio button elements with different name attributes and they should be destroyed correctly', function () {
+        QUnit.expect(3);
+        var radioClass = 'radio';
+        var formEl = TestUtils.createHtmlElement(' ' +
+            '<form>' +
+                '<input type="radio" name="test" class="' + radioClass + '" value="radioA" />' +
+                '<input type="radio" name="test2" class="' + radioClass + '" value="radioB" />' +
+            '</form>');
+        var radioEls = formEl.getElementsByClassName(radioClass);
+        var buttonToggleInitializeStub = Sinon.stub(ButtonToggle.prototype, 'initialize');
+        var buttonToggleDestroyStub = Sinon.stub(ButtonToggle.prototype, 'destroy');
+
+        var formInstance = new Form({el: formEl, buttonToggleClass: radioClass});
+        formInstance.setup();
+        QUnit.equal(buttonToggleInitializeStub.args[0][0].inputs[0], radioEls[0], 'after setting up, ButtonToggle class was instantiated with first radio element');
+        QUnit.equal(buttonToggleInitializeStub.args[1][0].inputs[0], radioEls[1], 'ButtonToggle class was instantiated again with second radio element');
+        formInstance.destroy();
+        QUnit.equal(buttonToggleDestroyStub.callCount, 2, 'all ButtonToggle instances were destroyed');
+        buttonToggleDestroyStub.restore();
+        buttonToggleInitializeStub.restore();
+    });
 
     QUnit.test('getInstanceByName()', function () {
         QUnit.expect(1);
