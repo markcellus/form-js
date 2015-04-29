@@ -376,5 +376,92 @@ module.exports = (function (){
         secondDropdown.destroy();
     });
 
+    QUnit.test('updateOptions() should create new form and UI elements from objects in the array that it is passed', function() {
+        QUnit.expect(4);
+        var fixture = document.getElementById('qunit-fixture');
+        var html =
+            '<select>' +
+                '<option value="AAPL">Apple</option>' +
+                '<option value="FB">Facebook</option>' +
+                '<option value="GOOG">Google</option>' +
+            '</select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var uiContainerClass = 'my-ui-container';
+        var uiOptionsClass = 'my-option';
+        var dropdown = new Dropdown({
+            el: selectEl,
+            containerClass: uiContainerClass,
+            optionsClass: uiOptionsClass
+        });
+        var newOptions = [{dataValue: 'TW', displayValue: 'Twitter'}];
+        dropdown.updateOptions(newOptions);
+        var formOptionElements = fixture.getElementsByTagName('option');
+        var uiOptionElements = fixture.getElementsByClassName(uiOptionsClass);
+        QUnit.equal(formOptionElements[3].getAttribute('value'), newOptions[0].dataValue, 'after updating options, new form element was added with correct data value');
+        QUnit.equal(formOptionElements[3].textContent, newOptions[0].displayValue, 'new form element has correct display value');
+        QUnit.equal(uiOptionElements[3].getAttribute('data-value'), newOptions[0].dataValue, 'new ui element was added with correct data value');
+        QUnit.equal(uiOptionElements[3].innerHTML, newOptions[0].displayValue, 'first new ui element has correct display value');
+        dropdown.destroy();
+    });
+
+    QUnit.test('passing replace true to updateOptions() should clear out options before adding new ones', function() {
+        QUnit.expect(5);
+        var fixture = document.getElementById('qunit-fixture');
+        var html =
+            '<select>' +
+                '<option value="AAPL">Apple</option>' +
+                '<option value="FB">Facebook</option>' +
+                '<option value="GOOG">Google</option>' +
+            '</select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var uiContainerClass = 'my-ui-container';
+        var uiOptionsClass = 'my-option';
+        var clearOptionsSpy = Sinon.spy(Dropdown.prototype, 'clearOptions');
+        var dropdown = new Dropdown({
+            el: selectEl,
+            containerClass: uiContainerClass,
+            optionsClass: uiOptionsClass
+        });
+        var newOptions = [{dataValue: 'TW', displayValue: 'Twitter'}];
+        dropdown.updateOptions(newOptions, {replace: true});
+        var formOptionElements = fixture.getElementsByTagName('option');
+        var uiOptionElements = fixture.getElementsByClassName(uiOptionsClass);
+        QUnit.equal(clearOptionsSpy.callCount, 1, 'clearOptions was called');
+        QUnit.equal(formOptionElements[0].getAttribute('value'), newOptions[0].dataValue, 'new form element was added as first index with correct data value');
+        QUnit.equal(formOptionElements[0].textContent, newOptions[0].displayValue, 'new form element has correct display value');
+        QUnit.equal(uiOptionElements[0].getAttribute('data-value'), newOptions[0].dataValue, 'new ui element was added as first index with correct data value');
+        QUnit.equal(uiOptionElements[0].innerHTML, newOptions[0].displayValue, 'first new ui element has correct display value');
+        clearOptionsSpy.restore();
+        dropdown.destroy();
+    });
+
+    QUnit.test('clearOptions() should clear all form and ui options in the dropdown', function() {
+        QUnit.expect(2);
+        var fixture = document.getElementById('qunit-fixture');
+        var html =
+            '<select>' +
+                '<option value="AAPL">Apple</option>' +
+                '<option value="FB">Facebook</option>' +
+            '</select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var uiContainerClass = 'my-ui-container';
+        var uiOptionsClass = 'my-option';
+        var dropdown = new Dropdown({
+            el: selectEl,
+            containerClass: uiContainerClass,
+            optionsClass: uiOptionsClass
+        });
+        var newOptions = [{dataValue: 'TW', displayValue: 'Twitter'}];
+        dropdown.clearOptions();
+        var formOptionElements = fixture.getElementsByTagName('option');
+        var uiOptionElements = fixture.getElementsByClassName(uiOptionsClass);
+        QUnit.equal(formOptionElements.length, 0, 'all form elements have been cleared');
+        QUnit.equal(uiOptionElements.length, 0, 'all ui elements have been cleared');
+        dropdown.destroy();
+    });
+
 
 })();
