@@ -4,6 +4,7 @@ var Module = require('module.js');
 var Dropdown = require('./dropdown');
 var InputField = require('./input-field');
 var Checkbox = require('./checkbox');
+var ButtonToggle = require('./button-toggle');
 var SubmitButton = require('./submit-button');
 
 require('element-kit');
@@ -17,7 +18,7 @@ require('element-kit');
 /**
  * The function that fires to give users opportunity to return a custom set of options on a per-element basis
  * @callback Form~onGetOptions
- * @param {HTMLElement} el - The element on which to use the custom options
+ * @param {HTMLElement|Array} element(s) - The element (or if radio buttons, an array of elements) on which to use the custom options
  * @returns {Object} Return the custom set of options
  */
 
@@ -43,6 +44,7 @@ var Form = Module.extend({
      * @param {string} [options.dropdownClass] - The css class used to query the set of dropdown elements that should be included
      * @param {string} [options.checkboxClass] - The css class used to query the set of checkbox elements that should be included
      * @param {string} [options.inputFieldClass] - The css class used to query the set of text input elements that should be included
+     * @param {string} [options.buttonToggleClass] - The css class used to query the set of radio button elements that should be included
      * @param {string} [options.submitButtonClass] - The css class used to query the submit button
      * @param {string} [options.submitButtonDisabledClass] - The class that will be applied to the submit button when its disabled
      * @param {string} [options.onSubmitButtonClick] - Function that is called when the submit button is clicked
@@ -56,6 +58,7 @@ var Form = Module.extend({
             dropdownClass: null,
             checkboxClass: null,
             inputFieldClass: null,
+            buttonToggleClass: null,
             submitButtonClass: null,
             submitButtonDisabledClass: null,
             onSubmitButtonClick: null
@@ -77,6 +80,7 @@ var Form = Module.extend({
         this._setupInstances(this.options.dropdownClass, Dropdown);
         this._setupInstances(this.options.checkboxClass, Checkbox);
         this._setupInstances(this.options.inputFieldClass, InputField);
+        this._setupButtonToggleInstances(this.options.buttonToggleClass);
 
         if (this.options.submitButtonClass) {
             this.subModules.submitButton = new SubmitButton({
@@ -117,6 +121,45 @@ var Form = Module.extend({
     },
 
     /**
+     * Sets up button toggle instances by on the elements that contain the supplied css class.
+     * @param {string} cssClass - The css class of all button toggle elements to instantiate
+     * @private
+     */
+    _setupButtonToggleInstances: function (cssClass) {
+        var toggleNameMap = this.mapElementsByName(this.options.el.getElementsByClassName(cssClass)),
+            elKey = 'radio',
+            finalOptions = {};
+        _.each(toggleNameMap, function (els, name) {
+            finalOptions = this._buildOptions(els, {});
+            finalOptions.inputs = els; // dont allow custom options to override the radio inputs
+            this._formInstances.push(this.subModules['fe' + elKey + cssClass + name] = new ButtonToggle(finalOptions));
+        }, this);
+    },
+
+    /**
+     * Takes a set of elements and maps them by their name attributes.
+     * @param {HTMLCollection|Array|NodeList} elements - An array of elements
+     * @returns {{}} Returns an object with name/elements mapping
+     */
+    mapElementsByName: function (elements) {
+        var map = {},
+            count = elements.length,
+            i,
+            el;
+        if (count) {
+            for (i = 0; i < count; i++) {
+                el = elements[i];
+                if (map[el.name]) {
+                    map[el.name].push(el);
+                } else {
+                    map[el.name] = [el];
+                }
+            }
+        }
+        return map;
+    },
+
+    /**
      * Returns the instance (if there is one) of an element with a specified name attribute
      * @param {string} name - The name attribute of the element whos instance is desired
      * @returns {Object} Returns the instance that matches the name specified
@@ -136,7 +179,7 @@ var Form = Module.extend({
 
     /**
      * Builds the initialize options for an element.
-     * @param {HTMLElement} el - The element
+     * @param {HTMLElement|Array} el - The element (or if radio buttons, an array of elements)
      * @param {Object} options - The beginning set of options
      * @returns {*|{}}
      * @private
