@@ -1,5 +1,5 @@
 /** 
-* formjs - v1.6.0.
+* formjs - v1.7.0.
 * https://github.com/mkay581/formjs.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -15566,18 +15566,24 @@ var Dropdown = FormElement.extend({
         }
 
         this._setUISelectedValue(dataValue);
-
     },
 
     /**
      * Updates markup to show new dropdown option values.
      * @param {Array} optionsData - An array of objects that maps the new data values to display values desired
+     * @param {Object} [options] - Update options
+     * @param {Boolean} [options.replace] - If true, the new options will replace all current options, if false, new options will be merged with current ones
      */
-    updateOptions: function (optionsData) {
-        var el = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+    updateOptions: function (optionsData, options) {
+        var uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
             frag = document.createDocumentFragment(),
             optionEl;
 
+        options = options || {};
+
+        if (options.replace) {
+            this.clearOptions();
+        }
         this._updateFormOptionElements(optionsData);
 
         optionsData.forEach(function (obj) {
@@ -15587,17 +15593,27 @@ var Dropdown = FormElement.extend({
             optionEl.innerHTML = obj.displayValue;
             frag.appendChild(optionEl);
         }.bind(this));
-        el.innerHTML = '';
-        this.bindUIOptionClickEvents(frag.children);
-        el.appendChild(frag);
+        this.bindUIOptionClickEvents(frag.childNodes);
+        uiOptionsContainer.appendChild(frag);
+    },
+
+    /**
+     * Clears all options in the dropdown.
+     */
+    clearOptions: function () {
+        var uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+            formEl = this.getFormElement();
+        formEl.innerHTML = '';
+        uiOptionsContainer.innerHTML = '';
     },
 
     /**
      * Updates markup to show new form elements.
      * @param {Array} optionsData - An array of objects that maps the new data values to display values desired
+     * @param {boolean} reset - Whether to replace current options, or merge with them
      * @private
      */
-    _updateFormOptionElements: function (optionsData) {
+    _updateFormOptionElements: function (optionsData, reset) {
         var formEl = this.getFormElement(),
             frag = document.createDocumentFragment(),
             optionEl;
@@ -15607,7 +15623,11 @@ var Dropdown = FormElement.extend({
             optionEl.innerHTML = obj.displayValue;
             frag.appendChild(optionEl);
         });
-        formEl.innerHTML = '';
+        if (reset) {
+            formEl.innerHTML = '';
+        } else {
+
+        }
         formEl.appendChild(frag);
     },
 
