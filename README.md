@@ -35,20 +35,27 @@ var dropdown = new Dropdown({
 });
 ```
 
-Which will add the following adjacent html into the DOM:
+Which will change your HTML into this:
 
 ```html
-<div class="dropdown-container">
-    <div class="dropdown-value-container">Virginia</div>
-    <div class="dropdown-option-container">
-        <div class="dropdown-option" data-value="MD">Maryland</div>
-        <div class="dropdown-option dropdown-option-selected" data-value="VA">Virginia</div>
-        <div class="dropdown-option" data-value="DC">Washington, DC</div>
+<div class="dropdown-wrapper">
+    <div class="dropdown-container">
+        <div class="dropdown-value-container">Virginia</div>
+        <div class="dropdown-option-container">
+            <div class="dropdown-option" data-value="MD">Maryland</div>
+            <div class="dropdown-option dropdown-option-selected" data-value="VA">Virginia</div>
+            <div class="dropdown-option" data-value="DC">Washington, DC</div>
+        </div>
     </div>
+    <select>
+        <option value="MD">Maryland</option>
+        <option value="VA" selected>Virginia</option>
+        <option value="DC">Washington, DC</option>
+    </select>
 </div>
 ```
 
-Then you can style the dropdown using CSS.
+Then you can style the dropdown using CSS (and just hide the `<select>` element).
 
 
 ### Programmatically change the element's value
