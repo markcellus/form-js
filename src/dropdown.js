@@ -1,6 +1,7 @@
 'use strict';
 var _ = require('underscore');
 var FormElement = require('./form-element');
+var DeviceManager = require('device-manager');
 
 require('element-kit');
 /**
@@ -8,6 +9,18 @@ require('element-kit');
  * @callback Dropdown~onChange
  * @param {HTMLSelectElement} input - The select element after its value has been updated
  * @param {HTMLElement} UIElement - The container of the select element after its value has been updated
+ * @param {Event} event - The event
+ */
+
+/**
+ * The function that is triggered the dropdown gains focus
+ * @callback Dropdown~onFocus
+ * @param {Event} event - The event
+ */
+
+/**
+ * The function that is triggered the dropdown loses focus
+ * @callback Dropdown~onBlur
  * @param {Event} event - The event
  */
 
@@ -24,6 +37,9 @@ var Dropdown = FormElement.extend({
      * @param {HTMLSelectElement} options.el - The container of the dropdown
      * @param {Dropdown~onChange} [options.onChange] - A callback function that fires when the selected dropdown value changes
      * @param {Boolean} [options.autoSetup] - When to automatically setup the dropdown (add event listeners, etc)
+     * @param {Dropdown~onFocus} [options.onFocus] - When the dropdown gains focus
+     * @param {Dropdown~onBlur} [options.onBlur] - When the dropdown loses focus
+     * @param {string} [options.customWrapperClass] - The css class to use for div that the select element and the generated UI version of the dropdown will be wrapped by
      * @param {string} [options.containerClass] - The css class to use for the dropdown container for the ui representation of the dropdown
      * @param {string} [options.optionsContainerClass] - The css class to use for the options container of the ui representation of the dropdown
      * @param {string} [options.optionsContainerActiveClass] - The css class that will applied to the ui representation of an option element when it should be visible to the user
@@ -38,10 +54,14 @@ var Dropdown = FormElement.extend({
             el: null,
             onChange: null,
             autoSetup: true,
+            onFocus: null,
+            onBlur: null,
+            customWrapperClass: 'dropdown-wrapper',
             containerClass: 'dropdown-container',
             optionsContainerClass: 'dropdown-option-container',
             optionsContainerActiveClass: 'dropdown-option-container-active',
             optionsClass: 'dropdown-option',
+            optionsHighlightedClass: 'dropdown-option-highlighted',
             optionsSelectedClass: 'dropdown-option-selected',
             selectedValueContainerClass: 'dropdown-value-container',
             selectedValueContainerActiveClass: 'dropdown-value-container-active',
@@ -49,6 +69,13 @@ var Dropdown = FormElement.extend({
         }, options);
 
         FormElement.prototype.initialize.call(this, this.options);
+
+        this._keyMap = {
+            38: 'up',
+            40: 'down',
+            27: 'esc',
+            32: 'space'
+        };
 
         if (this.options.autoSetup) {
             this.setup();
@@ -63,17 +90,12 @@ var Dropdown = FormElement.extend({
         var el = this.options.el,
             selectedOption = el.querySelectorAll('option[selected]')[0];
 
-        this._origTabIndex = el.tabIndex;
-
         el.kit.addEventListener('change', '_onSelectChange', this);
 
-        // build html
-        el.insertAdjacentHTML('afterend',
-            '<div class="' + this.options.containerClass + '" tabindex="' + (this._origTabIndex || 0) + '">' +
-            this._buildSelectedValueHtml() + this._buildOptionsHtml() +
-            '</div>');
+        this._wrapperEl = el.kit.appendOuterHtml('<div class="' + this.options.customWrapperClass + '">');
+        this._wrapperEl.appendChild(this._buildUIElement());
 
-        this._setupEvents();
+        this._bindUIElementEvents();
 
         if (selectedOption) {
             this._setUISelectedValue(selectedOption.value);
@@ -83,9 +105,32 @@ var Dropdown = FormElement.extend({
             this.disable();
         }
 
-        // remove form element from being focused since we now have the UI element
-        el.tabIndex = -1;
+    },
 
+    /**
+     * Builds the UI element.
+     * @returns {Element}
+     * @private
+     */
+    _buildUIElement: function () {
+        var options = this.options,
+            formEl = options.el,
+            uiEl = document.createElement('div');
+
+        this._origTabIndex = formEl.tabIndex;
+
+        uiEl.classList.add(this.options.containerClass);
+        uiEl.innerHTML = this._buildSelectedValueHtml() + this._buildOptionsHtml();
+
+        // only switch tab index to ui element when not on a mobile device
+        // since we're using native there
+        if (!DeviceManager.isMobile()) {
+            uiEl.tabIndex = this._origTabIndex || 0;
+            // remove form element from being focused since we now have the UI element
+            formEl.tabIndex = -1;
+        }
+
+        return uiEl;
     },
 
     /**
@@ -114,50 +159,226 @@ var Dropdown = FormElement.extend({
     },
 
     /**
-     * Sets up click events on the ui element and its children.
-     * @private
-     * @memberOf Dropdown
+     * When a key press event is registered when focused on the UI Element.
+     * @param {KeyboardEvent} e - The key up event
      */
-    _setupEvents: function () {
-        var uiEl = this.getUIElement(),
-            uiValueContainer = uiEl.getElementsByClassName(this.options.selectedValueContainerClass)[0],
-            uiOptionEls = uiEl.getElementsByClassName(this.options.optionsClass);
+    onKeyStrokeUIElement: function (e) {
+        var options = this.options,
+            highlightClass = this.options.optionsHighlightedClass,
+            uiEl = this.getUIElement(),
+            uiContainer = uiEl.getElementsByClassName(options.optionsContainerClass)[0],
+            selectedUIOptionEl = uiContainer.getElementsByClassName(options.optionsSelectedClass)[0],
+            highlightedOptionEl = uiContainer.getElementsByClassName(highlightClass)[0] || selectedUIOptionEl,
+            key = this._keyMap[e.keyCode];
 
-        // add click events on container
-        uiValueContainer.kit.addEventListener('click', '_onClickUIValueContainer', this);
+        if (!key) {
+            return false;
+        } else if ((key === 'up' || key === 'down') && !this.isOptionsContainerActive()) {
+            this.showOptionsContainer();
+        } else if (key === 'up') {
+            this._onKeyStrokeUp(highlightedOptionEl);
+        } else if (key === 'down') {
+            this._onKeyStrokeDown(highlightedOptionEl);
+        } else if (!this.isOptionsContainerActive()) {
+            return false;
+        } else if (key === 'esc') {
+            this.hideOptionsContainer();
+        } else if (key === 'space') {
+            this.setValue(highlightedOptionEl.dataset.value);
+            this.hideOptionsContainer();
+        }
 
-        this.bindUIOptionClickEvents(uiOptionEls);
     },
 
     /**
-     * Adds click events on option elements.
-     * @param optionEls
+     * When the up arrow is triggered.
+     * @param {HTMLElement} highlightedOptionEl - The currently highlighted UI option element
+     * @private
      */
-    bindUIOptionClickEvents: function (optionEls) {
-        var i, count = optionEls.length;
-        for (i = 0; i < count; i++) {
-            optionEls[i].kit.addEventListener('click', '_onClickUIOption', this);
+    _onKeyStrokeUp: function (highlightedOptionEl) {
+        var highlightClass = this.options.optionsHighlightedClass,
+            prevSibling = highlightedOptionEl.previousSibling;
+
+        highlightedOptionEl.classList.remove(highlightClass);
+
+        // go to bottom option if at the beginning
+        if (!prevSibling) {
+            prevSibling = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0].lastChild;
+        }
+        prevSibling.classList.add(highlightClass);
+    },
+
+    /**
+     * When the down arrow is triggered.
+     * @param {HTMLElement} highlightedOptionEl - The currently highlighted UI option element
+     * @private
+     */
+    _onKeyStrokeDown: function (highlightedOptionEl) {
+        var highlightClass = this.options.optionsHighlightedClass,
+            nextSibling = highlightedOptionEl.nextSibling;
+
+        highlightedOptionEl.classList.remove(highlightClass);
+
+        if (!nextSibling) {
+            // get top option element if at end
+            nextSibling = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0].firstChild;
+        }
+        nextSibling.classList.add(highlightClass);
+    },
+
+
+    /**
+     * When the select element is focused.
+     * @private
+     * @param e
+     */
+    _onFocusFormElement: function (e) {
+        if (this.options.onFocus) {
+            this.options.onFocus(e);
         }
     },
 
     /**
-     * Removes click events from option elements.
-     * @param optionEls
+     * When the select element loses focused.
+     * @private
+     * @param e
      */
-    unbindUIOptionClickEvents: function (optionEls) {
-        var i, count = optionEls.length;
+    _onBlurFormElement: function (e) {
+        if (this.options.onBlur) {
+            this.options.onBlur(e);
+        }
+    },
+
+    /**
+     * When the UI Element is in focus.
+     * @private
+     * @param e
+     */
+    _onFocusUIElement: function (e) {
+        var self = this;
+        this._windowKeyEventListener = function(e) {
+            // if any keys we're listening to internally, prevent default window behavior
+            if (self._keyMap[e.keyCode]) {
+                e.preventDefault();
+            }
+        };
+
+        if (!DeviceManager.isMobile()) {
+            // prevent default window actions on key strokes
+            window.addEventListener('keydown', this._windowKeyEventListener, false);
+            window.addEventListener('keyup', this._windowKeyEventListener, false);
+            // add key stroke event listeners
+            this.getUIElement().kit.addEventListener('keyup', 'onKeyStrokeUIElement', this);
+        }
+
+        if (this.options.onFocus) {
+            this.options.onFocus(e);
+        }
+    },
+
+    /**
+     * When the UI Element loses focus
+     * @private
+     * @param e
+     */
+    _onBlurUIElement: function (e) {
+        if (!DeviceManager.isMobile()) {
+            this.getUIElement().kit.removeEventListener('keyup', 'onKeyStrokeUIElement', this);
+            window.removeEventListener('keydown', this._windowKeyEventListener, false);
+            window.removeEventListener('keyup', this._windowKeyEventListener, false);
+        }
+        if (this.options.onBlur) {
+            this.options.onBlur(e);
+        }
+    },
+
+    /**
+     * When an option element inside of the UI element is hovered over
+     * @param {MouseEvent} e - The mouse event
+     * @private
+     */
+    _onMouseEnterUIElement: function (e) {
+        e.currentTarget.classList.add(this.options.optionsHighlightedClass);
+    },
+
+    /**
+     * When hovering over an option element inside of the UI element stops.
+     * @param {MouseEvent} e - The mouse event
+     * @private
+     */
+    _onMouseLeaveUIElement: function (e) {
+        e.currentTarget.classList.remove(this.options.optionsHighlightedClass);
+    },
+
+    /**
+     * Sets up click events on the ui element and its children.
+     * @private
+     * @memberOf Dropdown
+     */
+    _bindUIElementEvents: function () {
+        var uiEl = this.getUIElement(),
+            uiValueContainer = uiEl.getElementsByClassName(this.options.selectedValueContainerClass)[0],
+            formEl = this.getFormElement();
+
+        uiEl.kit.addEventListener('focus', '_onFocusUIElement', this);
+        uiEl.kit.addEventListener('blur', '_onBlurUIElement', this);
+        formEl.kit.addEventListener('focus', '_onFocusFormElement', this);
+        formEl.kit.addEventListener('blur', '_onBlurFormElement', this);
+
+        // add click events on container
+        uiValueContainer.kit.addEventListener('click', '_onClickUIValueContainer', this);
+    },
+
+    /**
+     * Removes all ui element event listeners.
+     * @private
+     */
+    _unbindUIElementEvents: function () {
+        var uiEl = this.getUIElement(),
+            uiValueContainer = uiEl.getElementsByClassName(this.options.selectedValueContainerClass)[0],
+            formEl = this.getFormElement();
+
+        uiEl.kit.removeEventListener('focus', '_onFocusUIElement', this);
+        uiEl.kit.removeEventListener('blur', '_onBlurUIElement', this);
+        formEl.kit.removeEventListener('focus', '_onFocusFormElement', this);
+        formEl.kit.removeEventListener('blur', '_onBlurFormElement', this);
+
+        // add click events on container
+        uiValueContainer.kit.removeEventListener('click', '_onClickUIValueContainer', this);
+    },
+
+    /**
+     * Adds click events on all option elements of the UI-version of dropdown.
+     */
+    bindUIOptionEvents: function () {
+        var optionEls = this.getUIElement().getElementsByClassName(this.options.optionsClass),
+            i, count = optionEls.length;
+        for (i = 0; i < count; i++) {
+            optionEls[i].kit.addEventListener('click', '_onClickUIOption', this);
+            optionEls[i].kit.addEventListener('mouseenter', '_onMouseEnterUIElement', this);
+            optionEls[i].kit.addEventListener('mouseleave', '_onMouseLeaveUIElement', this);
+        }
+    },
+
+    /**
+     * Removes click events from all options elements of the UI-version of dropdown.
+     */
+    unbindUIOptionEvents: function () {
+        var optionEls = this.getUIElement().getElementsByClassName(this.options.optionsClass),
+            i, count = optionEls.length;
         for (i = 0; i < count; i++) {
             optionEls[i].kit.removeEventListener('click', '_onClickUIOption', this);
+            optionEls[i].kit.removeEventListener('mouseenter', '_onMouseEnterUIElement', this);
+            optionEls[i].kit.removeEventListener('mouseleave', '_onMouseLeaveUIElement', this);
         }
     },
 
     /**
      * When clicking on the div that represents the select value.
-     * @param {Event} e
      * @private
      * @memberOf Dropdown
      */
-    _onClickUIValueContainer: function (e) {
+    _onClickUIValueContainer: function () {
         if (this.getFormElement().disabled) {
             return false;
         } else if (this.isOptionsContainerActive()) {
@@ -171,7 +392,16 @@ var Dropdown = FormElement.extend({
      * Shows the UI options container element.
      */
     showOptionsContainer: function () {
-        this.getUIElement().kit.classList.add(this.options.optionsContainerActiveClass);
+        var uiEl = this.getUIElement(),
+            options = this.options,
+            selectedUIOption = this.getUIOptionByDataValue(this.getValue()) || uiEl.getElementsByClassName(options.optionsClass)[0];
+        uiEl.kit.classList.add(options.optionsContainerActiveClass);
+        this.bindUIOptionEvents();
+        // set selected class on selected value for instances where it is not present
+        // like upon showing the container for the first time
+        if (selectedUIOption) {
+            selectedUIOption.classList.add(this.options.optionsSelectedClass);
+        }
         document.body.kit.addEventListener('click', 'onClickDocument', this);
     },
 
@@ -180,6 +410,7 @@ var Dropdown = FormElement.extend({
      */
     hideOptionsContainer: function () {
         this.getUIElement().kit.classList.remove(this.options.optionsContainerActiveClass);
+        this.unbindUIOptionEvents();
         document.body.kit.removeEventListener('click', 'onClickDocument', this);
     },
 
@@ -297,6 +528,15 @@ var Dropdown = FormElement.extend({
     },
 
     /**
+     * Gets an UI option element by its data value.
+     * @param dataValue
+     * @returns {*}
+     */
+    getUIOptionByDataValue: function (dataValue) {
+        return this.getUIElement().querySelectorAll('.' + this.options.optionsClass + '[data-value="' + dataValue + '"]')[0];
+    },
+
+    /**
      * Gets an option element by its text content.
      * @param {string} displayValue - The text content that the eleemnt should have in order to be returned
      * @returns {*|HTMLOptionElement}
@@ -374,7 +614,6 @@ var Dropdown = FormElement.extend({
             optionEl.innerHTML = obj.displayValue;
             frag.appendChild(optionEl);
         }.bind(this));
-        this.bindUIOptionClickEvents(frag.childNodes);
         uiOptionsContainer.appendChild(frag);
     },
 
@@ -442,12 +681,14 @@ var Dropdown = FormElement.extend({
      * @memberOf Dropdown
      */
     destroy: function () {
-        var el = this.options.el,
-            uiOptionEls = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0];
-        this.unbindUIOptionClickEvents(uiOptionEls);
+        var el = this.options.el;
+        this.unbindUIOptionEvents();
+        this._unbindUIElementEvents();
         el.kit.removeEventListener('change', '_onSelectChange', this);
         el.style.display = this._origDisplayValue; // put original display back
         el.tabIndex = this._origTabIndex;
+        // restore html
+        this._wrapperEl.parentNode.replaceChild(el, this._wrapperEl);
     }
 
 });

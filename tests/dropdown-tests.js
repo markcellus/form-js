@@ -3,10 +3,25 @@ var Sinon = require('sinon');
 var QUnit = require('qunit');
 var Dropdown = require('../src/dropdown');
 var TestUtils = require('test-utils');
+var DeviceManager = require('device-manager');
 
 module.exports = (function (){
 
-    QUnit.module('Dropdown Tests');
+    var deviceManagerIsMobileStub;
+
+    QUnit.module('Dropdown Tests', {
+
+        setup: function () {
+            deviceManagerIsMobileStub = Sinon.stub(DeviceManager, 'isMobile');
+            // be default assume desktop
+            deviceManagerIsMobileStub.returns(false);
+        },
+
+        teardown: function () {
+            deviceManagerIsMobileStub.restore();
+        }
+    });
+
 
     var html =
         '<select>' +
@@ -16,7 +31,7 @@ module.exports = (function (){
         '</select>';
 
     QUnit.test('initialize, setup, and destruction', function() {
-        QUnit.expect(5);
+        QUnit.expect(6);
         var fixture = document.getElementById('qunit-fixture');
         var selectEl = TestUtils.createHtmlElement(html);
         fixture.appendChild(selectEl);
@@ -26,21 +41,24 @@ module.exports = (function (){
         var uiSelectedValueContainerClass = 'my-selected-val-container';
         var originalDisplayType = 'inline-block';
         selectEl.style.display = originalDisplayType; // set to inline block to test if put back on destroy
+        var customWrapperClass = 'my-wrapper';
         var dropdown = new Dropdown({
             el: selectEl,
             containerClass: uiContainerClass,
             optionsContainerClass: uiOptionsContainerClass,
             optionsClass: uiOptionsClass,
-            selectedValueContainerClass: uiSelectedValueContainerClass
+            selectedValueContainerClass: uiSelectedValueContainerClass,
+            customWrapperClass: customWrapperClass
         });
         var uiEl = fixture.getElementsByClassName(uiContainerClass)[0];
         QUnit.equal(selectEl.nextSibling, uiEl, 'ui element container html has been built and added as a sibling of the original form select element');
+        QUnit.ok(fixture.getElementsByClassName(customWrapperClass)[0].contains(selectEl), 'a wrapper was added as the parent element of the select form element');
         QUnit.equal(uiEl.getElementsByClassName(uiSelectedValueContainerClass).length, 1, 'ui selected value container html was added as a child of the ui element container');
         var uiSelectedValueContainer = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
         QUnit.equal(uiSelectedValueContainer.getAttribute('data-value'), '', 'ui selected value container has no data-value initially');
         QUnit.equal(uiSelectedValueContainer.textContent, '', 'ui selected value container has no inner text content (display value) initially');
         dropdown.destroy();
-        QUnit.equal(selectEl.nextSibling, fixture.getElementsByClassName(uiContainerClass)[0], 'after destroy(), ui element container html has been removed as a sibling of the original form select element');
+        QUnit.equal(fixture.childNodes[0], selectEl, 'after destroy(), wrapper class been removed and form element was placed back as a child node of original parent');
     });
 
     QUnit.test('initializing when a dropdown item is pre-selected', function() {
@@ -120,6 +138,19 @@ module.exports = (function (){
         var dropdown = new Dropdown({el: selectEl});
         QUnit.equal(dropdown.getOptionByDisplayValue(options[1].innerHTML), options[1], 'calling getOptionByDisplayValue() with second items display value returns the second item option el');
         QUnit.equal(dropdown.getOptionByDataValue(options[1].value), options[1], 'calling getOptionByDataValue() with second items display value returns the second item option el');
+        dropdown.destroy();
+    });
+
+    QUnit.test('get ui option element by its data', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var options = selectEl.getElementsByTagName('option');
+        var optionsClass = 'my-opt';
+        var dropdown = new Dropdown({el: selectEl, optionsClass: optionsClass});
+        var uiOptions = dropdown.getUIElement().getElementsByClassName(optionsClass);
+        QUnit.equal(dropdown.getUIOptionByDataValue(options[1].value), uiOptions[1], 'getUIOptionByDataValue() with second items data value returns the second ui option el');
         dropdown.destroy();
     });
 
@@ -454,7 +485,6 @@ module.exports = (function (){
             containerClass: uiContainerClass,
             optionsClass: uiOptionsClass
         });
-        var newOptions = [{dataValue: 'TW', displayValue: 'Twitter'}];
         dropdown.clearOptions();
         var formOptionElements = fixture.getElementsByTagName('option');
         var uiOptionElements = fixture.getElementsByClassName(uiOptionsClass);
@@ -497,6 +527,316 @@ module.exports = (function (){
         QUnit.equal(dropdown.getFormElement().getAttribute('tabindex'), -1, 'tabindex attribute on form element was set to -1');
         dropdown.destroy();
         QUnit.equal(dropdown.getFormElement().getAttribute('tabindex'), ti, 'tabindex attribute on form element was set back to its original value on destroy');
+    });
+
+    QUnit.test('tabindex of form element should NOT be set to -1 on initialize when on a mobile device', function() {
+        QUnit.expect(2);
+        var fixture = document.getElementById('qunit-fixture');
+        deviceManagerIsMobileStub.returns(true);
+        var ti = 5;
+        var html = '<select tabindex="' + ti + '"></select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var dropdown = new Dropdown({el: selectEl});
+        QUnit.equal(dropdown.getFormElement().getAttribute('tabindex'), ti, 'tabindex attribute on form element was NOT set to -1 because mobile devices should use native select element');
+        QUnit.ok(!dropdown.getUIElement().getAttribute('tabindex'), 'ui element has no tabindex value');
+        dropdown.destroy();
+    });
+
+    QUnit.test('callback assigned to onFocus of initialize options should be called when select element is focused', function() {
+        QUnit.expect(3);
+        var fixture = document.getElementById('qunit-fixture');
+        var html = '<select></select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var focusSpy = Sinon.spy();
+        var dropdown = new Dropdown({
+            el: selectEl,
+            onFocus: focusSpy
+        });
+        QUnit.equal(focusSpy.callCount, 0, 'onFocus callback was NOT yet triggered because it isnt initially focused');
+        // trigger focus
+        selectEl.dispatchEvent(TestUtils.createEvent('focus'));
+        QUnit.equal(focusSpy.callCount, 1, 'onFocus callback was triggered after select element became focused');
+        dropdown.destroy();
+        selectEl.dispatchEvent(TestUtils.createEvent('focus'));
+        QUnit.equal(focusSpy.callCount, 1, 'onFocus callback was NOT triggered after destroy when select element is focused again');
+    });
+
+    QUnit.test('callback assigned to onBlur of initialize options should be called when select element loses focus', function() {
+        QUnit.expect(3);
+        var fixture = document.getElementById('qunit-fixture');
+        var html = '<select></select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var blurSpy = Sinon.spy();
+        var dropdown = new Dropdown({
+            el: selectEl,
+            onBlur: blurSpy
+        });
+        QUnit.equal(blurSpy.callCount, 0, 'onBlur callback was NOT triggered because it isnt blurred yet');
+        // trigger focus
+        selectEl.dispatchEvent(TestUtils.createEvent('focus'));
+        // trigger blur
+        selectEl.dispatchEvent(TestUtils.createEvent('blur'));
+        QUnit.equal(blurSpy.callCount, 1, 'onBlur callback was triggered after select element became focused');
+        dropdown.destroy();
+        // trigger focus
+        selectEl.dispatchEvent(TestUtils.createEvent('focus'));
+        // trigger blur
+        selectEl.dispatchEvent(TestUtils.createEvent('blur'));
+        QUnit.equal(blurSpy.callCount, 1, 'onBlur callback was NOT triggered after destroy when select element is focused then blurred again');
+    });
+
+    QUnit.test('callback assigned to onFocus of initialize options should be called when ui element is focused', function() {
+        QUnit.expect(3);
+        var fixture = document.getElementById('qunit-fixture');
+        var html = '<select></select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var focusSpy = Sinon.spy();
+        var dropdown = new Dropdown({
+            el: selectEl,
+            onFocus: focusSpy
+        });
+        var uiEl = dropdown.getUIElement();
+        QUnit.equal(focusSpy.callCount, 0, 'onFocus callback was NOT yet triggered because it isnt initially focused');
+        // trigger focus
+        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        QUnit.equal(focusSpy.callCount, 1, 'onFocus callback was triggered after element became focused');
+        dropdown.destroy();
+        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        QUnit.equal(focusSpy.callCount, 1, 'onFocus callback was NOT triggered after destroy when element is focused again');
+    });
+
+    QUnit.test('callback assigned to onBlur of initialize options should be called when ui element loses focus', function() {
+        QUnit.expect(3);
+        var fixture = document.getElementById('qunit-fixture');
+        var html = '<select></select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var blurSpy = Sinon.spy();
+        var dropdown = new Dropdown({
+            el: selectEl,
+            onBlur: blurSpy
+        });
+        var uiEl = dropdown.getUIElement();
+        QUnit.equal(blurSpy.callCount, 0, 'onBlur callback was NOT triggered because it isnt blurred yet');
+        // trigger focus
+        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        // trigger blur
+        uiEl.dispatchEvent(TestUtils.createEvent('blur'));
+        QUnit.equal(blurSpy.callCount, 1, 'onBlur callback was triggered after select element became focused');
+        dropdown.destroy();
+        // trigger focus
+        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        // trigger blur
+        uiEl.dispatchEvent(TestUtils.createEvent('blur'));
+        QUnit.equal(blurSpy.callCount, 1, 'onBlur callback was NOT triggered after destroy when select element is focused then blurred again');
+    });
+
+    QUnit.test('calling showOptionsContainer() the first time should set first option as selected if there is not a pre-selected option', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var html =
+            '<select>' +
+                '<option value="">Default</option>' +
+                '<option value="FB">Facebook</option>' +
+            '</select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var uiOptionsClass = 'my-option';
+        var myOptionSelected = 'opt-selected';
+        var dropdown = new Dropdown({
+            el: selectEl,
+            optionsClass: uiOptionsClass,
+            optionsSelected: myOptionSelected
+        });
+        dropdown.showOptionsContainer();
+        var uiOptionEls = dropdown.getUIElement().getElementsByClassName(uiOptionsClass);
+        QUnit.ok(!uiOptionEls[0].classList.contains(myOptionSelected), 'after calling showOptionsContainer() first ui option element is set to selected');
+        dropdown.destroy();
+    });
+
+    QUnit.test('pressing up key while ui options container is not showing shows the container and does not cycle through options', function() {
+        QUnit.expect(3);
+        var fixture = document.getElementById('qunit-fixture');
+        var html = '<select></select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var showOptionsContainerStub = Sinon.stub(Dropdown.prototype, 'showOptionsContainer');
+        var highlighter = 'highlited';
+        var dropdown = new Dropdown({el: selectEl, optionsHighlightedClass: highlighter});
+        var uiEl = dropdown.getUIElement();
+        QUnit.equal(showOptionsContainerStub.callCount, 0, 'showOptionsContainer() method was called because no key was pressed');
+        // trigger focus
+        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        var keyEvent = TestUtils.createEvent('keyup');
+        // up arrow key
+        keyEvent.keyCode = 38;
+        uiEl.dispatchEvent(keyEvent);
+        QUnit.equal(showOptionsContainerStub.callCount, 1, 'showOptionsContainer() method was called when up key was pressed');
+        QUnit.equal(uiEl.getElementsByClassName(highlighter).length, 0, 'no ui options elements were highlighted');
+        dropdown.destroy();
+        showOptionsContainerStub.restore();
+    });
+
+    QUnit.test('pressing up key while ui options container is open when it does not have a previous sibling adds highlights to last ui option element', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var html =
+            '<select>' +
+                '<option value="AAPL">Apple</option>' +
+                '<option value="FB">Facebook</option>' +
+                '<option value="GOOG">Google</option>' +
+            '</select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var highlighter = 'highlited';
+        var optionsContainerClass = 'my-options';
+        var dropdown = new Dropdown({
+            el: selectEl,
+            optionsHighlightedClass: highlighter,
+            optionsContainerClass: optionsContainerClass
+        });
+        var uiEl = dropdown.getUIElement();
+        var uiOptionsContainerEl = uiEl.getElementsByClassName(optionsContainerClass)[0];
+        // trigger focus
+        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        // open container
+        dropdown.showOptionsContainer();
+        var keyEvent = TestUtils.createEvent('keyup');
+        // up arrow key
+        keyEvent.keyCode = 38;
+        uiEl.dispatchEvent(keyEvent);
+        QUnit.deepEqual(uiOptionsContainerEl.getElementsByClassName(highlighter)[0], uiOptionsContainerEl.lastChild, 'last ui options element was highlighted');
+        dropdown.destroy();
+    });
+
+    QUnit.test('pressing up key while on an ui option element moves highlight class to previous ui option', function() {
+        QUnit.expect(2);
+        var fixture = document.getElementById('qunit-fixture');
+        var html =
+            '<select>' +
+                '<option value="AAPL">Apple</option>' +
+                '<option value="FB" selected>Facebook</option>' +
+                '<option value="GOOG">Google</option>' +
+            '</select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var highlighter = 'highlited';
+        var optionsContainerClass = 'my-options';
+        var dropdown = new Dropdown({
+            el: selectEl,
+            optionsHighlightedClass: highlighter,
+            optionsContainerClass: optionsContainerClass
+        });
+        var uiEl = dropdown.getUIElement();
+        var uiOptionsContainerEl = uiEl.getElementsByClassName(optionsContainerClass)[0];
+        var uiOptionEls = uiOptionsContainerEl.childNodes;
+        // trigger focus
+        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        // open container
+        dropdown.showOptionsContainer();
+        // second option element will automatically be highlighted since it is the selected one
+        var keyEvent = TestUtils.createEvent('keyup');
+        // up arrow key
+        keyEvent.keyCode = 38;
+        uiEl.dispatchEvent(keyEvent);
+        QUnit.ok(uiOptionEls[0].classList.contains(highlighter), 'when highlight is on the second option, pressing up highlights first option');
+        QUnit.ok(!uiOptionEls[1].classList.contains(highlighter), 'highlight class was removed from second option');
+        dropdown.destroy();
+    });
+
+    QUnit.test('pressing down key while ui options container is not showing shows the container and does not cycle through options', function() {
+        QUnit.expect(3);
+        var fixture = document.getElementById('qunit-fixture');
+        var html = '<select></select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var showOptionsContainerStub = Sinon.stub(Dropdown.prototype, 'showOptionsContainer');
+        var highlighter = 'highlited';
+        var dropdown = new Dropdown({el: selectEl, optionsHighlightedClass: highlighter});
+        var uiEl = dropdown.getUIElement();
+        QUnit.equal(showOptionsContainerStub.callCount, 0, 'showOptionsContainer() method was called because no key was pressed');
+        // trigger focus
+        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        var keyEvent = TestUtils.createEvent('keyup');
+        // down arrow key
+        keyEvent.keyCode = 40;
+        uiEl.dispatchEvent(keyEvent);
+        QUnit.equal(showOptionsContainerStub.callCount, 1, 'showOptionsContainer() method was called when up key was pressed');
+        QUnit.equal(uiEl.getElementsByClassName(highlighter).length, 0, 'no ui options elements were highlighted');
+        dropdown.destroy();
+        showOptionsContainerStub.restore();
+    });
+
+    QUnit.test('pressing down key while ui options container is open when it does not have a next sibling adds highlights to first ui option element', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var html =
+            '<select>' +
+                '<option value="AAPL">Apple</option>' +
+                '<option value="FB">Facebook</option>' +
+                '<option value="GOOG" selected>Google</option>' +
+            '</select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var highlighter = 'highlited';
+        var optionsContainerClass = 'my-options';
+        var dropdown = new Dropdown({
+            el: selectEl,
+            optionsHighlightedClass: highlighter,
+            optionsContainerClass: optionsContainerClass
+        });
+        var uiEl = dropdown.getUIElement();
+        var uiOptionsContainerEl = uiEl.getElementsByClassName(optionsContainerClass)[0];
+        // trigger focus
+        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        // open container
+        dropdown.showOptionsContainer();
+        var keyEvent = TestUtils.createEvent('keyup');
+        // down arrow key
+        keyEvent.keyCode = 40;
+        uiEl.dispatchEvent(keyEvent);
+        QUnit.deepEqual(uiOptionsContainerEl.getElementsByClassName(highlighter)[0], uiOptionsContainerEl.firstChild, 'first ui options element was highlighted');
+        dropdown.destroy();
+    });
+
+    QUnit.test('pressing down key while on an ui option element moves highlight class to next ui option', function() {
+        QUnit.expect(2);
+        var fixture = document.getElementById('qunit-fixture');
+        var html =
+            '<select>' +
+            '<option value="AAPL">Apple</option>' +
+            '<option value="FB">Facebook</option>' +
+            '<option value="GOOG">Google</option>' +
+            '</select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var highlighter = 'highlited';
+        var optionsContainerClass = 'my-options';
+        var dropdown = new Dropdown({
+            el: selectEl,
+            optionsHighlightedClass: highlighter,
+            optionsContainerClass: optionsContainerClass
+        });
+        var uiEl = dropdown.getUIElement();
+        var uiOptionsContainerEl = uiEl.getElementsByClassName(optionsContainerClass)[0];
+        var uiOptionEls = uiOptionsContainerEl.childNodes;
+        // trigger focus
+        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        // open container
+        dropdown.showOptionsContainer();
+        // first option element will automatically
+        // be highlighted since it is the selected one
+        var keyEvent = TestUtils.createEvent('keyup');
+        // down arrow key
+        keyEvent.keyCode = 40;
+        uiEl.dispatchEvent(keyEvent);
+        QUnit.ok(uiOptionEls[1].classList.contains(highlighter), 'when highlight is on the first option, pressing down highlights second option');
+        QUnit.ok(!uiOptionEls[0].classList.contains(highlighter), 'highlight class was removed from first option');
+        dropdown.destroy();
     });
 
 
