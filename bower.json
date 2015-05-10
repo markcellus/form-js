@@ -36,5 +36,8 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "dependencies": {
+    "device-manager": "~1.0.7"
+  }
 }
