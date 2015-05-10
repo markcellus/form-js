@@ -215,7 +215,7 @@ var Dropdown = FormElement.extend({
             // set value of ui dropdown
             this._setUISelectedValue(newDataValue);
         }
-        this.getUIElement().kit.classList.remove(this.options.optionsContainerActiveClass);
+        this.hideOptionsContainer();
 
     },
 
