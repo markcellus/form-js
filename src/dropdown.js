@@ -63,11 +63,13 @@ var Dropdown = FormElement.extend({
         var el = this.options.el,
             selectedOption = el.querySelectorAll('option[selected]')[0];
 
+        this._origTabIndex = el.tabIndex;
+
         el.kit.addEventListener('change', '_onSelectChange', this);
 
         // build html
         el.insertAdjacentHTML('afterend',
-            '<div class="' + this.options.containerClass + '">' +
+            '<div class="' + this.options.containerClass + '" tabindex="' + (this._origTabIndex || 0) + '">' +
             this._buildSelectedValueHtml() + this._buildOptionsHtml() +
             '</div>');
 
@@ -80,6 +82,9 @@ var Dropdown = FormElement.extend({
         if (this.getFormElement().disabled) {
             this.disable();
         }
+
+        // remove form element from being focused since we now have the UI element
+        el.tabIndex = -1;
 
     },
 
@@ -116,9 +121,8 @@ var Dropdown = FormElement.extend({
     _setupEvents: function () {
         var uiEl = this.getUIElement(),
             uiValueContainer = uiEl.getElementsByClassName(this.options.selectedValueContainerClass)[0],
-            uiOptionEls = uiEl.getElementsByClassName(this.options.optionsClass),
-            count = uiOptionEls.length,
-            i;
+            uiOptionEls = uiEl.getElementsByClassName(this.options.optionsClass);
+
         // add click events on container
         uiValueContainer.kit.addEventListener('click', '_onClickUIValueContainer', this);
 
@@ -443,6 +447,7 @@ var Dropdown = FormElement.extend({
         this.unbindUIOptionClickEvents(uiOptionEls);
         el.kit.removeEventListener('change', '_onSelectChange', this);
         el.style.display = this._origDisplayValue; // put original display back
+        el.tabIndex = this._origTabIndex;
     }
 
 });

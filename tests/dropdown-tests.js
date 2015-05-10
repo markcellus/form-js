@@ -463,5 +463,41 @@ module.exports = (function (){
         dropdown.destroy();
     });
 
+    QUnit.test('ui dropdown element should be given a default tabindex attribute of zero on initialize when form element does not have one to make it focusable', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var html = '<select></select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var dropdown = new Dropdown({el: selectEl});
+        QUnit.equal(dropdown.getUIElement().getAttribute('tabindex'), 0, 'ui dropdown was given a default tabindex of 0');
+        dropdown.destroy();
+    });
+
+    QUnit.test('ui dropdown element should have same tabindex value as the form element on initialize', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var ti = 34;
+        var html = '<select tabindex="' + ti + '"></select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var dropdown = new Dropdown({el: selectEl});
+        QUnit.equal(dropdown.getUIElement().getAttribute('tabindex'), ti, 'tabindex attribute from form element was set on the ui element');
+        dropdown.destroy();
+    });
+
+    QUnit.test('tabindex of form element should be set to -1 on initialize and set back when destroyed', function() {
+        QUnit.expect(2);
+        var fixture = document.getElementById('qunit-fixture');
+        var ti = 5;
+        var html = '<select tabindex="' + ti + '"></select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        fixture.appendChild(selectEl);
+        var dropdown = new Dropdown({el: selectEl});
+        QUnit.equal(dropdown.getFormElement().getAttribute('tabindex'), -1, 'tabindex attribute on form element was set to -1');
+        dropdown.destroy();
+        QUnit.equal(dropdown.getFormElement().getAttribute('tabindex'), ti, 'tabindex attribute on form element was set back to its original value on destroy');
+    });
+
 
 })();
