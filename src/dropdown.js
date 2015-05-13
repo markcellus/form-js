@@ -409,31 +409,33 @@ var Dropdown = FormElement.extend({
      * Hides the UI options container element.
      */
     hideOptionsContainer: function () {
-        this.redrawForSafari();
+        // Redraw of options container needed for iPad and Safari.
+        if (DeviceManager.isBrowser('safari')) {
+            this.redrawOptionsContainer();
+        }
         this.getUIElement().kit.classList.remove(this.options.optionsContainerActiveClass);
         this.unbindUIOptionEvents();
         document.body.kit.removeEventListener('click', 'onClickDocument', this);
     },
 
     /**
-     * Forces a redraw of options container needed for iPad and Safari.
+     * Forces a redraw of the options container element.
      * @note If dropdown options are hidden on default,
      * this will force the styles to be updated when active class is removed.
      */
-    redrawForSafari: function () {
-        var element = this.getUIElement(),
-            currentOverflowAttr = element.style.overflow;
+    redrawOptionsContainer: function () {
+        var optionsContainerEl = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+            currentOverflowAttr = optionsContainerEl.style.overflow;
 
         // update overflow property to force the redraw.
-        element.style.overflow = 'hidden';
-        element.offsetHeight;
-
+        optionsContainerEl.style.overflow = 'hidden';
+        optionsContainerEl.offsetHeight;
         // if there was an original overflow property, reset it
         // or remove the property
         if (currentOverflowAttr) {
-            element.style.overflow = currentOverflowAttr;
+            optionsContainerEl.style.overflow = currentOverflowAttr;
         } else {
-            element.style.removeProperty('overflow');
+            optionsContainerEl.style.removeProperty('overflow');
         }
     },
 
