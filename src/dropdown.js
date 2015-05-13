@@ -93,7 +93,8 @@ var Dropdown = FormElement.extend({
         el.kit.addEventListener('change', '_onSelectChange', this);
 
         this._wrapperEl = el.kit.appendOuterHtml('<div class="' + this.options.customWrapperClass + '">');
-        this._wrapperEl.appendChild(this._buildUIElement());
+        this._uiEl = this._buildUIElement();
+        this._wrapperEl.appendChild(this._uiEl);
 
         this._bindUIElementEvents();
 
@@ -539,7 +540,7 @@ var Dropdown = FormElement.extend({
      * @returns {HTMLElement|*}
      */
     getUIElement: function () {
-        return this.getFormElement().nextSibling || this.getFormElement(); // mobile wont have the sibiling
+        return this._uiEl;
     },
 
     /**
