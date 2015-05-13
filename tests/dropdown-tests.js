@@ -7,17 +7,19 @@ var DeviceManager = require('device-manager');
 
 module.exports = (function (){
 
-    var deviceManagerIsMobileStub;
+    var deviceManagerIsMobileStub, redrawOptionsContainerStub;
 
     QUnit.module('Dropdown Tests', {
 
         setup: function () {
             deviceManagerIsMobileStub = Sinon.stub(DeviceManager, 'isMobile');
+            redrawOptionsContainerStub = Sinon.stub(Dropdown.prototype, 'redrawOptionsContainer');
             // be default assume desktop
             deviceManagerIsMobileStub.returns(false);
         },
 
         teardown: function () {
+            redrawOptionsContainerStub.restore();
             deviceManagerIsMobileStub.restore();
         }
     });
