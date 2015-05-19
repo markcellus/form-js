@@ -279,6 +279,13 @@ var Form = Module.extend({
     },
 
     /**
+     * Clears all form items.
+     */
+    clear: function () {
+        this.triggerMethodAll('clear');
+    },
+
+    /**
      * Gets an object that maps all fields to their current name/value pairs.
      * @returns {Array} Returns an array of objects
      */

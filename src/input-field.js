@@ -234,6 +234,13 @@ var InputField = FormElement.extend({
     },
 
     /**
+     * Sets the input to nothing.
+     */
+    clear: function () {
+        this.setValue('');
+    },
+
+    /**
      * Gets the unique identifier for input fields.
      * @returns {string}
      */
