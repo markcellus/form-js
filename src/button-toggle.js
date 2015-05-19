@@ -335,6 +335,15 @@ var ButtonToggle = FormElement.extend({
     },
 
     /**
+     * Deselects all toggles.
+     */
+    clear: function () {
+        this._triggerAll(function (formElement, UIElement, idx) {
+            this.deselect(idx);
+        }.bind(this));
+    },
+
+    /**
      * Enables the button toggle.
      */
     enable: function () {
