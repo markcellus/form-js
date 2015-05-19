@@ -1,5 +1,5 @@
 /** 
-* formjs - v1.8.3.
+* formjs - v1.9.0.
 * https://github.com/mkay581/formjs.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -15602,12 +15602,10 @@ var Dropdown = FormElement.extend({
 
     /**
      * Clears all options in the dropdown.
+     * @deprecated since 1.8.3
      */
     clearOptions: function () {
-        var uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
-            formEl = this.getFormElement();
-        formEl.innerHTML = '';
-        uiOptionsContainer.innerHTML = '';
+        this.clear();
     },
 
     /**
@@ -15648,6 +15646,16 @@ var Dropdown = FormElement.extend({
     enable: function () {
         this.getUIElement().kit.classList.remove(this.options.disabledClass);
         this.getFormElement().disabled = false;
+    },
+
+    /**
+     * Clears all options in the dropdown
+     */
+    clear: function () {
+        var uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+            formEl = this.getFormElement();
+        formEl.innerHTML = '';
+        uiOptionsContainer.innerHTML = '';
     },
 
     /**
@@ -15732,6 +15740,11 @@ var FormElement = Module.extend({
     getValue: function () {
         return this.getFormElement().value;
     },
+
+    /**
+     * Clears the element.
+     */
+    clear: function () {},
 
     /**
      * Gets the ui versions of the form elements.
