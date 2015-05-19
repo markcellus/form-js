@@ -645,12 +645,10 @@ var Dropdown = FormElement.extend({
 
     /**
      * Clears all options in the dropdown.
+     * @deprecated since 1.8.3
      */
     clearOptions: function () {
-        var uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
-            formEl = this.getFormElement();
-        formEl.innerHTML = '';
-        uiOptionsContainer.innerHTML = '';
+        this.clear();
     },
 
     /**
@@ -691,6 +689,16 @@ var Dropdown = FormElement.extend({
     enable: function () {
         this.getUIElement().kit.classList.remove(this.options.disabledClass);
         this.getFormElement().disabled = false;
+    },
+
+    /**
+     * Clears all options in the dropdown
+     */
+    clear: function () {
+        var uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+            formEl = this.getFormElement();
+        formEl.innerHTML = '';
+        uiOptionsContainer.innerHTML = '';
     },
 
     /**
