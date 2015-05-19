@@ -1,5 +1,5 @@
 /** 
-* formjs - v1.8.3.
+* formjs - v1.9.0.
 * https://github.com/mkay581/formjs.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -14965,6 +14965,15 @@ var ButtonToggle = FormElement.extend({
     },
 
     /**
+     * Deselects all toggles.
+     */
+    clear: function () {
+        this._triggerAll(function (formElement, UIElement, idx) {
+            this.deselect(idx);
+        }.bind(this));
+    },
+
+    /**
      * Enables the button toggle.
      */
     enable: function () {
@@ -15065,6 +15074,11 @@ var FormElement = Module.extend({
     getValue: function () {
         return this.getFormElement().value;
     },
+
+    /**
+     * Clears the element.
+     */
+    clear: function () {},
 
     /**
      * Gets the ui versions of the form elements.

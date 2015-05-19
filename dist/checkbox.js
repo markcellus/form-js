@@ -1,5 +1,5 @@
 /** 
-* formjs - v1.8.3.
+* formjs - v1.9.0.
 * https://github.com/mkay581/formjs.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -14813,6 +14813,13 @@ var Checkbox = FormElement.extend({
     },
 
     /**
+     * Unselects the checkbox if its selected.
+     */
+    clear: function () {
+        this.uncheck();
+    },
+
+    /**
      * Destruction of this class.
      */
     destroy: function () {
@@ -14892,6 +14899,11 @@ var FormElement = Module.extend({
     getValue: function () {
         return this.getFormElement().value;
     },
+
+    /**
+     * Clears the element.
+     */
+    clear: function () {},
 
     /**
      * Gets the ui versions of the form elements.
