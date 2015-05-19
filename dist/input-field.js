@@ -1,5 +1,5 @@
 /** 
-* formjs - v1.8.3.
+* formjs - v1.9.0.
 * https://github.com/mkay581/formjs.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -14684,6 +14684,11 @@ var FormElement = Module.extend({
     },
 
     /**
+     * Clears the element.
+     */
+    clear: function () {},
+
+    /**
      * Gets the ui versions of the form elements.
      * @returns {Array} Returns the array of ui-versions of the element.
      * @abstract
@@ -14954,6 +14959,13 @@ var InputField = FormElement.extend({
     disable: function () {
         this.getFormElement().setAttribute('disabled', 'true');
         this.getUIElement().kit.classList.add(this.options.disabledClass);
+    },
+
+    /**
+     * Sets the input to nothing.
+     */
+    clear: function () {
+        this.setValue('');
     },
 
     /**

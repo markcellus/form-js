@@ -183,6 +183,13 @@ var Checkbox = FormElement.extend({
     },
 
     /**
+     * Unselects the checkbox if its selected.
+     */
+    clear: function () {
+        this.uncheck();
+    },
+
+    /**
      * Destruction of this class.
      */
     destroy: function () {

@@ -54,6 +54,11 @@ var FormElement = Module.extend({
     },
 
     /**
+     * Clears the element.
+     */
+    clear: function () {},
+
+    /**
      * Gets the ui versions of the form elements.
      * @returns {Array} Returns the array of ui-versions of the element.
      * @abstract
