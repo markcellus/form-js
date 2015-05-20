@@ -1,6 +1,6 @@
 {
   "name": "formjs",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Create better ui form elements. Supports IE9+, all modern browsers, and mobile.",
   "repository": {
     "type": "git",
