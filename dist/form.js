@@ -1,5 +1,5 @@
 /** 
-* formjs - v1.9.1.
+* formjs - v1.9.2.
 * https://github.com/mkay581/formjs.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -16471,14 +16471,15 @@ var Form = Module.extend({
      * Sets up the form and instantiates all necessary element classes.
      */
     setup: function () {
+        var submitButtonEl = this.options.el.getElementsByClassName(this.options.submitButtonClass)[0];
         this._setupInstances(this.options.dropdownClass, Dropdown);
         this._setupInstances(this.options.checkboxClass, Checkbox);
         this._setupInstances(this.options.inputFieldClass, InputField);
         this._setupButtonToggleInstances(this.options.buttonToggleClass);
 
-        if (this.options.submitButtonClass) {
+        if (submitButtonEl) {
             this.subModules.submitButton = new SubmitButton({
-                el: this.options.el.getElementsByClassName(this.options.submitButtonClass)[0],
+                el: submitButtonEl,
                 disabledClass: this.options.submitButtonDisabledClass,
                 onClick: this.options.onSubmitButtonClick
             });
