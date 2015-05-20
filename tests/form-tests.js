@@ -7,6 +7,7 @@ var Dropdown = require('../src/dropdown');
 var InputField = require('../src/input-field');
 var Checkbox = require('../src/checkbox');
 var ButtonToggle = require('../src/button-toggle');
+var SubmitButton = require('../src/submit-button');
 var Module = require('module.js');
 
 module.exports = (function () {
@@ -184,6 +185,40 @@ module.exports = (function () {
         buttonToggleDestroyStub.restore();
         buttonToggleInitializeStub.restore();
     });
+
+    QUnit.test('SubmitButton class should NOT be instantiated if there is no element that matches the passed class', function () {
+        QUnit.expect(1);
+        var btnClass = 'submity';
+        var formEl = TestUtils.createHtmlElement('<form></form>');
+        var submitButtonInitialize = Sinon.stub(SubmitButton.prototype, 'initialize');
+        var submitButtonDestroy = Sinon.stub(SubmitButton.prototype, 'destroy');
+        var formInstance = new Form({el: formEl, submitButtonClass: btnClass});
+        formInstance.setup();
+        QUnit.equal(submitButtonInitialize.callCount, 0, 'SubmitButton class was NOT instantiated');
+        formInstance.destroy();
+        submitButtonDestroy.restore();
+        submitButtonInitialize.restore();
+    });
+
+    QUnit.test('SubmitButton class should be instantiated and destroyed correctly if there is an element that matches the passed class', function () {
+        QUnit.expect(2);
+        var btnClass = 'submity';
+        var formEl = TestUtils.createHtmlElement(' ' +
+            '<form>' +
+            '<button type="submit" name="test" class="' + btnClass + '" /></button>' +
+            '</form>');
+        var buttonEl = formEl.getElementsByClassName(btnClass)[0];
+        var submitButtonInitialize = Sinon.stub(SubmitButton.prototype, 'initialize');
+        var submitButtonDestroy = Sinon.stub(SubmitButton.prototype, 'destroy');
+        var formInstance = new Form({el: formEl, submitButtonClass: btnClass});
+        formInstance.setup();
+        QUnit.equal(submitButtonInitialize.args[0][0].el, buttonEl, 'after setting up, SubmitButton class was instantiated with correct element');
+        formInstance.destroy();
+        QUnit.equal(submitButtonDestroy.callCount, 1, 'SubmitButton instance was destroyed');
+        submitButtonDestroy.restore();
+        submitButtonInitialize.restore();
+    });
+
 
     QUnit.test('multiple ButtonToggle classes should be instantiated with radio button elements with different name attributes and they should be destroyed correctly', function () {
         QUnit.expect(3);
