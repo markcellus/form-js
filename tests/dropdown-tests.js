@@ -451,7 +451,7 @@ module.exports = (function (){
         fixture.appendChild(selectEl);
         var uiContainerClass = 'my-ui-container';
         var uiOptionsClass = 'my-option';
-        var clearOptionsSpy = Sinon.spy(Dropdown.prototype, 'clear');
+        var clearOptionsSpy = Sinon.spy(Dropdown.prototype, 'clearOptions');
         var dropdown = new Dropdown({
             el: selectEl,
             containerClass: uiContainerClass,
@@ -470,7 +470,7 @@ module.exports = (function (){
         dropdown.destroy();
     });
 
-    QUnit.test('clear() should clear all form and ui options in the dropdown', function() {
+    QUnit.test('clearOptions() should clear all form and ui options in the dropdown', function() {
         QUnit.expect(2);
         var fixture = document.getElementById('qunit-fixture');
         var html =
@@ -487,7 +487,7 @@ module.exports = (function (){
             containerClass: uiContainerClass,
             optionsClass: uiOptionsClass
         });
-        dropdown.clear();
+        dropdown.clearOptions();
         var formOptionElements = fixture.getElementsByTagName('option');
         var uiOptionElements = fixture.getElementsByClassName(uiOptionsClass);
         QUnit.equal(formOptionElements.length, 0, 'all form elements have been cleared');
