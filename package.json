@@ -39,8 +39,7 @@
     "grunt-jsdoc": "0.5.7",
     "load-grunt-tasks": "0.6.0",
     "module.js": "^1.0.5",
-    "sinon": "^1.14.1",
-    "underscore": "^1.8.2"
+    "sinon": "^1.14.1"
   },
   "scripts": {
     "build": "grunt bt:build",
