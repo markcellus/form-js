@@ -1,6 +1,6 @@
 {
-  "name": "formjs",
-  "version": "1.9.2",
+  "name": "form-js",
+  "version": "1.9.3",
   "homepage": "https://github.com/mkay581/formjs",
   "authors": [
     "Mark Kennedy <mkay581@gmail.com>"
@@ -38,6 +38,9 @@
     "tests"
   ],
   "dependencies": {
-    "device-manager": "~1.0.7"
+    "device-manager": "^1.0.7",
+    "element-kit": "^0.5.0",
+    "promise": "^6.1.0",
+    "underscore": "^1.8.2"
   }
 }
