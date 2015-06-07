@@ -4,7 +4,7 @@
   "description": "Create better ui form elements. Supports IE9+, all modern browsers, and mobile.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mkay581/formjs.git"
+    "url": "https://github.com/mkay581/form-js.git"
   },
   "author": {
     "name": "Mark Kennedy",
