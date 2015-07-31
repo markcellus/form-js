@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/mkay581/formjs.svg?branch=master)](https://travis-ci.org/mkay581/formjs)
+[![Build Status](https://travis-ci.org/mkay581/form-js.svg?branch=master)](https://travis-ci.org/mkay581/form-js)
 
 # FormJS
 
