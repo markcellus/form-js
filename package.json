@@ -33,7 +33,7 @@
   },
   "main": "src/form.js",
   "devDependencies": {
-    "build-tools": "^1.5.2",
+    "build-tools": "^1.6.0",
     "grunt": "0.4.5",
     "grunt-github-pages": "0.0.4",
     "grunt-jsdoc": "0.5.7",
