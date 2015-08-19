@@ -1,5 +1,5 @@
 /** 
-* form-js - v1.9.5.
+* form-js - v1.10.0.
 * https://github.com/mkay581/form-js.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -440,10 +440,10 @@ process.umask = function() { return 0; };
 /**
  A class to add a simple EventTarget (https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) API
  around any object or function, so that it can begin to receive and trigger event listeners.
- @class EventHandler
+ @class Listen
  */
 
-var EventHandler = {
+var Listen = {
 
     /**
      * Registers a target to begin receiving and triggering events.
@@ -514,7 +514,7 @@ var EventHandler = {
      * @private
      * @param target
      * @param method
-     * @returns {*|function(this:EventHandler)}
+     * @returns {*|function(this:Listen)}
      */
     _getEventMethod: function (target, method) {
         return function () {
@@ -645,11 +645,11 @@ var EventHandler = {
     }
 };
 
-module.exports = EventHandler;
+module.exports = Listen;
 },{}],5:[function(require,module,exports){
 'use strict';
 
-var EventHandler = require('./../external/event-handler/src/event-handler');
+var Listen = require('listen-js');
 /**
  @class DeviceManager
  @description A set of utilities for managing the state of the user's current device.
@@ -666,7 +666,7 @@ DeviceManager.prototype = {
      */
     initialize: function () {
         // allow event listening on the device
-        EventHandler.createTarget(this);
+        Listen.createTarget(this);
 
         this._getOrientationChangeListener = function () {
             var self = this;
@@ -756,13 +756,13 @@ DeviceManager.prototype = {
      */
     destroy: function () {
         window.removeEventListener('orientationchange', this._getOrientationChangeListener());
-        EventHandler.destroyTarget(this);
+        Listen.destroyTarget(this);
     }
 
 };
 
 module.exports = new DeviceManager();
-},{"./../external/event-handler/src/event-handler":4}],6:[function(require,module,exports){
+},{"listen-js":4}],6:[function(require,module,exports){
 'use strict';
 
 var Element = require('./element');
@@ -10693,13 +10693,13 @@ function Promise(fn) {
   if (typeof fn !== 'function') {
     throw new TypeError('not a function');
   }
-  this._32 = 0;
-  this._8 = null;
-  this._89 = [];
+  this._37 = 0;
+  this._12 = null;
+  this._59 = [];
   if (fn === noop) return;
   doResolve(fn, this);
 }
-Promise._83 = noop;
+Promise._99 = noop;
 
 Promise.prototype.then = function(onFulfilled, onRejected) {
   if (this.constructor !== Promise) {
@@ -10718,24 +10718,24 @@ function safeThen(self, onFulfilled, onRejected) {
   });
 };
 function handle(self, deferred) {
-  while (self._32 === 3) {
-    self = self._8;
+  while (self._37 === 3) {
+    self = self._12;
   }
-  if (self._32 === 0) {
-    self._89.push(deferred);
+  if (self._37 === 0) {
+    self._59.push(deferred);
     return;
   }
   asap(function() {
-    var cb = self._32 === 1 ? deferred.onFulfilled : deferred.onRejected;
+    var cb = self._37 === 1 ? deferred.onFulfilled : deferred.onRejected;
     if (cb === null) {
-      if (self._32 === 1) {
-        resolve(deferred.promise, self._8);
+      if (self._37 === 1) {
+        resolve(deferred.promise, self._12);
       } else {
-        reject(deferred.promise, self._8);
+        reject(deferred.promise, self._12);
       }
       return;
     }
-    var ret = tryCallOne(cb, self._8);
+    var ret = tryCallOne(cb, self._12);
     if (ret === IS_ERROR) {
       reject(deferred.promise, LAST_ERROR);
     } else {
@@ -10763,8 +10763,8 @@ function resolve(self, newValue) {
       then === self.then &&
       newValue instanceof Promise
     ) {
-      self._32 = 3;
-      self._8 = newValue;
+      self._37 = 3;
+      self._12 = newValue;
       finale(self);
       return;
     } else if (typeof then === 'function') {
@@ -10772,21 +10772,21 @@ function resolve(self, newValue) {
       return;
     }
   }
-  self._32 = 1;
-  self._8 = newValue;
+  self._37 = 1;
+  self._12 = newValue;
   finale(self);
 }
 
 function reject(self, newValue) {
-  self._32 = 2;
-  self._8 = newValue;
+  self._37 = 2;
+  self._12 = newValue;
   finale(self);
 }
 function finale(self) {
-  for (var i = 0; i < self._89.length; i++) {
-    handle(self, self._89[i]);
+  for (var i = 0; i < self._59.length; i++) {
+    handle(self, self._59[i]);
   }
-  self._89 = null;
+  self._59 = null;
 }
 
 function Handler(onFulfilled, onRejected, promise){
@@ -10839,7 +10839,6 @@ Promise.prototype.done = function (onFulfilled, onRejected) {
 //This file contains the ES6 extensions to the core Promises/A+ API
 
 var Promise = require('./core.js');
-var asap = require('asap/raw');
 
 module.exports = Promise;
 
@@ -10853,9 +10852,9 @@ var ZERO = valuePromise(0);
 var EMPTYSTRING = valuePromise('');
 
 function valuePromise(value) {
-  var p = new Promise(Promise._83);
-  p._32 = 1;
-  p._8 = value;
+  var p = new Promise(Promise._99);
+  p._37 = 1;
+  p._12 = value;
   return p;
 }
 Promise.resolve = function (value) {
@@ -10892,11 +10891,11 @@ Promise.all = function (arr) {
     function res(i, val) {
       if (val && (typeof val === 'object' || typeof val === 'function')) {
         if (val instanceof Promise && val.then === Promise.prototype.then) {
-          while (val._32 === 3) {
-            val = val._8;
+          while (val._37 === 3) {
+            val = val._12;
           }
-          if (val._32 === 1) return res(i, val._8);
-          if (val._32 === 2) reject(val._8);
+          if (val._37 === 1) return res(i, val._12);
+          if (val._37 === 2) reject(val._12);
           val.then(function (val) {
             res(i, val);
           }, reject);
@@ -10943,7 +10942,7 @@ Promise.prototype['catch'] = function (onRejected) {
   return this.then(null, onRejected);
 };
 
-},{"./core.js":12,"asap/raw":20}],15:[function(require,module,exports){
+},{"./core.js":12}],15:[function(require,module,exports){
 'use strict';
 
 var Promise = require('./core.js');
@@ -10987,11 +10986,9 @@ Promise.denodeify = function (fn, argumentCount) {
   argumentCount = argumentCount || Infinity;
   return function () {
     var self = this;
-    var args = Array.prototype.slice.call(arguments);
+    var args = Array.prototype.slice.call(arguments, 0,
+        argumentCount > 0 ? argumentCount : 0);
     return new Promise(function (resolve, reject) {
-      while (args.length && args.length > argumentCount) {
-        args.pop();
-      }
       args.push(function (err, res) {
         if (err) reject(err);
         else resolve(res);
