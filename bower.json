@@ -40,6 +40,7 @@
   "dependencies": {
     "device-manager": "^1.1.1",
     "element-kit": "^0.5.0",
+    "module-js": "^3.0.1",
     "promise": "^6.1.0",
     "underscore": "^1.8.2"
   }
