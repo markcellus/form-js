@@ -8,7 +8,7 @@ var InputField = require('../src/input-field');
 var Checkbox = require('../src/checkbox');
 var ButtonToggle = require('../src/button-toggle');
 var SubmitButton = require('../src/submit-button');
-var Module = require('module.js');
+var Module = require('module-js');
 
 module.exports = (function () {
 

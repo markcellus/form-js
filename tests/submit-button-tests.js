@@ -3,7 +3,7 @@ var Sinon = require('sinon');
 var QUnit = require('qunit');
 var TestUtils = require('test-utils');
 var SubmitButton = require('../src/submit-button');
-var Module = require('module.js');
+var Module = require('module-js');
 
 module.exports = (function () {
 
