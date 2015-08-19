@@ -1,6 +1,6 @@
 'use strict';
 var _ = require('underscore');
-var Module = require('module.js');
+var Module = require('module-js');
 require('element-kit');
 
 /**
