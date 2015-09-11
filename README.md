@@ -111,6 +111,35 @@ inputField.setValue('My text'); // set new value
 inputField.getValue(); // => "My text"
 ```
 
+### Detect when user changes any value in a form
+
+Suppose you have this HTML:
+
+```html
+<form class="debt-info-form">
+    <input type="text" name="first_name" value="" />
+    <select name="loan_type">
+        <option value="CC">Credit Card</option>
+        <option value="Mortgage">Mortgage</option>
+        <option value="HELO">HELO</option>
+        <option value="Student Loan">Student Loan</option>
+    </select>
+</form>
+```
+
+You can detect when a user changes any of the form's elements like so:
+
+```javascript
+var form = new Form({
+    el: document.body.getElementsByClassName('debt-info-form')[0],
+    onValueChange: function (val, el) {
+        // a value has been changed!
+       console.log('new value: ' + val);
+    }
+});
+form.setup();
+```
+
 ## Examples
  
 Examples can be found in the [examples](https://github.com/mkay581/formjs/blob/master/examples) page.
