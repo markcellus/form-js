@@ -2,13 +2,23 @@
 
 # FormJS
 
-Allows you easily re-style native form elements across all browsers and falls back to native form elements for mobile devices.
-Also, provides a simple API to manipulate form elements with javascript. Supports IE10+, all modern browsers, and mobile.
+This library provides a simple API to manipulate a form or its related elements with JavaScript.
+Supports IE10+, all modern browsers, and mobile.
 
-UI Elements include:
+It also provides some very useful things to make forms a lot easier for developers, including the following.
+
+* Detect change events and new values
+* Set and get values
+* Hard-to-style native form elements get a "UI version" that allows for easy CSS styling
+* Easily map form elements by attributes (like "name" and "type")
+* Uses live HTMLCollections, making everything stateless to account for on-the-fly DOM updates
+* Even handles submit buttons
+* Works on mobile devices too
+
+It supports:
 
  * Checkboxes
- * Button Toggles
+ * Radio Buttons
  * Input Fields
  * Dropdowns
  * Entire forms
