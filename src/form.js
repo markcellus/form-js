@@ -92,7 +92,11 @@ var Form = Module.extend({
             input: {
                 option: this.options.inputFieldClass,
                 tag: 'input',
-                types: ['password', 'email', 'number', 'text']
+                types: [
+                    'password', 'email', 'number', 'text', 'date',
+                    'datetime', 'month', 'search', 'range', 'time',
+                    'week', 'tel', 'color', 'datetime-local'
+                ]
             },
             radio: {
                 option: this.options.buttonToggleClass,
