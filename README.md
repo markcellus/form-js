@@ -9,7 +9,15 @@ It's important for you to use native form elements (i.e. `<select>`, `<input>`, 
 logic needed for the interactions that users expect. Like tabbing to fields, pressing enter or spacebar to commit a 
 dropdown item, mobile keyboard input triggering, etc.
 
-UI Elements include:
+## Benefits
+
+ * Automatic form data binding (JSON data and JS object literals)
+ * Use CSS to easily customize hard-to-style native elements (i.e. dropdowns)
+ * Listen to user events on forms 
+ * Easily change and update form elements and their values with JavaScript
+ * Trigger events programmatically
+
+## Support
 
  * Checkboxes
  * Button Toggles
