@@ -44,6 +44,7 @@ var ButtonToggle = FormElement.extend({
      * @param {ButtonToggle~onDeselect} [options.onDeselect] - A callback function that fires when the button toggle element is deselected
      * @param {string} [options.selectedClass] - The css class that will be applied to a button toggle item (UI-version) when it is selected
      * @param {string} [options.disabledClass] - The css class that will be applied to a button toggle item (UI-version) when it is disabled
+     * @param {string|Array} [options.value] - The string matching the name attribute of the toggle button to have selected initially (or an array of such strings)
      */
     initialize: function (options) {
 
@@ -53,7 +54,8 @@ var ButtonToggle = FormElement.extend({
             containerClass: 'ui-button-toggle',
             inputClass: 'ui-button-toggle-input',
             selectedClass: 'ui-button-toggle-selected',
-            disabledClass: 'ui-button-toggle-disabled'
+            disabledClass: 'ui-button-toggle-disabled',
+            value: null
         }, options);
 
         FormElement.prototype.initialize.call(this, this.options);
@@ -67,23 +69,49 @@ var ButtonToggle = FormElement.extend({
         if (!this.options.inputs.length) {
             console.error('could not build toggle items: no toggle input items were passed');
         } else {
-            this._formElements = Array.prototype.slice.call(this.options.inputs); // convert to real array if HTMLCollection
-            this._UIElements = this._buildUIElements(this._formElements);
+            this.setup();
         }
-
-        this.setup();
-
     },
 
     /**
-     * Sets up html.
+     * Sets up the button toggles.
      */
     setup: function () {
-        // add initial class
-        this._triggerAll(function (formElement) {
+        this._formElements = this._setupFormElements(this.options.inputs);
+        this._UIElements = this._buildUIElements(this._formElements);
+        this._setupEvents();
+    },
+
+    /**
+     * Sets up form elements.
+     * @param {HTMLCollection|Array} elements - The array of form elements
+     * @returns {Array} Returns the form elements after they've been setup
+     */
+    _setupFormElements: function (elements) {
+        var value = this.options.value,
+            values = [];
+
+        // convert to real array if HTMLCollection
+        elements = Array.prototype.slice.call(elements);
+
+        if (typeof value === 'string') {
+            values.push(value);
+        } else if (value && value.length) {
+            // assume its an array
+            values = Array.prototype.slice.call(value); //ensure array
+        }
+
+        // perform work on all button toggle elements, checking them if necessary
+        elements.forEach(function (formElement) {
+            if (values.indexOf(formElement.value) !== -1) {
+                // value exists
+                formElement.checked = true;
+            }
+            // add initial class
             formElement.kit.classList.add(this.options.inputClass);
         }.bind(this));
-        this._setupEvents();
+
+        return elements;
     },
 
     /**
@@ -101,7 +129,7 @@ var ButtonToggle = FormElement.extend({
      * @returns {Array|*}
      */
     getFormElements: function () {
-        return this._formElements;
+        return this._formElements || [];
     },
 
     /**
@@ -109,7 +137,7 @@ var ButtonToggle = FormElement.extend({
      * @returns {Array|*}
      */
     getUIElements: function () {
-        return this._UIElements;
+        return this._UIElements || [];
     },
 
     /**
@@ -300,6 +328,20 @@ var ButtonToggle = FormElement.extend({
         } else {
             return '';
         }
+    },
+
+    /**
+     * Selects the button toggle that matches the supplied value.
+     * @param {string|Array} value - The value of the button toggle that should be selected
+     */
+    setValue: function (value) {
+        this.getFormElements().forEach(function (el, idx) {
+            if (el.value === value || value.indexOf(el.value) !== -1) {
+                this.select(idx);
+            } else {
+                this.deselect(idx);
+            }
+        }, this);
     },
 
     /**

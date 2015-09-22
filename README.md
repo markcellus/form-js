@@ -5,6 +5,10 @@
 Allows you easily re-style native form elements across all browsers and falls back to native form elements for mobile devices.
 Also, provides a simple API to manipulate form elements with javascript. Supports IE10+, all modern browsers, and mobile.
 
+It's important for you to use native form elements (i.e. `<select>`, `<input>`, etc) because they come with critical built-in
+logic needed for the interactions that users expect. Like tabbing to fields, pressing enter or spacebar to commit a 
+dropdown item, mobile keyboard input triggering, etc.
+
 UI Elements include:
 
  * Checkboxes

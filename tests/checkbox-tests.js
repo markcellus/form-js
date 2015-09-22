@@ -201,4 +201,53 @@ module.exports = (function () {
         setAttrSpy.restore();
     });
 
+    QUnit.test('passing truthy value to setValue() should check the checkbox, and passing a falsy value should uncheck it', function() {
+        QUnit.expect(3);
+        var fixture = document.getElementById('qunit-fixture');
+        var container = TestUtils.createHtmlElement(html);
+        fixture.appendChild(container);
+        var checkboxEl = container.getElementsByClassName('ui-checkbox-input')[0];
+        var checkbox = new Checkbox({el: checkboxEl});
+        QUnit.ok(!checkboxEl.checked, 'not checked by default');
+        checkbox.setValue('true');
+        QUnit.equal(checkboxEl.checked, true);
+        checkbox.setValue(null);
+        QUnit.equal(checkboxEl.checked, false);
+        checkbox.destroy();
+    });
+
+    QUnit.test('getValue() should return true when checkbox is checked and false when not', function() {
+        QUnit.expect(2);
+        var fixture = document.getElementById('qunit-fixture');
+        var container = TestUtils.createHtmlElement(html);
+        fixture.appendChild(container);
+        var checkbox = new Checkbox({el: container.getElementsByClassName('ui-checkbox-input')[0]});
+        // check checkbox
+        checkbox.check();
+        QUnit.equal(checkbox.getValue(), true);
+        checkbox.uncheck();
+        QUnit.equal(checkbox.getValue(), false);
+        checkbox.destroy();
+    });
+
+    QUnit.test('should be checked if options value passed is true', function() {
+        QUnit.expect(1);
+        var container = TestUtils.createHtmlElement(html);
+        var fixture = document.getElementById('qunit-fixture').appendChild(container);
+        var input = container.getElementsByClassName('ui-checkbox-input')[0];
+        var checkbox = new Checkbox({el: input, value: true});
+        QUnit.equal(input.checked, true);
+        checkbox.destroy();
+    });
+
+    QUnit.test('should not be checked if options value passed is false', function() {
+        QUnit.expect(1);
+        var container = TestUtils.createHtmlElement(html);
+        var fixture = document.getElementById('qunit-fixture').appendChild(container);
+        var input = container.getElementsByClassName('ui-checkbox-input')[0];
+        var checkbox = new Checkbox({el: input, value: false});
+        QUnit.equal(input.checked, false);
+        checkbox.destroy();
+    });
+
 })();
