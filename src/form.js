@@ -68,6 +68,7 @@ var Form = Module.extend({
             submitButtonClass: null,
             submitButtonDisabledClass: null,
             onSubmitButtonClick: null,
+            data: null,
             legacyDataPollTime: 125
         }, options);
 
