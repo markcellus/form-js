@@ -1,6 +1,6 @@
 {
   "name": "form-js",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Create better ui form elements. Supports IE9+, all modern browsers, and mobile.",
   "repository": {
     "type": "git",
@@ -26,7 +26,11 @@
     "html",
     "utils",
     "toggles",
-    "buttons"
+    "buttons",
+    "data binding",
+    "bind forms",
+    "form changes",
+    "form elements"
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"

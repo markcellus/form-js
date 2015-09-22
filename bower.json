@@ -1,6 +1,6 @@
 {
   "name": "form-js",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "homepage": "https://github.com/mkay581/form-js",
   "authors": [
     "Mark Kennedy <mkay581@gmail.com>"
@@ -27,7 +27,11 @@
     "html",
     "utils",
     "toggles",
-    "buttons"
+    "buttons",
+    "data binding",
+    "bind forms",
+    "form changes",
+    "form elements"
   ],
   "license": "MIT",
   "ignore": [

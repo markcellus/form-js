@@ -1,5 +1,5 @@
 /** 
-* form-js - v2.1.0.
+* form-js - v2.1.1.
 * https://github.com/mkay581/form-js.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -3829,6 +3829,7 @@ var Checkbox = FormElement.extend({
      * @param {string} [options.inputClass] - The css class that will be applied to the form version of the checkbox
      * @param {string} [options.checkedClass] - The css class that will be applied to the checkbox (UI-version) when it is checked
      * @param {string} [options.disabledClass] - The css class that will be applied to the checkbox (UI-version) when it is disabled
+     * @param {boolean} [options.value] - The initial checked value to set
      */
     initialize: function (options) {
 
@@ -3839,7 +3840,8 @@ var Checkbox = FormElement.extend({
             containerClass: 'ui-checkbox',
             inputClass: 'ui-checkbox-input',
             checkedClass: 'ui-checkbox-checked',
-            disabledClass: 'ui-checkbox-disabled'
+            disabledClass: 'ui-checkbox-disabled',
+            value: null
         }, options);
 
         this.el = this.options.el;
@@ -3865,9 +3867,10 @@ var Checkbox = FormElement.extend({
         this._container = this._buildUIElement(this.el);
 
         // if input element is already checked initially, check it!
-        this.isInitChecked = input.checked;
+        this.isInitChecked = this.options.value || input.checked;
+
         if (this.isInitChecked) {
-            this._container.kit.classList.add(this.options.checkedClass);
+            this.check();
         }
 
         this.isInitDisabled = input.disabled;
@@ -3983,6 +3986,24 @@ var Checkbox = FormElement.extend({
     },
 
     /**
+     * Returns whether the checkbox is checked or not
+     * @returns {boolean} Returns a truthy value if checkbox is checked, falsy if not
+     */
+    getValue: function () {
+        return this.getFormElement().checked;
+    },
+
+    /**
+     * Checks the checkbox if a truthy value is passed.
+     * @param {string|boolean} value
+     */
+    setValue: function (value) {
+        // check it if the value is truthy
+        value = value ? true : false;
+        this.getFormElement().checked = value;
+    },
+
+    /**
      * Destruction of this class.
      */
     destroy: function () {
@@ -4058,13 +4079,27 @@ var FormElement = Module.extend({
     /**
      * Gets the current value of the element.
      * @returns {string}
+     * @abstract
      */
     getValue: function () {
         return this.getFormElement().value;
     },
 
     /**
+     * Sets the value of the form element.
+     * @param {string} value - The new value
+     * @abstract
+     */
+    setValue: function (value) {
+        var el = this.getFormElements()[0];
+        if (el) {
+            el.value = value;
+        }
+    },
+
+    /**
      * Clears the element.
+     * @abstract
      */
     clear: function () {},
 
