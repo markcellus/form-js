@@ -1,5 +1,5 @@
 /** 
-* form-js - v2.0.0.
+* form-js - v2.1.0.
 * https://github.com/mkay581/form-js.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -5569,7 +5569,9 @@ require('element-kit');
 /**
  * The function that fires when the input value changes
  * @callback Form~onValueChange
- * @param {Event} event - The event that fired the change
+ * @param {string} value - The new value
+ * @param {HTMLElement} element - The form element
+ * @param {HTMLElement} uIElement - The ui-version of the form element
  */
 
 /**
@@ -5621,13 +5623,44 @@ var Form = Module.extend({
             onSubmitButtonClick: null
         }, options);
 
-        this.options = options;
-
         // okay to cache here because its a "live" html collection -- yay!
         this.formEls = this.options.el.elements;
 
         this._formInstances = [];
+        this._moduleCount = 0;
         Module.prototype.initialize.call(this, this.options);
+    },
+
+    /**
+     * Returns a mapping of ids to their associated form option and selector.
+     */
+    _getSelectorMap: function () {
+        return {
+            dropdown: {
+                option: this.options.dropdownClass,
+                selector: 'select',
+                tag: 'select'
+            },
+            checkbox: {
+                option: this.options.checkboxClass,
+                tag: 'input',
+                types: ['checkbox']
+            },
+            input: {
+                option: this.options.inputFieldClass,
+                tag: 'input',
+                types: [
+                    'password', 'email', 'number', 'text', 'date',
+                    'datetime', 'month', 'search', 'range', 'time',
+                    'week', 'tel', 'color', 'datetime-local'
+                ]
+            },
+            radio: {
+                option: this.options.buttonToggleClass,
+                tag: 'input',
+                types: ['radio']
+            }
+        }
     },
 
     /**
@@ -5635,10 +5668,17 @@ var Form = Module.extend({
      */
     setup: function () {
         var submitButtonEl = this.options.el.getElementsByClassName(this.options.submitButtonClass)[0];
-        this._setupInstances(this.options.dropdownClass, Dropdown);
-        this._setupInstances(this.options.checkboxClass, Checkbox);
-        this._setupInstances(this.options.inputFieldClass, InputField);
-        this._setupButtonToggleInstances(this.options.buttonToggleClass);
+
+        this._setupInstances(this._getInstanceEls('dropdown'), Dropdown);
+        this._setupInstances(this._getInstanceEls('checkbox'), Checkbox);
+        this._setupInstances(this._getInstanceEls('input'), InputField);
+
+        // group radio button toggles by name before instantiating
+        var radios = this._getInstanceEls('radio');
+        _.each(this.mapElementsByAttribute(radios, 'name'), function (els) {
+            this._setupInstance(els, ButtonToggle, {}, 'inputs');
+        }, this);
+
 
         if (submitButtonEl) {
             this.subModules.submitButton = new SubmitButton({
@@ -5650,56 +5690,77 @@ var Form = Module.extend({
     },
 
     /**
-     * Instantiates elements.
-     * @param {string} cssClass - The class that the elements must match to be instantiated
+     * Gets the matching form elements, based on the supplied type.
+     * @param {string} type - The type identifier (i.e. "dropdown", "checkbox", "input")
+     * @returns {Array|HTMLCollection} Returns an array of matching elements
+     * @private
+     */
+    _getInstanceEls: function (type) {
+        var formEl = this.options.el,
+            elements = [],
+            map = this._getSelectorMap();
+
+        map = map[type] || {};
+
+        // we are strategically grabbing elements by "tagName" to ensure we have a LIVE HTMLCollection
+        // instead of an ineffective, non-live NodeList (i.e. querySelector), can we say, "less state management"!
+
+        if (map.option) {
+            elements = formEl.getElementsByClassName(map.option);
+        } else if (map.types) {
+            map.types.forEach(function (val) {
+                (this.mapElementsByAttribute(this.formEls, 'type')[val] || []).forEach(function (el) {
+                    elements.push(el);
+                });
+            }, this);
+        } else if (map.tag) {
+            elements = formEl.getElementsByTagName(map.tag);
+        }
+        return elements;
+    },
+
+    /**
+     * Creates a single instance of a class for each of the supplied elements.
+     * @param {HTMLCollection|Array} elements - The set of elements to instance the class on
      * @param {Function} View - The class to instantiate
      * @param {Object} [options] - The options to be passed to instantiation
      * @param {string} [elKey] - The key to use as the "el"
      * @private
      */
-    _setupInstances: function (cssClass, View, options, elKey) {
-        var elements = this.options.el.getElementsByClassName(cssClass),
-            count = elements.length,
-            i,
-            instance,
-            el;
-
-        var finalOptions = {};
-
+    _setupInstances: function (elements, View, options, elKey) {
+        var count = elements.length,
+            i;
         if (count) {
-            elKey = elKey || 'el';
             for (i = 0; i < count; i++) {
-                el = elements[i];
-                finalOptions = this._buildOptions(el, options);
-                finalOptions[elKey] = el; // dont allow custom options to override the el!
-                instance = this.subModules['fe' + elKey + cssClass + i] = new View(finalOptions);
-                this._formInstances.push(instance);
+                this._setupInstance(elements[i], View, options, elKey);
             }
         }
     },
 
     /**
-     * Sets up button toggle instances by on the elements that contain the supplied css class.
-     * @param {string} cssClass - The css class of all button toggle elements to instantiate
+     * Creates a single instance of a class using multiple elements.
+     * @param {Array|HTMLCollection} els - The elements for which to setup an instance
+     * @param {Function} View - The class to instantiate
+     * @param {Object} [options] - The options to be passed to instantiation
+     * @param {string} [elKey] - The key to use as the "el"
      * @private
      */
-    _setupButtonToggleInstances: function (cssClass) {
-        var toggleNameMap = this.mapElementsByName(this.options.el.getElementsByClassName(cssClass)),
-            elKey = 'radio',
-            finalOptions = {};
-        _.each(toggleNameMap, function (els, name) {
-            finalOptions = this._buildOptions(els, {});
-            finalOptions.inputs = els; // dont allow custom options to override the radio inputs
-            this._formInstances.push(this.subModules['fe' + elKey + cssClass + name] = new ButtonToggle(finalOptions));
-        }, this);
+    _setupInstance: function (els, View, options, elKey) {
+        elKey = elKey || 'el';
+        var finalOptions = this._buildOptions(els, options);
+        finalOptions[elKey] = els; // dont allow custom options to override the el!
+        this._moduleCount++;
+        var instance = this.subModules['fe' + this._moduleCount] = new View(finalOptions);
+        this._formInstances.push(instance);
     },
 
     /**
-     * Takes a set of elements and maps them by their name attributes.
-     * @param {HTMLCollection|Array|NodeList} elements - An array of elements
-     * @returns {{}} Returns an object with name/elements mapping
+     * Maps all supplied elements by an attribute.
+     * @param {Array|HTMLCollection|NodeList} elements
+     * @param {string} attr - The attribute to map by (the values will be the keys in the map returned)
+     * @returns {Object} Returns the final object
      */
-    mapElementsByName: function (elements) {
+    mapElementsByAttribute: function (elements, attr) {
         var map = {},
             count = elements.length,
             i,
@@ -5707,14 +5768,24 @@ var Form = Module.extend({
         if (count) {
             for (i = 0; i < count; i++) {
                 el = elements[i];
-                if (map[el.name]) {
-                    map[el.name].push(el);
+                if (map[el[attr]]) {
+                    map[el[attr]].push(el);
                 } else {
-                    map[el.name] = [el];
+                    map[el[attr]] = [el];
                 }
             }
         }
         return map;
+    },
+
+    /**
+     * Takes a set of elements and maps them by their name attributes.
+     * @param {HTMLCollection|Array|NodeList} elements - An array of elements
+     * @returns {{}} Returns an object with name/elements mapping
+     * @deprecated since 2.0.0
+     */
+    mapElementsByName: function (elements) {
+        return this.mapElementsByAttribute(elements, 'name');
     },
 
     /**

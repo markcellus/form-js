@@ -48,13 +48,27 @@ var FormElement = Module.extend({
     /**
      * Gets the current value of the element.
      * @returns {string}
+     * @abstract
      */
     getValue: function () {
         return this.getFormElement().value;
     },
 
     /**
+     * Sets the value of the form element.
+     * @param {string} value - The new value
+     * @abstract
+     */
+    setValue: function (value) {
+        var el = this.getFormElements()[0];
+        if (el) {
+            el.value = value;
+        }
+    },
+
+    /**
      * Clears the element.
+     * @abstract
      */
     clear: function () {},
 

@@ -5,17 +5,19 @@
 This library provides a simple API to manipulate a form or its related elements with JavaScript.
 Supports IE10+, all modern browsers, and mobile.
 
-It also provides some very useful things to make forms a lot easier for developers, including the following.
+It's important for you to use native form elements (i.e. `<select>`, `<input>`, etc) because they come with critical built-in
+logic needed for the interactions that users expect. Like tabbing to fields, pressing enter or spacebar to commit a 
+dropdown item, mobile keyboard input triggering, etc.
 
-* Detect change events and new values
-* Set and get values
-* Hard-to-style native form elements get a "UI version" that allows for easy CSS styling
-* Easily map form elements by attributes (like "name" and "type")
-* Uses live HTMLCollections, making everything stateless to account for on-the-fly DOM updates
-* Even handles submit buttons
-* Works on mobile devices too
+## Benefits
 
-It supports:
+ * Automatic form data binding (JSON data and JS object literals)
+ * Use CSS to easily customize hard-to-style native elements (i.e. dropdowns)
+ * Listen to user events on forms 
+ * Easily change and update form elements and their values with JavaScript
+ * Trigger events programmatically
+
+## Support
 
  * Checkboxes
  * Radio Buttons

@@ -63,7 +63,12 @@ var Form = Module.extend({
             buttonToggleClass: null,
             submitButtonClass: null,
             submitButtonDisabledClass: null,
-            onSubmitButtonClick: null
+            onSubmitButtonClick: null,
+            // data should accept Map or a bare Object (map is encouraged!)
+            data: {
+                'the-name': 'hey'
+            },
+            onDataChange: function () {}
         }, options);
 
         // okay to cache here because its a "live" html collection -- yay!
@@ -72,6 +77,25 @@ var Form = Module.extend({
         this._formInstances = [];
         this._moduleCount = 0;
         Module.prototype.initialize.call(this, this.options);
+    },
+
+    /**
+     * Sets up data map so that we're observing its changes.
+     * @returns {Object}
+     * @private
+     */
+    _setupDataMapping: function (data) {
+        data = data || {};
+        // sync any changes made on data map to options data
+        Object.observe(data, function (changes) {
+            changes.forEach(function (chg) {
+                var n = chg.name,
+                    newValue = chg.object[n],
+                    inst = this.getInstanceByName(n);
+                inst.setValue(newValue);
+            }.bind(this));
+        }.bind(this));
+        return data;
     },
 
     /**
@@ -130,6 +154,7 @@ var Form = Module.extend({
                 onClick: this.options.onSubmitButtonClick
             });
         }
+        this._setupDataMapping(this.options.data);
     },
 
     /**
@@ -190,8 +215,16 @@ var Form = Module.extend({
      */
     _setupInstance: function (els, View, options, elKey) {
         elKey = elKey || 'el';
+        var formOptions = this.options;
         var finalOptions = this._buildOptions(els, options);
         finalOptions[elKey] = els; // dont allow custom options to override the el!
+
+        // assign value to form element if a data object was passed in options
+        els = els.length ? Array.prototype.slice.call(els) : [els]; //ensure array
+        var name = els[0].name;
+        if (formOptions.data && typeof formOptions.data[name] !== 'function' && formOptions.data.hasOwnProperty(name)) {
+            finalOptions.value = finalOptions.value || formOptions.data[name];
+        }
         this._moduleCount++;
         var instance = this.subModules['fe' + this._moduleCount] = new View(finalOptions);
         this._formInstances.push(instance);
@@ -235,6 +268,7 @@ var Form = Module.extend({
      * Returns the instance (if there is one) of an element with a specified name attribute
      * @param {string} name - The name attribute of the element whos instance is desired
      * @returns {Object} Returns the instance that matches the name specified
+     * @TODO: this method should return an array because there could be multiple form elements with the same name!
      */
     getInstanceByName: function (name) {
         var i,
@@ -276,6 +310,17 @@ var Form = Module.extend({
      * @private
      */
     _onValueChange: function (value, el, ui) {
+        var name = el.name,
+            formOptions = this.options,
+            mapValue = formOptions.data[name];
+
+        // update data map
+        if (typeof mapValue === 'function') {
+            // function, so call it
+            mapValue(value);
+        } else if (formOptions.data.hasOwnProperty(name)) {
+            formOptions.data[name] = value;
+        }
 
         if (this.options.onValueChange) {
             this.options.onValueChange(value, el, ui);
