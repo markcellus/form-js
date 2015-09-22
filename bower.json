@@ -27,7 +27,11 @@
     "html",
     "utils",
     "toggles",
-    "buttons"
+    "buttons",
+    "data binding",
+    "bind forms",
+    "form changes",
+    "form elements"
   ],
   "license": "MIT",
   "ignore": [

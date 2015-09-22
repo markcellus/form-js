@@ -26,7 +26,11 @@
     "html",
     "utils",
     "toggles",
-    "buttons"
+    "buttons",
+    "data binding",
+    "bind forms",
+    "form changes",
+    "form elements"
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
