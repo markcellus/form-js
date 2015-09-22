@@ -415,7 +415,8 @@ module.exports = (function () {
         // change input value
         inputEl.value = newVal;
         // dispatch change event to trigger the change
-        var changeEvent = new Event('change', {bubbles: true, cancelable: false});
+        var changeEvent = document.createEvent('Event');
+        changeEvent.initEvent('change', true, false);
         inputEl.dispatchEvent(changeEvent);
         QUnit.equal(data[formNameValue], newVal, 'data object key value has been updated');
         instance.destroy();
@@ -435,7 +436,8 @@ module.exports = (function () {
         // change input value
         inputEl.value = newVal;
         // dispatch change event to trigger the change
-        var changeEvent = new Event('change', {bubbles: true, cancelable: false});
+        var changeEvent = document.createEvent('Event');
+        changeEvent.initEvent('change', true, false);
         inputEl.dispatchEvent(changeEvent);
         QUnit.deepEqual(data[formNameValue].args[0], [newVal], 'data object key function was called with new value');
         instance.destroy();
