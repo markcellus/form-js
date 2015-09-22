@@ -1,5 +1,5 @@
 /** 
-* form-js - v2.1.0.
+* form-js - v2.1.1.
 * https://github.com/mkay581/form-js.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -3841,13 +3841,27 @@ var FormElement = Module.extend({
     /**
      * Gets the current value of the element.
      * @returns {string}
+     * @abstract
      */
     getValue: function () {
         return this.getFormElement().value;
     },
 
     /**
+     * Sets the value of the form element.
+     * @param {string} value - The new value
+     * @abstract
+     */
+    setValue: function (value) {
+        var el = this.getFormElements()[0];
+        if (el) {
+            el.value = value;
+        }
+    },
+
+    /**
      * Clears the element.
+     * @abstract
      */
     clear: function () {},
 
@@ -3929,6 +3943,7 @@ var InputField = FormElement.extend({
      * @param {string} [options.inputClass] - The css class that will be applied to the the input field element
      * @param {string} [options.disabledClass] - The css class that will be applied to the input field container element when disabled
      * @param {string} [options.activeClass] - The css class that will be applied to the input field container element when in focus
+     * @param {string} [options.value] - An initial value to set the input field to
      */
     initialize: function (options) {
 
@@ -3939,20 +3954,20 @@ var InputField = FormElement.extend({
             containerClass: 'ui-input-text',
             inputClass: 'ui-input-text-input',
             disabledClass: 'ui-input-text-disabled',
-            activeClass: 'ui-input-text-active'
+            activeClass: 'ui-input-text-active',
+            value: null
         }, options);
 
         FormElement.prototype.initialize.call(this, this.options);
-
         this.setup();
-
     },
 
     /**
      * Sets up events for showing/hiding tooltip.
      */
     setup: function () {
-        var input = this.options.el;
+        var input = this.options.el,
+            optionsValue = this.options.value || input.value;
 
         // add internal class if doesnt already exist
         input.kit.classList.add(this.options.inputClass);
@@ -3960,7 +3975,11 @@ var InputField = FormElement.extend({
         this._container = this._buildUIElement(input);
         this._inputEl = this._container.getElementsByClassName(this.options.inputClass)[0];
 
-        this.origInputValue = input.value;
+        if (input.value !== optionsValue) {
+            input.value = optionsValue;
+        }
+
+        this.origInputValue = optionsValue;
         this.isInitDisabled = input.disabled;
 
 
@@ -4030,7 +4049,7 @@ var InputField = FormElement.extend({
         var input = this.getFormElement(),
             currentVal = input.value;
         if (value !== currentVal) {
-            this.getFormElement().value = value;
+            input.value = value;
             this._triggerChange();
         }
     },

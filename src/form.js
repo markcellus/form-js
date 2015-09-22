@@ -1,3 +1,4 @@
+/* global Platform */
 'use strict';
 var _ = require('underscore');
 var Module = require('module-js');
@@ -6,6 +7,7 @@ var InputField = require('./input-field');
 var Checkbox = require('./checkbox');
 var ButtonToggle = require('./button-toggle');
 var SubmitButton = require('./submit-button');
+var ObjectObserver = require("observe-js").ObjectObserver;
 
 require('element-kit');
 
@@ -50,6 +52,8 @@ var Form = Module.extend({
      * @param {string} [options.submitButtonClass] - The css class used to query the submit button
      * @param {string} [options.submitButtonDisabledClass] - The class that will be applied to the submit button when its disabled
      * @param {string} [options.onSubmitButtonClick] - Function that is called when the submit button is clicked
+     * @param {Object} [options.data] - An object mapping the form elements name attributes (keys) to their values which will be binded to form's fields
+     * @param {Number} [options.legacyDataPollTime] - The amount of time (in milliseconds) to poll for options.data changes for browsers that do not support native data observing
      */
     initialize: function (options) {
 
@@ -64,11 +68,7 @@ var Form = Module.extend({
             submitButtonClass: null,
             submitButtonDisabledClass: null,
             onSubmitButtonClick: null,
-            // data should accept Map or a bare Object (map is encouraged!)
-            data: {
-                'the-name': 'hey'
-            },
-            onDataChange: function () {}
+            legacyDataPollTime: 125
         }, options);
 
         // okay to cache here because its a "live" html collection -- yay!
@@ -84,17 +84,28 @@ var Form = Module.extend({
      * @returns {Object}
      * @private
      */
-    _setupDataMapping: function (data) {
-        data = data || {};
-        // sync any changes made on data map to options data
-        Object.observe(data, function (changes) {
-            changes.forEach(function (chg) {
-                var n = chg.name,
-                    newValue = chg.object[n],
-                    inst = this.getInstanceByName(n);
-                inst.setValue(newValue);
+    _setupDataMapping: function (rawData) {
+        var data = {};
+        if (rawData) {
+            data = rawData;
+
+            // if Object.observe is not supported, we poll data every 125 milliseconds
+            if (!Object.observe) {
+                this._legacyDataPollTimer = window.setInterval(function () {
+                    Platform.performMicrotaskCheckpoint();
+                }, this.options.legacyDataPollTime)
+            }
+
+            // sync any changes made on data map to options data
+            var observer = new ObjectObserver(data);
+            observer.open(function (added, removed, changed) {
+                var mashup = _.extend(added, removed, changed);
+                Object.keys(mashup).forEach(function(n) {
+                    this.getInstanceByName(n).setValue(mashup[n]);
+                }.bind(this));
             }.bind(this));
-        }.bind(this));
+
+        }
         return data;
     },
 
@@ -438,6 +449,14 @@ var Form = Module.extend({
      */
     getSubmitButtonInstance: function () {
         return this.subModules.submitButton;
+    },
+
+    /**
+     * Cleans up some stuff.
+     */
+    destroy: function () {
+        window.clearInterval(this._legacyDataPollTimer);
+        Module.prototype.destroy.call(this);
     }
 
 });

@@ -424,7 +424,7 @@ module.exports = (function () {
     });
 
     QUnit.test('should select the toggle element with a value that matches the value passed into setValue()', function() {
-        QUnit.expect(1);
+        QUnit.expect(6);
         var fixture = document.getElementById('qunit-fixture');
         var selectValue = 'FB';
         var radioHtml = '' +
@@ -436,13 +436,17 @@ module.exports = (function () {
         var wrapper = TestUtils.createHtmlElement(radioHtml);
         fixture.appendChild(wrapper);
         var radios = wrapper.getElementsByTagName('input');
-        var fbRadioInput = wrapper.querySelector('input[value="' + selectValue + '"');
-        var appRadioInput = wrapper.querySelector('input[value="AAPL"');
-        var vzRadioInput = wrapper.querySelector('input[value="VZ"');
+        var fbRadioInput = wrapper.querySelector('input[value="' + selectValue + '"]');
+        var appRadioInput = wrapper.querySelector('input[value="AAPL"]');
+        var vzRadioInput = wrapper.querySelector('input[value="VZ"]');
         var instance = new ButtonToggle({inputs: radios});
+        QUnit.equal(fbRadioInput.checked, false);
+        QUnit.equal(appRadioInput.checked, false);
+        QUnit.equal(vzRadioInput.checked, false);
         instance.setValue(selectValue);
         QUnit.equal(fbRadioInput.checked, true, 'correct radio button is selected after passing its matching value to setValue()');
-        instance.setValue(selectValue);
+        QUnit.equal(appRadioInput.checked, false);
+        QUnit.equal(vzRadioInput.checked, false);
         instance.destroy();
     });
 
