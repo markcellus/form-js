@@ -365,7 +365,12 @@ module.exports = (function () {
         var formNameValue = 'test_toggle1';
         var formEl = TestUtils.createHtmlElement('<form><input type="text" name="' + formNameValue + '" /></form>');
         var data = {};
-        var instance = new Form({el: formEl, data: data});
+        var pollTime = 25;
+        var instance = new Form({
+            el: formEl,
+            data: data,
+            legacyDataPollTime: pollTime //phantomjs needs legacy data dirty checking
+        });
         var inputEl = formEl.getElementsByTagName('input')[0];
         instance.setup();
         QUnit.ok(!inputEl.value, 'input field originally has no value');
@@ -377,7 +382,7 @@ module.exports = (function () {
             QUnit.equal(inputEl.value, newVal);
             instance.destroy();
             QUnit.start();
-        }, 1);
+        }, pollTime + 5);
     });
 
     QUnit.test('passing a data object with a key that matches the input field name attribute should setup the input field with that value', function () {
