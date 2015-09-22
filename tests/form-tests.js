@@ -360,4 +360,113 @@ module.exports = (function () {
         instance.destroy();
     });
 
+    QUnit.asyncTest('should update the input field value to any value that is assigned to a key in the data options object that matches the input field\'s name attribute', function () {
+        QUnit.expect(2);
+        var formNameValue = 'test_toggle1';
+        var formEl = TestUtils.createHtmlElement('<form><input type="text" name="' + formNameValue + '" /></form>');
+        var data = {};
+        var instance = new Form({el: formEl, data: data});
+        var inputEl = formEl.getElementsByTagName('input')[0];
+        instance.setup();
+        QUnit.ok(!inputEl.value, 'input field originally has no value');
+        var newVal = 'myNewInputValue';
+        // change data value
+        data[formNameValue] = newVal;
+        // data changing is asynchronous so must wait for new data to register
+        setTimeout(function () {
+            QUnit.equal(inputEl.value, newVal);
+            instance.destroy();
+            QUnit.start();
+        }, 1);
+    });
+
+    QUnit.test('passing a data object with a key that matches the input field name attribute should setup the input field with that value', function () {
+        QUnit.expect(1);
+        var formNameValue = 'test_toggle1';
+        var formEl = TestUtils.createHtmlElement('<form><input type="text" name="' + formNameValue + '" /></form>');
+        var data = {};
+        var initialValue = 'myValue';
+        data[formNameValue] = initialValue;
+        var instance = new Form({el: formEl, data: data});
+        var inputEl = formEl.getElementsByTagName('input')[0];
+        instance.setup();
+        QUnit.equal(inputEl.value, initialValue);
+        instance.destroy();
+    });
+
+    QUnit.test('changing input field value should update the data options object key that matches the input field\'s name attribute', function () {
+        QUnit.expect(2);
+        var formNameValue = 'test_toggle_data';
+        var formEl = TestUtils.createHtmlElement('<form><input type="text" name="' + formNameValue + '" /></form>');
+        var data = {};
+        // set a key to let form class know we want
+        // this data object to be updated
+        data[formNameValue] = null;
+        var instance = new Form({el: formEl, data: data});
+        var inputEl = formEl.getElementsByTagName('input')[0];
+        instance.setup();
+        QUnit.ok(!data[formNameValue], 'data object key originally has no value');
+        var newVal = 'myNewInputValue';
+        // change input value
+        inputEl.value = newVal;
+        // dispatch change event to trigger the change
+        var changeEvent = new Event('change', {bubbles: true, cancelable: false});
+        inputEl.dispatchEvent(changeEvent);
+        QUnit.equal(data[formNameValue], newVal, 'data object key value has been updated');
+        instance.destroy();
+    });
+
+    QUnit.test('changing input field value should call the function assigned to the key in the data options object that matches the input field\'s name attribute', function () {
+        QUnit.expect(2);
+        var formNameValue = 'test_toggle_data';
+        var formEl = TestUtils.createHtmlElement('<form><input type="text" name="' + formNameValue + '" /></form>');
+        var data = {};
+        data[formNameValue] = Sinon.spy();
+        var instance = new Form({el: formEl, data: data});
+        var inputEl = formEl.getElementsByTagName('input')[0];
+        instance.setup();
+        QUnit.equal(inputEl.value, '', 'input field originally has no value');
+        var newVal = 'myNewInputValue';
+        // change input value
+        inputEl.value = newVal;
+        // dispatch change event to trigger the change
+        var changeEvent = new Event('change', {bubbles: true, cancelable: false});
+        inputEl.dispatchEvent(changeEvent);
+        QUnit.deepEqual(data[formNameValue].args[0], [newVal], 'data object key function was called with new value');
+        instance.destroy();
+    });
+
+    QUnit.test('passing a data object with a key with a boolean value that matches the checkbox name attribute should setup the checkbox with that value as true', function () {
+        QUnit.expect(1);
+        var formNameValue = 'chk_group';
+        var formEl = TestUtils.createHtmlElement('<form><input type="checkbox" name="' + formNameValue + '" /></form>');
+        var data = {};
+        var initialValue = true;
+        data[formNameValue] = initialValue;
+        var instance = new Form({el: formEl, data: data});
+        var checkboxEl = formEl.getElementsByTagName('input')[0];
+        instance.setup();
+        QUnit.equal(checkboxEl.checked, initialValue);
+        instance.destroy();
+    });
+
+    QUnit.test('passing a data object with a key that has a value that matches the radio name attribute should select the correct radio input', function () {
+        QUnit.expect(2);
+        var formNameValue = 'gender';
+        var initialValue = 'girl';
+        var formEl = TestUtils.createHtmlElement('<form>' +
+                '<input type="radio" name="' + formNameValue + '" value="' + initialValue + '" />' +
+                '<input type="radio" name="' + formNameValue + '" value="boy"/>' +
+            '</form>');
+        var data = {};
+        data[formNameValue] = initialValue;
+        var instance = new Form({el: formEl, data: data});
+        var girlRadioEl = formEl.querySelector('input[value="' + initialValue + '"]');
+        var boyRadioEl = formEl.querySelector('input[value="boy"]');
+        instance.setup();
+        QUnit.ok(girlRadioEl.checked);
+        QUnit.ok(!boyRadioEl.checked);
+        instance.destroy();
+    });
+
 })();

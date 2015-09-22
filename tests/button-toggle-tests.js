@@ -6,7 +6,7 @@ var ButtonToggle = require('../src/button-toggle');
 
 module.exports = (function () {
 
-    QUnit.module('Button Toggle Tests');
+    QUnit.module('Button Toggle');
 
     var checkboxHtml = '' +
         '<div class="container">' +
@@ -420,6 +420,84 @@ module.exports = (function () {
         // click second toggle
         UIElements[1].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
         QUnit.equal(instance.getValue(), secondRadioValue, 'after selecting second toggle, getValue() returns second item\'s value');
+        instance.destroy();
+    });
+
+    QUnit.test('should select the toggle element with a value that matches the value passed into setValue()', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var selectValue = 'FB';
+        var radioHtml = '' +
+            '<div class="container">' +
+                '<label><input type="radio" class="ui-button-toggle-input" value="AAPL" name="stocks" />Apple</label>' +
+                '<label><input type="radio" class="ui-button-toggle-input" value="' + selectValue + '" name="stocks" />Facebook</label>' +
+                '<label><input type="radio" class="ui-button-toggle-input" value="VZ" name="stocks" />Verizon</label>' +
+            '</div>';
+        var wrapper = TestUtils.createHtmlElement(radioHtml);
+        fixture.appendChild(wrapper);
+        var radios = wrapper.getElementsByTagName('input');
+        var fbRadioInput = wrapper.querySelector('input[value="' + selectValue + '"');
+        var appRadioInput = wrapper.querySelector('input[value="AAPL"');
+        var vzRadioInput = wrapper.querySelector('input[value="VZ"');
+        var instance = new ButtonToggle({inputs: radios});
+        instance.setValue(selectValue);
+        QUnit.equal(fbRadioInput.checked, true, 'correct radio button is selected after passing its matching value to setValue()');
+        instance.setValue(selectValue);
+        instance.destroy();
+    });
+
+    QUnit.test('should check all checkboxes that match the value of the options values passed in on initialize', function() {
+        QUnit.expect(3);
+        var val = 'NY';
+        var checkboxHtml = '' +
+            '<div class="container">' +
+                '<label><input type="checkbox" value="MD" name="state2" />Maryland</label>' +
+                '<label><input type="checkbox" value="' + val + '" name="state1" />New York</label>' +
+                '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
+            '</div>';
+        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        var inputs = wrapper.getElementsByTagName('input');
+        var instance = new ButtonToggle({inputs: inputs, value: val});
+        QUnit.equal(inputs[0].checked, false, 'first input\'s checked property returns false because its value doesnt match value passed in initialize options');
+        QUnit.equal(inputs[1].checked, true, 'second input\'s checked property returns true initially because value was passed to options that matches it');
+        QUnit.equal(inputs[2].checked, false, 'third input\'s checked property returns false because its value doesnt match value passed in initialize options');
+        instance.destroy();
+    });
+
+    QUnit.test('should check all checkboxes that match the value of the options values passed in on initialize', function() {
+        QUnit.expect(3);
+        var val = 'NY';
+        var val2 = 'MD';
+        var checkboxHtml = '' +
+            '<div class="container">' +
+            '<label><input type="checkbox" value="' + val + '" name="state1" />New York</label>' +
+            '<label><input type="checkbox" value="' + val2 + '" name="state2" />Maryland</label>' +
+            '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
+            '</div>';
+        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        var inputs = wrapper.getElementsByTagName('input');
+        var instance = new ButtonToggle({inputs: inputs, value: [val, val2]});
+        QUnit.equal(inputs[0].checked, true, 'first input\'s checked property returns true initially because value was passed to options that matches it');
+        QUnit.equal(inputs[1].checked, true, 'second input\'s checked property returns true initially because value was passed to options that matches it');
+        QUnit.equal(inputs[2].checked, false, 'third input\'s checked property returns false because its value doesnt match value passed in initialize options');
+        instance.destroy();
+    });
+
+    QUnit.test('should check the radio button that matches the value of the options values passed in on initialize', function() {
+        QUnit.expect(3);
+        var val = 'FB';
+        var html = '' +
+            '<div class="container">' +
+                '<label><input type="radio" value="AAPL" name="stocks" />Apple</label>' +
+                '<label><input type="radio" value="' + val + '" name="stocks" />Facebook</label>' +
+                '<label><input type="radio" value="VZ" name="stocks" />Verizon</label>' +
+            '</div>';
+        var wrapper = TestUtils.createHtmlElement(html);
+        var inputs = wrapper.getElementsByTagName('input');
+        var instance = new ButtonToggle({inputs: inputs, value: val});
+        QUnit.equal(inputs[0].checked, false, 'first radio\'s checked property returns false because its value doesnt match value passed in initialize options');
+        QUnit.equal(inputs[1].checked, true, 'second radio\'s checked property returns true initially because value was passed to options that matches it');
+        QUnit.equal(inputs[2].checked, false, 'third radio\'s checked property returns false because its value doesnt match value passed in initialize options');
         instance.destroy();
     });
 

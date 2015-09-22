@@ -1,0 +1,41 @@
+<html>
+<body>
+
+<h1>The world's simplest form</h1>
+<form>
+    <label><input type="text" value="" name="first_name" /></label>
+</form>
+
+<script>
+    var Form = require('path/to/form'); // using CommonJS syntax
+
+    var formEl = document.getElementsByName('form')[0];
+    var nameInput = formEl.getElementsByTagName('input')[0];
+
+    var model = {first_name: 'Joe'};
+
+    var form = new Form({
+        el: formEl,
+        data: model
+    });
+
+    // input value is empty originally
+    console.log(nameInput.value === ''); // => true
+
+    // set up the form, prep the DOM, and inject preset value from model
+    form.setup();
+
+    // log current names value
+    console.log(nameInput.value === 'Joe'); // => true
+
+    // update the model's name
+    model.first_name = 'Bob';
+
+    // now input value has been changed to new value
+    console.log(nameInput.value === 'Bob'); // => true
+
+
+</script>
+
+</body>
+</html>

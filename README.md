@@ -2,13 +2,25 @@
 
 # FormJS
 
-Allows you easily re-style native form elements across all browsers and falls back to native form elements for mobile devices.
-Also, provides a simple API to manipulate form elements with javascript. Supports IE10+, all modern browsers, and mobile.
+This library provides a simple API to manipulate a form or its related elements with JavaScript.
+Supports IE10+, all modern browsers, and mobile.
 
-UI Elements include:
+It's important for you to use native form elements (i.e. `<select>`, `<input>`, etc) because they come with critical built-in
+logic needed for the interactions that users expect. Like tabbing to fields, pressing enter or spacebar to commit a 
+dropdown item, mobile keyboard input triggering, etc.
+
+## Benefits
+
+ * Automatic form data binding (JSON data and JS object literals)
+ * Use CSS to easily customize hard-to-style native elements (i.e. dropdowns)
+ * Listen to user events on forms 
+ * Easily change and update form elements and their values with JavaScript
+ * Trigger events programmatically
+
+## Support
 
  * Checkboxes
- * Button Toggles
+ * Radio Buttons
  * Input Fields
  * Dropdowns
  * Entire forms
@@ -99,6 +111,35 @@ var inputField = new InputField({
 inputField.setValue('My text'); // set new value
 // get the new value
 inputField.getValue(); // => "My text"
+```
+
+### Detect when user changes any value in a form
+
+Suppose you have this HTML:
+
+```html
+<form class="debt-info-form">
+    <input type="text" name="first_name" value="" />
+    <select name="loan_type">
+        <option value="CC">Credit Card</option>
+        <option value="Mortgage">Mortgage</option>
+        <option value="HELO">HELO</option>
+        <option value="Student Loan">Student Loan</option>
+    </select>
+</form>
+```
+
+You can detect when a user changes any of the form's elements like so:
+
+```javascript
+var form = new Form({
+    el: document.body.getElementsByClassName('debt-info-form')[0],
+    onValueChange: function (val, el) {
+        // a value has been changed!
+       console.log('new value: ' + val);
+    }
+});
+form.setup();
 ```
 
 ## Examples

@@ -146,4 +146,16 @@ module.exports = (function () {
         },2);
     });
 
+    QUnit.test('should set the input field as the value passed in the options', function() {
+        QUnit.expect(1);
+        var container = TestUtils.createHtmlElement(html);
+        var fixture = document.getElementById('qunit-fixture').appendChild(container);
+        var input = container.getElementsByClassName(inputClass)[0];
+        var myValue = 'testy';
+        var instance = new InputField({el: input, value: myValue});
+        QUnit.equal(input.value, myValue);
+        instance.destroy();
+    });
+
+
 })();
