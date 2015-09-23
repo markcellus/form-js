@@ -98,8 +98,8 @@ var Form = Module.extend({
             }
 
             // sync any changes made on data map to options data
-            var observer = new ObjectObserver(data);
-            observer.open(function (added, removed, changed) {
+            this._observer = new ObjectObserver(data);
+            this._observer.open(function (added, removed, changed) {
                 var mashup = _.extend(added, removed, changed);
                 Object.keys(mashup).forEach(function(n) {
                     this.getInstanceByName(n).setValue(mashup[n]);
@@ -457,6 +457,7 @@ var Form = Module.extend({
      */
     destroy: function () {
         window.clearInterval(this._legacyDataPollTimer);
+        this._observer.close();
         Module.prototype.destroy.call(this);
     }
 
