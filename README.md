@@ -148,4 +148,4 @@ Examples can be found in the [examples](https://github.com/mkay581/formjs/blob/m
 
 ## Release History
 
- * 2015-03-26   v1.0.0  Official release.
+Release history can be found in the [releases](https://github.com/mkay581/form-js/releases) page.
