@@ -1,5 +1,5 @@
 /** 
-* form-js - v2.1.1.
+* form-js - v2.1.2.
 * https://github.com/mkay581/form-js.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -4265,17 +4265,20 @@ var Dropdown = FormElement.extend({
             prevSelectedOption = optionsContainerEl.getElementsByClassName(this.options.optionsSelectedClass)[0],
             newSelectedOptionEl = optionsContainerEl.querySelectorAll('.' + this.options.optionsClass + '[data-value="' + dataValue + '"]')[0],
             selectedClass = this.options.optionsSelectedClass,
-            selectedValueContainerEl = this.getUIElement().getElementsByClassName(this.options.selectedValueContainerClass)[0];
+            selectedValueContainerEl = this.getUIElement().getElementsByClassName(this.options.selectedValueContainerClass)[0],
+            displayValue = newSelectedOptionEl ? newSelectedOptionEl.textContent : '';
 
         selectedValueContainerEl.setAttribute('data-value', dataValue);
-        selectedValueContainerEl.innerHTML = newSelectedOptionEl.textContent;
+        selectedValueContainerEl.innerHTML = displayValue;
 
         // remove selected class from previously selected option
         if (prevSelectedOption) {
             prevSelectedOption.kit.classList.remove(selectedClass)
         }
         // add selected class to new option
-        newSelectedOptionEl.kit.classList.add(selectedClass);
+        if (newSelectedOptionEl) {
+            newSelectedOptionEl.kit.classList.add(selectedClass);
+        }
 
     },
 
@@ -4817,7 +4820,10 @@ var Dropdown = FormElement.extend({
      * Clears all options in the dropdown
      */
     clear: function () {
-        this.setValue('');
+        var optionEl = this.getOptionByDataValue('');
+        if (optionEl) {
+            this.setValue('');
+        }
     },
 
     /**
