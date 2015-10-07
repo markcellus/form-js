@@ -841,5 +841,46 @@ module.exports = (function (){
         dropdown.destroy();
     });
 
+    QUnit.test('getValue() should return current value of dropdown', function() {
+        QUnit.expect(1);
+        var val = 'myTestVal';
+        var html = '<select><option value="' + val + '"></option></select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        document.getElementById('qunit-fixture').appendChild(selectEl);
+        var dropdown = new Dropdown({el: selectEl});
+        dropdown.setValue(val);
+        QUnit.equal(dropdown.getValue(), val);
+        dropdown.destroy();
+    });
+
+    QUnit.test('clear() should remove selected dropdown item', function() {
+        QUnit.expect(1);
+        var val = 'myTestVal';
+        var html =
+            '<select>' +
+                '<option value=""></option>' +
+                '<option value="' + val + '"></option>' +
+            '</select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        document.getElementById('qunit-fixture').appendChild(selectEl);
+        var dropdown = new Dropdown({el: selectEl});
+        dropdown.setValue(val);
+        dropdown.clear();
+        QUnit.equal(selectEl.value, '');
+        dropdown.destroy();
+    });
+
+    QUnit.test('clear() does nothing if there is no dropdown option with a value that matches an empty string', function() {
+        QUnit.expect(1);
+        var val = 'myTestVal';
+        var html = '<select><option value="' + val + '"></option></select>';
+        var selectEl = TestUtils.createHtmlElement(html);
+        document.getElementById('qunit-fixture').appendChild(selectEl);
+        var dropdown = new Dropdown({el: selectEl});
+        dropdown.setValue(val);
+        dropdown.clear();
+        QUnit.equal(selectEl.value, val);
+        dropdown.destroy();
+    });
 
 })();

@@ -1,5 +1,5 @@
 /** 
-* form-js - v2.1.1.
+* form-js - v2.1.2.
 * https://github.com/mkay581/form-js.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -6152,17 +6152,16 @@ var ButtonToggle = FormElement.extend({
 
     /**
      * Gets the selected value of the button toggle.
-     * @returns {string} Returns the value of the currently selected toggle
+     * @returns {Array} Returns the value of the currently selected toggles
      */
     getValue: function () {
-        var selectedEl = this.getFormElements().filter(function (el) {
-            return el.checked;
+        var values = [];
+        this.getFormElements().forEach(function (el) {
+            if (el.checked) {
+                values.push(el.value);
+            }
         }, this);
-        if (selectedEl.length) {
-            return selectedEl[0].value;
-        } else {
-            return '';
-        }
+        return values;
     },
 
     /**
@@ -6652,17 +6651,20 @@ var Dropdown = FormElement.extend({
             prevSelectedOption = optionsContainerEl.getElementsByClassName(this.options.optionsSelectedClass)[0],
             newSelectedOptionEl = optionsContainerEl.querySelectorAll('.' + this.options.optionsClass + '[data-value="' + dataValue + '"]')[0],
             selectedClass = this.options.optionsSelectedClass,
-            selectedValueContainerEl = this.getUIElement().getElementsByClassName(this.options.selectedValueContainerClass)[0];
+            selectedValueContainerEl = this.getUIElement().getElementsByClassName(this.options.selectedValueContainerClass)[0],
+            displayValue = newSelectedOptionEl ? newSelectedOptionEl.textContent : '';
 
         selectedValueContainerEl.setAttribute('data-value', dataValue);
-        selectedValueContainerEl.innerHTML = newSelectedOptionEl.textContent;
+        selectedValueContainerEl.innerHTML = displayValue;
 
         // remove selected class from previously selected option
         if (prevSelectedOption) {
             prevSelectedOption.kit.classList.remove(selectedClass)
         }
         // add selected class to new option
-        newSelectedOptionEl.kit.classList.add(selectedClass);
+        if (newSelectedOptionEl) {
+            newSelectedOptionEl.kit.classList.add(selectedClass);
+        }
 
     },
 
@@ -7204,7 +7206,10 @@ var Dropdown = FormElement.extend({
      * Clears all options in the dropdown
      */
     clear: function () {
-        this.setValue('');
+        var optionEl = this.getOptionByDataValue('');
+        if (optionEl) {
+            this.setValue('');
+        }
     },
 
     /**
@@ -7417,6 +7422,7 @@ var Form = Module.extend({
             submitButtonClass: null,
             submitButtonDisabledClass: null,
             onSubmitButtonClick: null,
+            data: null,
             legacyDataPollTime: 125
         }, options);
 
@@ -7446,8 +7452,8 @@ var Form = Module.extend({
             }
 
             // sync any changes made on data map to options data
-            var observer = new ObjectObserver(data);
-            observer.open(function (added, removed, changed) {
+            this._observer = new ObjectObserver(data);
+            this._observer.open(function (added, removed, changed) {
                 var mashup = _.extend(added, removed, changed);
                 Object.keys(mashup).forEach(function(n) {
                     this.getInstanceByName(n).setValue(mashup[n]);
@@ -7805,6 +7811,9 @@ var Form = Module.extend({
      */
     destroy: function () {
         window.clearInterval(this._legacyDataPollTimer);
+        if (this._observer) {
+            this._observer.close();
+        }
         Module.prototype.destroy.call(this);
     }
 

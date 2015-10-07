@@ -403,23 +403,126 @@ module.exports = (function () {
         instance.destroy();
     });
 
-    QUnit.test('getting the value', function() {
-        QUnit.expect(3);
-        var fixture = document.getElementById('qunit-fixture');
+    QUnit.test('getValue() should return the currently selected radio button\'s value', function() {
+        QUnit.expect(2);
+        var radioHtml = '' +
+            '<div class="container">' +
+            '<label><input type="radio" class="ui-button-toggle-input" value="AAPL" name="stocks" />Apple</label>' +
+            '<label><input type="radio" class="ui-button-toggle-input" value="FB" name="stocks" />Facebook</label>' +
+            '<label><input type="radio" class="ui-button-toggle-input" value="VZ" name="stocks" />Verizon</label>' +
+            '</div>';
         var wrapper = TestUtils.createHtmlElement(radioHtml);
-        fixture.appendChild(wrapper);
-        var radios = wrapper.getElementsByClassName('ui-button-toggle-input');
-        var firstRadioValue = radios[0].value;
-        var secondRadioValue = radios[1].value;
+        document.getElementById('qunit-fixture').appendChild(wrapper);
+        var radios = wrapper.getElementsByTagName('input');
         var instance = new ButtonToggle({inputs: radios});
-        var UIElements = wrapper.getElementsByClassName('ui-button-toggle');
-        QUnit.equal(instance.getValue(), '', 'calling getValue() when there is no currently set value returns empty string');
         // click first toggle
-        UIElements[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
-        QUnit.equal(instance.getValue(), firstRadioValue, 'after selecting first toggle, getValue() returns first item\'s value');
+        instance.select(1);
+        QUnit.equal(instance.getValue(), radios[1].value, 'after selecting second toggle, getValue() returns second item\'s value');
         // click second toggle
-        UIElements[1].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
-        QUnit.equal(instance.getValue(), secondRadioValue, 'after selecting second toggle, getValue() returns second item\'s value');
+        instance.select(2);
+        QUnit.equal(instance.getValue(), radios[2].value, 'after selecting third toggle, getValue() returns third item\'s value');
+        instance.destroy();
+    });
+
+    QUnit.test('getValue() should return all values of the currently selected checkboxes', function() {
+        QUnit.expect(3);
+        var checkboxHtml = '' +
+            '<div class="container">' +
+            '<label><input type="checkbox" value="NY" name="state1" />New York</label>' +
+            '<label><input type="checkbox" value="MD" name="state2" />Maryland</label>' +
+            '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
+            '</div>';
+        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        document.getElementById('qunit-fixture').appendChild(wrapper);
+        var checkboxes = wrapper.getElementsByTagName('input');
+        var instance = new ButtonToggle({inputs: checkboxes});
+        QUnit.equal(instance.getValue(), '', 'calling getValue() when there is no currently set value returns empty string');
+        // select first checkbox
+        instance.select(0);
+        var testArray = [checkboxes[0].value];
+        QUnit.deepEqual(instance.getValue(), testArray, 'after selecting first toggle, getValue() returns an array with first item\'s value');
+        // click second toggle
+        instance.select(1);
+        testArray.push(checkboxes[1].value);
+        QUnit.deepEqual(instance.getValue(), testArray, 'after selecting second toggle, getValue() returns an array with first and second item\'s value');
+        instance.destroy();
+    });
+
+    QUnit.test('getValue() should return an empty array if no checkboxes are selected', function() {
+        QUnit.expect(1);
+        var checkboxHtml = '' +
+            '<div class="container">' +
+            '<label><input type="checkbox" value="NY" name="state1" />New York</label>' +
+            '<label><input type="checkbox" value="MD" name="state2" />Maryland</label>' +
+            '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
+            '</div>';
+        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        document.getElementById('qunit-fixture').appendChild(wrapper);
+        var checkboxes = wrapper.getElementsByTagName('input');
+        var instance = new ButtonToggle({inputs: checkboxes});
+        QUnit.deepEqual(instance.getValue(), []);
+        instance.destroy();
+    });
+
+    QUnit.test('clear() should clear all checkbox button toggles', function() {
+        QUnit.expect(1);
+        var checkboxHtml = '' +
+            '<div class="container">' +
+                '<label><input type="checkbox" value="NY" name="state1" />New York</label>' +
+                '<label><input type="checkbox" value="MD" name="state2" />Maryland</label>' +
+                '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
+            '</div>';
+        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        document.getElementById('qunit-fixture').appendChild(wrapper);
+        var checkboxes = wrapper.getElementsByTagName('input');
+        var instance = new ButtonToggle({inputs: checkboxes});
+        instance.select(0); // select first toggle
+        instance.select(1); // select second toggle
+        instance.clear();
+        QUnit.deepEqual(instance.getValue(), [], 'clear() returns empty array');
+        instance.destroy();
+    });
+
+    QUnit.test('clear() should unselect the currently selected radio button toggle', function() {
+        QUnit.expect(4);
+        var checkboxHtml = '' +
+            '<div class="container">' +
+            '<label><input type="checkbox" value="NY" name="state1" />New York</label>' +
+            '<label><input type="checkbox" value="MD" name="state2" />Maryland</label>' +
+            '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
+            '</div>';
+        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        document.getElementById('qunit-fixture').appendChild(wrapper);
+        var radios = wrapper.getElementsByTagName('input');
+        var instance = new ButtonToggle({inputs: radios});
+        // click second toggle
+        instance.select(1);
+        QUnit.equal(radios[1].checked, true, 'second item is original selected');
+        // click third toggle
+        instance.clear();
+        QUnit.equal(radios[0].checked, false, 'after clear(), first item is not checked');
+        QUnit.equal(radios[1].checked, false, 'second item is not checked');
+        QUnit.equal(radios[2].checked, false, 'third item is not checked');
+        instance.destroy();
+    });
+
+    QUnit.test('getValue() should return empty array when clear() method is called on checkboxes', function() {
+        QUnit.expect(2);
+        var checkboxHtml = '' +
+            '<div class="container">' +
+            '<label><input type="checkbox" value="NY" name="state1" />New York</label>' +
+            '<label><input type="checkbox" value="MD" name="state2" />Maryland</label>' +
+            '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
+            '</div>';
+        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        document.getElementById('qunit-fixture').appendChild(wrapper);
+        var radios = wrapper.getElementsByTagName('input');
+        var instance = new ButtonToggle({inputs: radios});
+        // click second toggle
+        instance.select(1);
+        QUnit.equal(instance.getValue(), radios[1].value, 'second item is original selected');
+        instance.clear();
+        QUnit.deepEqual(instance.getValue(), [], 'after clear(), getValue() returns empty value');
         instance.destroy();
     });
 

@@ -1,5 +1,5 @@
 /** 
-* form-js - v2.1.1.
+* form-js - v2.1.2.
 * https://github.com/mkay581/form-js.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
@@ -4110,17 +4110,16 @@ var ButtonToggle = FormElement.extend({
 
     /**
      * Gets the selected value of the button toggle.
-     * @returns {string} Returns the value of the currently selected toggle
+     * @returns {Array} Returns the value of the currently selected toggles
      */
     getValue: function () {
-        var selectedEl = this.getFormElements().filter(function (el) {
-            return el.checked;
+        var values = [];
+        this.getFormElements().forEach(function (el) {
+            if (el.checked) {
+                values.push(el.value);
+            }
         }, this);
-        if (selectedEl.length) {
-            return selectedEl[0].value;
-        } else {
-            return '';
-        }
+        return values;
     },
 
     /**
