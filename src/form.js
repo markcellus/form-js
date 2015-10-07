@@ -457,7 +457,9 @@ var Form = Module.extend({
      */
     destroy: function () {
         window.clearInterval(this._legacyDataPollTimer);
-        this._observer.close();
+        if (this._observer) {
+            this._observer.close();
+        }
         Module.prototype.destroy.call(this);
     }
 
