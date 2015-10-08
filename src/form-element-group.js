@@ -3,24 +3,24 @@ var _ = require('underscore');
 var FormElement = require('./form-element');
 require('element-kit');
 /**
- * A callback function that fires when one of the button toggle elements are selected
- * @callback FormElements~onChange
+ * A callback function that fires when one of the form elements are selected
+ * @callback FormElementGroup~onChange
  * @param {string} value - The value of the input element that was changed
  * @param {HTMLInputElement} input - The input element that was changed
  * @param {HTMLElement} UIElement - The container of the input element that was changed
  */
 
 /**
- * A callback function that fires when one of the button toggle elements are selected
- * @callback FormElements~onSelect
+ * A callback function that fires when one of the form elements are selected
+ * @callback FormElementGroup~onSelect
  * @param {string} value - The value of the input element that was selected
  * @param {HTMLInputElement} input - The input element that was selected
  * @param {HTMLElement} UIElement - The container of the input element that was selected
  */
 
 /**
- * A callback function that fires when one of the button toggle elements are de-selected
- * @callback FormElements~onDeselect
+ * A callback function that fires when one of the form elements are de-selected
+ * @callback FormElementGroup~onDeselect
  * @param {string} value - The value of the input element that was de-selected
  * @param {HTMLInputElement} input - The input element that was de-selected
  * @param {HTMLElement} UIElement - The container of the input element that was de-selected
@@ -28,33 +28,33 @@ require('element-kit');
 
 /**
  * Base class to handle grouped form elements.
- * @class FormElements
+ * @class FormElementGroup
  * @extends FormElement
  */
-var FormElements = FormElement.extend({
+var FormElementGroup = FormElement.extend({
 
     /**
      * Initialization.
      * @param {object} options - Options passed into instance
-     * @param {Array|HTMLInputElement} options.inputs - The collection of input elements to be made into toggle items
-     * @param {FormElements~onChange} [options.onChange] - A callback function that fires when one of the toggle elements are selected
-     * @param {string} [options.containerClass] - The css class that will be applied to each toggle item's container
-     * @param {string} [options.inputClass] - The css class that will be applied to each toggle item (input element)
-     * @param {FormElements~onSelect} [options.onSelect] - A callback function that fires when the button toggle element is selected
-     * @param {FormElements~onDeselect} [options.onDeselect] - A callback function that fires when the button toggle element is deselected
-     * @param {string} [options.selectedClass] - The css class that will be applied to a button toggle item (UI-version) when it is selected
-     * @param {string} [options.disabledClass] - The css class that will be applied to a button toggle item (UI-version) when it is disabled
-     * @param {string|Array} [options.value] - The string matching the name attribute of the toggle button to have selected initially (or an array of such strings)
+     * @param {Array|HTMLInputElement} options.inputs - The collection of input elements to be made into form elements
+     * @param {FormElementGroup~onChange} [options.onChange] - A callback function that fires when one of the form elements are selected
+     * @param {string} [options.containerClass] - The css class that will be applied to each form element's container
+     * @param {string} [options.inputClass] - The css class that will be applied to each form element item (input element)
+     * @param {FormElementGroup~onSelect} [options.onSelect] - A callback function that fires when a form element is selected
+     * @param {FormElementGroup~onDeselect} [options.onDeselect] - A callback function that fires when a form element is deselected
+     * @param {string} [options.selectedClass] - The css class that will be applied to a form element item (UI-version) when it is selected
+     * @param {string} [options.disabledClass] - The css class that will be applied to a form element item (UI-version) when it is disabled
+     * @param {string|Array} [options.value] - The string matching the name attribute of the form element button to have selected initially (or an array of such strings)
      */
     initialize: function (options) {
 
         this.options = _.extend({
             inputs: [],
             onChange: null,
-            containerClass: 'ui-button-toggle',
-            inputClass: 'ui-button-toggle-input',
-            selectedClass: 'ui-button-toggle-selected',
-            disabledClass: 'ui-button-toggle-disabled',
+            containerClass: 'ui-form-element',
+            inputClass: 'ui-form-element-input',
+            selectedClass: 'ui-form-element-selected',
+            disabledClass: 'ui-form-element-disabled',
             value: null
         }, options);
 
@@ -67,14 +67,14 @@ var FormElements = FormElement.extend({
         }
 
         if (!this.options.inputs.length) {
-            console.error('could not build toggle items: no toggle input items were passed');
+            console.error('could not build ' + this.getElementKey() + ': no form element input elements were passed');
         } else {
             this.setup();
         }
     },
 
     /**
-     * Sets up the button toggles.
+     * Sets up the form elements.
      */
     setup: function () {
         this._formElements = this._setupFormElements(this.options.inputs);
@@ -101,7 +101,7 @@ var FormElements = FormElement.extend({
             values = Array.prototype.slice.call(value); //ensure array
         }
 
-        // perform work on all button toggle elements, checking them if necessary
+        // perform work on all form element elements, checking them if necessary
         elements.forEach(function (formElement) {
             if (values.indexOf(formElement.value) !== -1) {
                 // value exists
@@ -119,21 +119,21 @@ var FormElements = FormElement.extend({
      * @private
      */
     _setupEvents: function () {
-        this._triggerAll(function (formElement) {
+        this.triggerAll(function (formElement) {
             formElement.kit.addEventListener('click', '_onFormElementClick', this);
         }.bind(this));
     },
 
     /**
-     * Gets all the current input toggles.
+     * Gets all the current input form elements.
      * @returns {Array|*}
      */
-    getFormElements: function () {
+    getFormElementGroup: function () {
         return this._formElements || [];
     },
 
     /**
-     * Gets all current ui-versions of input toggles.
+     * Gets all current ui-versions of input form elements.
      * @returns {Array|*}
      */
     getUIElements: function () {
@@ -141,17 +141,16 @@ var FormElements = FormElement.extend({
     },
 
     /**
-     * Private delegator that triggers a callback on each of the current button toggle elements.
+     * Delegator that triggers a callback on each of the current form element elements.
      * Useful for performing an operation across all elements
      * @param {Function} callback - The function that should be executed for each input item
-     * @private
      */
-    _triggerAll: function (callback) {
+    triggerAll: function (callback) {
         var i,
-            formElements = this.getFormElements(),
+            FormElementGroup = this.getFormElementGroup(),
             UIElements = this.getUIElements();
-        for (i = 0; i < formElements.length; i++) {
-            callback(formElements[i], UIElements[i], i);
+        for (i = 0; i < FormElementGroup.length; i++) {
+            callback(FormElementGroup[i], UIElements[i], i);
         }
     },
 
@@ -169,83 +168,21 @@ var FormElements = FormElement.extend({
         if (e.currentTarget === e.target) {
             formEl = e.target;
             UIElement = e.target.parentElement;
-            this._delegateClick(formEl, UIElement);
+            this._processClick(formEl, UIElement);
         }
-
     },
 
     /**
-     * Delegates a click as a radio button or checkbox.
+     * A function that should be overridden to process a click on any form element.
      * @param {HTMLInputElement} formElement
      * @param {HTMLElement} UIElement
+     * @abstract
      * @private
      */
-    _delegateClick: function (formElement, UIElement) {
-        if (this.isRadio()) {
-            this._processRadioClick(formElement, UIElement);
-        } else {
-            this._processCheckboxClick(formElement, UIElement);
-        }
-    },
+    _processClick: function (formElement, UIElement) {},
 
     /**
-     * When a button toggle is clicked that is a radio input element.
-     * @param {HTMLInputElement} formElement - The radio button element
-     * @param {HTMLElement} UIElement - The ui element
-     * @private
-     */
-    _processRadioClick: function (formElement, UIElement) {
-        // radio buttons should only trigger a change if the clicked item isnt already selected
-        if (this._lastRadioClicked !== formElement) {
-            this._triggerAll(function (formElement, UIElement) {
-                UIElement.kit.classList.remove(this.options.selectedClass);
-                formElement.checked = false;
-            }.bind(this));
-            this._onToggleSelect(formElement, UIElement);
-            this._lastRadioClicked = formElement;
-        }
-    },
-
-    /**
-     * When a button toggle is clicked that is a checkbox input element.
-     * @param {HTMLInputElement} formElement - The checkbox element
-     * @param {HTMLElement} UIElement - The ui element
-     * @private
-     */
-    _processCheckboxClick: function (formElement, UIElement) {
-        if (!UIElement.kit.classList.contains(this.options.selectedClass)) {
-            this._onToggleSelect(formElement, UIElement);
-        } else {
-            this._onToggleDeselect(formElement, UIElement);
-        }
-    },
-
-    /**
-     * When a toggle is selected.
-     * @param {HTMLInputElement} formElement - The input element
-     * @param {HTMLElement} UIElement - The ui element
-     * @private
-     */
-    _onToggleSelect: function (formElement, UIElement) {
-        formElement.checked = true;
-        UIElement.kit.classList.add(this.options.selectedClass);
-        this._triggerChange(formElement, UIElement);
-    },
-
-    /**
-     * When a toggle is deselected.
-     * @param {HTMLInputElement} formElement - The input element
-     * @param {HTMLElement} UIElement - The ui element
-     * @private
-     */
-    _onToggleDeselect: function (formElement, UIElement) {
-        formElement.checked = false;
-        UIElement.kit.classList.remove(this.options.selectedClass);
-        this._triggerChange(formElement, UIElement);
-    },
-
-    /**
-     * Builds the UI-friendly version of the toggle inputs and wraps them in their appropriate containers.
+     * Builds the UI-friendly version of the form elements and wraps them in their appropriate containers.
      * @param {Array} elements - The input elements
      * @returns {Array} Returns an array of the ui-versions of the elements
      * @private
@@ -272,56 +209,51 @@ var FormElements = FormElement.extend({
     },
 
     /**
-     * Checks whether input is a radio button.
-     * @returns {boolean}
-     */
-    isRadio: function () {
-        return this.getFormElements()[0].getAttribute('type') === 'radio';
-    },
-
-    /**
-     * Triggers a change on the button toggle.
+     * Triggers a change on the form element.
      * @param {HTMLInputElement} formElement - The input element
      * @param {HTMLElement} UIElement - The ui element
-     * @private
      */
-    _triggerChange: function (formElement, UIElement) {
+    triggerChange: function (formElement, UIElement) {
         if (this.options.onChange) {
             this.options.onChange(formElement.value, formElement, UIElement);
         }
     },
 
     /**
-     * Selects the toggle item.
-     * @param {Number} index - The index of the toggle item
+     * Selects the form element item.
+     * @param {Number} index - The index of the form element item
      */
     select: function (index) {
         var input = this.getFormElement(index),
-            toggle = this.getUIElement(index);
+            uiEl = this.getUIElement(index);
         if (!input.checked) {
             input.checked = true;
-            toggle.kit.classList.add(this.options.selectedClass);
-            this._triggerChange(input, toggle);
+            uiEl.kit.classList.add(this.options.selectedClass);
+            this.triggerChange(input, uiEl);
         }
-
-        if (this.isRadio()) {
-            this._triggerAll(function (formElement, UIElement, idx) {
-                if (!formElement.checked) {
-                    // deselect all other toggles if they are radio buttons
-                    this.deselect(idx);
-                }
-            }.bind(this));
-        }
-
     },
 
     /**
-     * Gets the selected value of the button toggle.
-     * @returns {Array} Returns the value of the currently selected toggles
+     * De-selects the form element item.
+     * @param {Number} index - The index of the form element item
+     */
+    deselect: function (index) {
+        var input = this.getFormElement(index),
+            uiEl = this.getUIElement(index);
+        uiEl.kit.classList.remove(this.options.selectedClass);
+        if (input.checked) {
+            input.checked = false;
+            this.triggerChange(input, uiEl);
+        }
+    },
+
+    /**
+     * Gets the selected value of the form element.
+     * @returns {Array} Returns the value of the currently selected form elements
      */
     getValue: function () {
         var values = [];
-        this.getFormElements().forEach(function (el) {
+        this.getFormElementGroup().forEach(function (el) {
             if (el.checked) {
                 values.push(el.value);
             }
@@ -330,11 +262,11 @@ var FormElements = FormElement.extend({
     },
 
     /**
-     * Selects the button toggle that matches the supplied value.
-     * @param {string|Array} value - The value of the button toggle that should be selected
+     * Selects the form element that matches the supplied value.
+     * @param {string|Array} value - The value of the form element that should be selected
      */
     setValue: function (value) {
-        this.getFormElements().forEach(function (el, idx) {
+        this.getFormElementGroup().forEach(function (el, idx) {
             if (el.value === value || value.indexOf(el.value) !== -1) {
                 this.select(idx);
             } else {
@@ -344,31 +276,17 @@ var FormElements = FormElement.extend({
     },
 
     /**
-     * De-selects the toggle item.
-     * @param {Number} index - The index of the toggle item
-     */
-    deselect: function (index) {
-        var input = this.getFormElement(index),
-            toggle = this.getUIElement(index);
-        toggle.kit.classList.remove(this.options.selectedClass);
-        if (input.checked) {
-            input.checked = false;
-            this._triggerChange(input, toggle);
-        }
-    },
-
-    /**
-     * Gets the toggle input element by an index.
-     * @param {Number} [index] - The index of the toggle input element
+     * Gets the form element input element by an index.
+     * @param {Number} [index] - The index of the form element input element
      * @returns {HTMLInputElement} Returns the checkbox input element
      */
     getFormElement: function (index) {
-        return this.getFormElements()[(index || 0)];
+        return this.getFormElementGroup()[(index || 0)];
     },
 
     /**
-     * Gets the ui-version of the toggle element.
-     * @param {Number} [index] - The index of the toggle element
+     * Gets the ui-version of the form element element.
+     * @param {Number} [index] - The index of the form element element
      * @returns {HTMLElement} Returns the checkbox div element.
      */
     getUIElement: function (index) {
@@ -376,51 +294,47 @@ var FormElements = FormElement.extend({
     },
 
     /**
-     * Deselects all toggles.
+     * Deselects all form elements.
      */
     clear: function () {
-        this._triggerAll(function (formElement, UIElement, idx) {
+        this.triggerAll(function (formElement, UIElement, idx) {
             this.deselect(idx);
         }.bind(this));
     },
 
     /**
-     * Enables the button toggle.
+     * Enables the form element.
      */
     enable: function () {
-        this._triggerAll(function (formElement, UIElement) {
+        this.triggerAll(function (formElement, UIElement) {
             formElement.disabled = false;
             UIElement.kit.classList.remove(this.options.disabledClass);
         }.bind(this));
     },
 
     /**
-     * Disables the button toggle.
+     * Disables the form element.
      */
     disable: function () {
-        this._triggerAll(function (formElement, UIElement) {
+        this.triggerAll(function (formElement, UIElement) {
             formElement.disabled = true;
             UIElement.kit.classList.add(this.options.disabledClass);
         }.bind(this));
     },
 
     /**
-     * Gets the unique identifier for button toggles.
+     * Gets the unique identifier for form elements.
      * @returns {string}
      */
     getElementKey: function () {
-        if (this.isRadio()) {
-            return 'FormElementsRadio';
-        } else {
-            return 'FormElementsCheckbox';
-        }
+        return 'FormElementGroup';
     },
 
     /**
      * Destruction of this class.
      */
     destroy: function () {
-        this._triggerAll(function (formElement, UIElement) {
+        this.triggerAll(function (formElement, UIElement) {
             UIElement.parentNode.replaceChild(formElement, UIElement);
             formElement.addEventListener('click', '_onFormElementClick', this);
         }.bind(this));
@@ -429,4 +343,4 @@ var FormElements = FormElement.extend({
 
 });
 
-module.exports = FormElements;
+module.exports = FormElementGroup;

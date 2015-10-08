@@ -19,7 +19,7 @@
 <body>
 
 <!-- our starter html -->
-<label>The world's simplest button toggle (via input radio elements)</label>
+<label>The world's simplest radio button toggle</label>
 
 <input type="radio" value="MD" name="state" />
 <input type="radio" value="VA" name="state" />
@@ -31,7 +31,7 @@
 <script>
     require(['path/to/form'], function (Form) {
 
-        var toggle = new Form.ButtonToggle({
+        var toggle = new Form.Radios({
             inputs: document.getElementsByTagName('input'),
             containerClass: 'toggle',
             inputClass: 'toggle-input',
