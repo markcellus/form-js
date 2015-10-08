@@ -6,7 +6,7 @@ var Checkbox = require('../src/checkbox');
 
 module.exports = (function () {
 
-    QUnit.module('Checkbox Tests');
+    QUnit.module('Checkbox');
 
     var html = '<label><input type="checkbox" class="ui-checkbox-input" value="NY" name="ny" /> New York</label>';
     var disabledClass = 'ui-checkbox-disabled';
@@ -247,6 +247,19 @@ module.exports = (function () {
         var input = container.getElementsByClassName('ui-checkbox-input')[0];
         var checkbox = new Checkbox({el: input, value: false});
         QUnit.equal(input.checked, false);
+        checkbox.destroy();
+    });
+
+    QUnit.test('clear() should uncheck checkbox', function() {
+        QUnit.expect(2);
+        var container = TestUtils.createHtmlElement(html);
+        var fixture = document.getElementById('qunit-fixture').appendChild(container);
+        var input = container.getElementsByClassName('ui-checkbox-input')[0];
+        var checkbox = new Checkbox({el: input});
+        checkbox.check();
+        QUnit.equal(input.checked, true, 'checked initially');
+        checkbox.clear();
+        QUnit.equal(input.checked, false, 'not checked after clear()');
         checkbox.destroy();
     });
 

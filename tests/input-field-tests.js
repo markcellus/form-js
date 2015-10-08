@@ -6,7 +6,7 @@ var InputField = require('../src/input-field');
 
 module.exports = (function () {
 
-    QUnit.module('Input Field Tests');
+    QUnit.module('Input Field');
 
     var disabledClass = 'ui-input-text-disabled';
     var activeClass = 'ui-input-text-active';
@@ -66,7 +66,7 @@ module.exports = (function () {
         QUnit.equal(onChangeSpy.callCount, 1, 'onChange callback was NOT fired');
         instance.destroy();
     });
-    
+
     QUnit.test('initializing and destroying when initial value is present', function() {
         QUnit.expect(3);
         var container = TestUtils.createHtmlElement(html);
@@ -144,6 +144,20 @@ module.exports = (function () {
             instance.destroy();
             QUnit.start();
         },2);
+    });
+
+    QUnit.test('should clear the input value to empty string when clear() is called', function() {
+        QUnit.expect(2);
+        var container = TestUtils.createHtmlElement(html);
+        document.getElementById('qunit-fixture').appendChild(container);
+        var inputEl = container.getElementsByClassName(inputClass)[0];
+        var instance = new InputField({el: inputEl});
+        var newValue = 'myNewValue';
+        instance.setValue(newValue);
+        QUnit.equal(inputEl.value, newValue, 'input value has been changed');
+        instance.clear();
+        QUnit.equal(inputEl.value, '', 'input value was cleared after clear()');
+        instance.destroy();
     });
 
     QUnit.test('should set the input field as the value passed in the options', function() {
