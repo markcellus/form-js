@@ -35,7 +35,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
-  "main": "src/form.js",
+  "main": "src/index.js",
   "devDependencies": {
     "build-tools": "^1.6.0",
     "grunt": "0.4.5",
