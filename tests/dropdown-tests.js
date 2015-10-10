@@ -9,7 +9,7 @@ module.exports = (function (){
 
     var deviceManagerIsMobileStub, redrawOptionsContainerStub;
 
-    QUnit.module('Dropdown Tests', {
+    QUnit.module('Dropdown', {
 
         setup: function () {
             deviceManagerIsMobileStub = Sinon.stub(DeviceManager, 'isMobile');

@@ -19,11 +19,11 @@
 <body>
 
 <!-- our starter html -->
-<label>The world's simplest button toggle (via input checkboxes)</label>
+<label>The world's simplest radio button toggle</label>
 
-<input type="checkbox" value="MD" name="state" />
-<input type="checkbox" value="VA" name="state" />
-<input type="checkbox" value="DC" name="state" />
+<input type="radio" value="MD" name="state" />
+<input type="radio" value="VA" name="state" />
+<input type="radio" value="DC" name="state" />
 
 <!-- don't forget requirejs -->
 <script src="path/to/require.js"></script>
@@ -31,7 +31,7 @@
 <script>
     require(['path/to/form'], function (Form) {
 
-        var toggle = new Form.ButtonToggle({
+        var toggle = new Form.Radios({
             inputs: document.getElementsByTagName('input'),
             containerClass: 'toggle',
             inputClass: 'toggle-input',
@@ -41,13 +41,8 @@
         // select second toggle
         toggle.select(1);
 
-        // de-select second toggle
-        toggle.deselect(1);
-
-        // select first toggle
-        toggle.select(0);
-
-        // select third toggle too
+        // select third toggle (will automatically unselect the previous
+        // selected toggle because thats how radio buttons work in the real-world
         toggle.select(2);
 
         // don't forget to destroy

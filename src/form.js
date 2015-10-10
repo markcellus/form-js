@@ -5,7 +5,8 @@ var Module = require('module-js');
 var Dropdown = require('./dropdown');
 var InputField = require('./input-field');
 var Checkbox = require('./checkbox');
-var ButtonToggle = require('./button-toggle');
+var Radios = require('./radios');
+var TextArea = require('./text-area');
 var SubmitButton = require('./submit-button');
 var ObjectObserver = require("observe-js").ObjectObserver;
 
@@ -41,14 +42,14 @@ var Form = Module.extend({
     /**
      * Sets up the form.
      * @param {object} options - The options
-     * @param {HTMLFormElement} [options.el] - The form element
      * @param {HTMLFormElement} options.el - The form element
      * @param {Form~onValueChange} [options.onValueChange] - A callback function that fires when the value of any form element changes
      * @param {Function} [options.onGetOptions] - Function callback that is fired upon instantiation to provide custom options
      * @param {string} [options.dropdownClass] - The css class used to query the set of dropdown elements that should be included
      * @param {string} [options.checkboxClass] - The css class used to query the set of checkbox elements that should be included
      * @param {string} [options.inputFieldClass] - The css class used to query the set of text input elements that should be included
-     * @param {string} [options.buttonToggleClass] - The css class used to query the set of radio button elements that should be included
+     * @param {string} [options.textAreaClass] - The css class used to query the set of textarea elements that should be included
+     * @param {string} [options.radioClass] - The css class used to query the set of radio button elements that should be included
      * @param {string} [options.submitButtonClass] - The css class used to query the submit button
      * @param {string} [options.submitButtonDisabledClass] - The class that will be applied to the submit button when its disabled
      * @param {string} [options.onSubmitButtonClick] - Function that is called when the submit button is clicked
@@ -64,7 +65,8 @@ var Form = Module.extend({
             dropdownClass: null,
             checkboxClass: null,
             inputFieldClass: null,
-            buttonToggleClass: null,
+            textAreaClass: null,
+            radioClass: null,
             submitButtonClass: null,
             submitButtonDisabledClass: null,
             onSubmitButtonClick: null,
@@ -135,9 +137,13 @@ var Form = Module.extend({
                 ]
             },
             radio: {
-                option: this.options.buttonToggleClass,
+                option: this.options.radioClass,
                 tag: 'input',
                 types: ['radio']
+            },
+            textarea: {
+                option: this.options.textAreaClass,
+                tag: 'textarea'
             }
         }
     },
@@ -151,11 +157,12 @@ var Form = Module.extend({
         this._setupInstances(this._getInstanceEls('dropdown'), Dropdown);
         this._setupInstances(this._getInstanceEls('checkbox'), Checkbox);
         this._setupInstances(this._getInstanceEls('input'), InputField);
+        this._setupInstances(this._getInstanceEls('textarea'), TextArea);
 
         // group radio button toggles by name before instantiating
         var radios = this._getInstanceEls('radio');
         _.each(this.mapElementsByAttribute(radios, 'name'), function (els) {
-            this._setupInstance(els, ButtonToggle, {}, 'inputs');
+            this._setupInstance(els, Radios, {}, 'inputs');
         }, this);
 
 
