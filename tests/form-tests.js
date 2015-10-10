@@ -6,6 +6,7 @@ var Form = require('../src/form');
 var Dropdown = require('../src/dropdown');
 var InputField = require('../src/input-field');
 var Checkbox = require('../src/checkbox');
+var TextArea = require('../src/text-area');
 var Radios = require('../src/radios');
 var SubmitButton = require('../src/submit-button');
 var Module = require('module-js');
@@ -474,6 +475,45 @@ module.exports = (function () {
         QUnit.ok(girlRadioEl.checked);
         QUnit.ok(!boyRadioEl.checked);
         instance.destroy();
+    });
+
+    QUnit.test('specifying a css class for textarea elements in initialize options should instantiate and destroy TextArea class correctly', function () {
+        QUnit.expect(3);
+        var textAreaClass = 'form-text-area';
+        var formEl = TestUtils.createHtmlElement(' ' +
+            '<form>' +
+                '<textarea name="select" class="' + textAreaClass + '"></textarea>' +
+            '</form>');
+        var textAreaEl = formEl.getElementsByTagName('textarea')[0];
+        var textAreaInitializeStub = Sinon.stub(TextArea.prototype, 'initialize');
+        var textAreaDestroyStub = Sinon.stub(TextArea.prototype, 'destroy');
+        var formInstance = new Form({el: formEl, textAreaClass: textAreaClass});
+        QUnit.equal(textAreaInitializeStub.callCount, 0, 'TextArea class was not yet initialized because setup() wasnt triggered yet');
+        formInstance.setup();
+        QUnit.deepEqual(textAreaInitializeStub.args[0][0].el, textAreaEl, 'after setting up, TextArea class was instantiated with correct options');
+        formInstance.destroy();
+        QUnit.equal(textAreaDestroyStub.callCount, 1, 'after destroy() is called, TextArea class instance was destroyed');
+        textAreaDestroyStub.restore();
+        textAreaInitializeStub.restore();
+    });
+
+    QUnit.test('when a textarea element exists, TextArea gets instantiated with the element as its el option, and destroys correctly', function () {
+        QUnit.expect(3);
+        var formEl = TestUtils.createHtmlElement(' ' +
+            '<form>' +
+                '<textarea name="select"></textarea>' +
+            '</form>');
+        var textAreaEl = formEl.getElementsByTagName('textarea')[0];
+        var textAreaInitializeStub = Sinon.stub(TextArea.prototype, 'initialize');
+        var textAreaDestroyStub = Sinon.stub(TextArea.prototype, 'destroy');
+        var formInstance = new Form({el: formEl});
+        QUnit.equal(textAreaInitializeStub.callCount, 0, 'TextArea class was not yet initialized because setup() wasnt triggered yet');
+        formInstance.setup();
+        QUnit.deepEqual(textAreaInitializeStub.args[0][0].el, textAreaEl, 'after setting up, TextArea class was instantiated with correct options');
+        formInstance.destroy();
+        QUnit.equal(textAreaDestroyStub.callCount, 1, 'after destroy() is called, TextArea class instance was destroyed');
+        textAreaDestroyStub.restore();
+        textAreaInitializeStub.restore();
     });
 
 })();
