@@ -43,6 +43,7 @@ Let's say you wanted to style a dropdown menu with the following html:
 With this library, you can do this:
 
 ```javascript
+var Dropdown = require('form-js').Dropdown;
 var dropdown = new Dropdown({
     el: document.getElementsByTagName('select')[0]
 });
@@ -99,6 +100,7 @@ You can also listen to events on form elements. Given the following input elemen
 You can do the following:
 
 ```javascript
+var InputField = require('form-js').InputField;
 var inputField = new InputField({
     el: document.getElementsByTagName('input')[0],
     onChange: function (el) {
@@ -133,6 +135,7 @@ Suppose you have this HTML:
 You can detect when a user changes any of the form's elements like so:
 
 ```javascript
+var Form = require('form-js').Form;
 var form = new Form({
     el: document.body.getElementsByClassName('debt-info-form')[0],
     onValueChange: function (val, el) {
