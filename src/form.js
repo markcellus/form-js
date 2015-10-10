@@ -6,6 +6,7 @@ var Dropdown = require('./dropdown');
 var InputField = require('./input-field');
 var Checkbox = require('./checkbox');
 var Radios = require('./radios');
+var TextArea = require('./text-area');
 var SubmitButton = require('./submit-button');
 var ObjectObserver = require("observe-js").ObjectObserver;
 
@@ -41,13 +42,13 @@ var Form = Module.extend({
     /**
      * Sets up the form.
      * @param {object} options - The options
-     * @param {HTMLFormElement} [options.el] - The form element
      * @param {HTMLFormElement} options.el - The form element
      * @param {Form~onValueChange} [options.onValueChange] - A callback function that fires when the value of any form element changes
      * @param {Function} [options.onGetOptions] - Function callback that is fired upon instantiation to provide custom options
      * @param {string} [options.dropdownClass] - The css class used to query the set of dropdown elements that should be included
      * @param {string} [options.checkboxClass] - The css class used to query the set of checkbox elements that should be included
      * @param {string} [options.inputFieldClass] - The css class used to query the set of text input elements that should be included
+     * @param {string} [options.textAreaClass] - The css class used to query the set of textarea elements that should be included
      * @param {string} [options.radioClass] - The css class used to query the set of radio button elements that should be included
      * @param {string} [options.submitButtonClass] - The css class used to query the submit button
      * @param {string} [options.submitButtonDisabledClass] - The class that will be applied to the submit button when its disabled
@@ -64,6 +65,7 @@ var Form = Module.extend({
             dropdownClass: null,
             checkboxClass: null,
             inputFieldClass: null,
+            textAreaClass: null,
             radioClass: null,
             submitButtonClass: null,
             submitButtonDisabledClass: null,
@@ -138,6 +140,10 @@ var Form = Module.extend({
                 option: this.options.radioClass,
                 tag: 'input',
                 types: ['radio']
+            },
+            textarea: {
+                option: this.options.textAreaClass,
+                tag: 'textarea'
             }
         }
     },
@@ -151,6 +157,7 @@ var Form = Module.extend({
         this._setupInstances(this._getInstanceEls('dropdown'), Dropdown);
         this._setupInstances(this._getInstanceEls('checkbox'), Checkbox);
         this._setupInstances(this._getInstanceEls('input'), InputField);
+        this._setupInstances(this._getInstanceEls('textarea'), TextArea);
 
         // group radio button toggles by name before instantiating
         var radios = this._getInstanceEls('radio');

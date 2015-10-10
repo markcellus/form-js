@@ -9,5 +9,6 @@ module.exports = {
     FormElementGroup: require('src/form-element-group'),
     InputField: require('src/input-field'),
     Radios: require('src/radios'),
-    SubmitButton: require('src/submit-button')
+    SubmitButton: require('src/submit-button'),
+    TextArea: require('src/text-area')
 };

@@ -30,7 +30,8 @@ module.exports = function(grunt) {
                     'dist/checkbox.js': ['src/checkbox.js'],
                     'dist/dropdown.js': ['src/dropdown.js'],
                     'dist/radios.js': ['src/radios.js'],
-                    'dist/input-field.js': ['src/input-field.js']
+                    'dist/input-field.js': ['src/input-field.js'],
+                    'dist/text-area.js': ['src/text-area.js']
                 },
                 browserifyOptions: {
                     standalone: 'Form'
@@ -43,7 +44,8 @@ module.exports = function(grunt) {
                     'dist/checkboxes-min.js': ['dist/checkboxes.js'],
                     'dist/dropdown-min.js': ['dist/dropdown.js'],
                     'dist/radios-min.js': ['dist/radios.js'],
-                    'dist/input-field-min.js': ['dist/input-field.js']
+                    'dist/input-field-min.js': ['dist/input-field.js'],
+                    'dist/text-area-min.js': ['dist/text-area.js']
                 }
             },
             banner: {

@@ -23,6 +23,7 @@ dropdown item, mobile keyboard input triggering, etc.
  * Radio Buttons
  * Input Fields
  * Dropdowns (Select Elements)
+ * Text Areas
  * Entire forms
 
 ## Usage
