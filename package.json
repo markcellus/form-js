@@ -1,6 +1,6 @@
 {
   "name": "form-js",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Create better ui form elements. Supports IE9+, all modern browsers, and mobile.",
   "repository": {
     "type": "git",
@@ -35,7 +35,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
-  "main": "src/form.js",
+  "main": "src/index.js",
   "devDependencies": {
     "build-tools": "^1.6.0",
     "grunt": "0.4.5",
