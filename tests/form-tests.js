@@ -516,4 +516,28 @@ module.exports = (function () {
         textAreaInitializeStub.restore();
     });
 
+    QUnit.test('onValueChange() options callback is fired when input field in form changes', function () {
+        QUnit.expect(2);
+        var formHtml = ' ' +
+            '<form>' +
+                '<input type="text" name="test_input_field" value="text1" />' +
+            '</form>';
+        var formEl = TestUtils.createHtmlElement(formHtml);
+        document.getElementById('qunit-fixture').appendChild(formEl);
+        var onValueChangeSpy = Sinon.spy();
+        var instance = new Form({el: formEl, onValueChange: onValueChangeSpy});
+        var inputEl = formEl.getElementsByTagName('input')[0];
+        var newInputValue = 'newVal';
+        instance.setup();
+        // change input value
+        inputEl.value = newInputValue;
+        // dispatch change event to trigger the change
+        var changeEvent = document.createEvent('Event');
+        changeEvent.initEvent('change', true, false);
+        inputEl.dispatchEvent(changeEvent);
+        QUnit.equal(onValueChangeSpy.args[0][0], newInputValue, 'onValueChange callback was fired with value of input as first argument');
+        QUnit.deepEqual(onValueChangeSpy.args[0][1], inputEl, 'input element was passed as second argument to onValueChange callback');
+        instance.destroy();
+    });
+
 })();

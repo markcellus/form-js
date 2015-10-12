@@ -1,5 +1,5 @@
 /** 
-* form-js - v3.0.1.
+* form-js - v3.0.2.
 * https://github.com/mkay581/form-js.git
 * Copyright 2015 Mark Kennedy. Licensed MIT.
 */
