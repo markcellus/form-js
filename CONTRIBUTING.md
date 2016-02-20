@@ -27,18 +27,24 @@ suggestions with [an issue](https://github.com/mkay581/formjs/issues/new).
 
 Some tests needs working XHR to pass. To run the tests over an HTTP server, run
 
-    $ grunt server
+    $ grunt bt:test:qunit:server
 
 ##### Testing in development
 
-Open [0.0.0.0:8080/tests/](http://0.0.0.0:8080/tests/) in a browser.
+Open [localhost:7755/](http://localhost:7755/) in a browser which is done via browserify.
+You can also debug test files in the browser. The files are also watched so the build will recompile when you make edits to them.
 
 
 ### Do a build
+To do a production-like build, run:
 
-    $ grunt build
-    
-Which will build the project into the build folder.
+    $ grunt bt:build
+
+Which will build the project into the `dist` folder.
+
+To do a local build and have the files get watched as you edit them, run:
+
+    $ grunt bt:build:local
 
 ### Publish the JSdocs
 
