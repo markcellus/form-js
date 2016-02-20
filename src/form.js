@@ -330,15 +330,15 @@ var Form = Module.extend({
      */
     _onValueChange: function (value, el, ui) {
         var name = el.name,
-            formOptions = this.options,
-            mapValue = formOptions.data[name];
+            formOptionsData = this.options.data || {},
+            mapValue = formOptionsData[name];
 
         // update data map
         if (typeof mapValue === 'function') {
             // function, so call it
             mapValue(value);
-        } else if (formOptions.data.hasOwnProperty(name)) {
-            formOptions.data[name] = value;
+        } else if (formOptionsData.hasOwnProperty(name)) {
+            formOptionsData[name] = value;
         }
 
         if (this.options.onValueChange) {
