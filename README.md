@@ -146,6 +146,14 @@ var form = new Form({
 form.setup();
 ```
 
+## Build
+
+To create a build and inject files into a 'dist' folder at the root of your project, just run:
+
+```
+grunt bt:build
+```
+
 ## Examples
  
 Examples can be found in the [examples](https://github.com/mkay581/formjs/blob/master/examples) page.
