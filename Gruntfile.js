@@ -35,10 +35,8 @@ module.exports = function(grunt) {
                 },
                 browserifyOptions: {
                     standalone: 'Form'
-                }
-            },
-            min: {
-                files: {
+                },
+                minifyFiles: {
                     'dist/form-min.js': ['dist/form.js'],
                     'dist/checkbox-min.js': ['dist/checkbox.js'],
                     'dist/checkboxes-min.js': ['dist/checkboxes.js'],
@@ -46,10 +44,8 @@ module.exports = function(grunt) {
                     'dist/radios-min.js': ['dist/radios.js'],
                     'dist/input-field-min.js': ['dist/input-field.js'],
                     'dist/text-area-min.js': ['dist/text-area.js']
-                }
-            },
-            banner: {
-                files: ['dist/*']
+                },
+                bannerFiles: ['dist/*']
             },
             tests: {
                 qunit: {
