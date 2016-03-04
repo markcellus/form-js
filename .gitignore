@@ -7,6 +7,5 @@
 /node_modules
 /bower_components
 *.log
-dist/
 external
 _site-docs/

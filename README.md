@@ -28,6 +28,9 @@ dropdown item, mobile keyboard input triggering, etc.
 
 ## Usage
 
+You can quickly start using the Form class as a standalone package, by using one of the [pre-built javascript files](/dist). Alternatively, you can also use the [source files](/src) directly if you are running
+your own build processes.
+
 ### Styling form elements
 
 Let's say you wanted to style a dropdown menu with the following html:
@@ -144,14 +147,6 @@ var form = new Form({
     }
 });
 form.setup();
-```
-
-## Build
-
-To create a build and inject files into a 'dist' folder at the root of your project, just run:
-
-```
-grunt bt:build
 ```
 
 ## Examples
