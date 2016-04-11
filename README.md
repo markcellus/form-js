@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/mkay581/form-js.svg?branch=master)](https://travis-ci.org/mkay581/form-js)
+[![npm version](https://badge.fury.io/js/form-js.svg)](https://badge.fury.io/js/form-js)
 
 # FormJS
 

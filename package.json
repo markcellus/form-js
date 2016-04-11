@@ -37,17 +37,13 @@
   },
   "main": "src/index.js",
   "devDependencies": {
-    "build-tools": "^2.5.0",
-    "grunt": "0.4.5",
-    "grunt-github-pages": "0.0.4",
-    "grunt-jsdoc": "0.5.7",
-    "load-grunt-tasks": "0.6.0",
-    "sinon": "^1.14.1"
+    "build-tools": "^3.0.4",
+    "sinon": "^1.17.3"
   },
   "scripts": {
-    "build": "grunt bt:build",
-    "start": "grunt bt:server",
-    "test": "grunt bt:test"
+    "build": "bt build",
+    "start": "bt server",
+    "test": "bt test"
   },
   "dependencies": {
     "device-manager": "^1.1.1",
