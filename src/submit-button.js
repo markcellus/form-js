@@ -1,76 +1,73 @@
 'use strict';
-var _ = require('underscore');
-var Module = require('module-js');
-require('element-kit');
+import _ from 'underscore';
 
 /**
  * @class SubmitButton
  */
-var SubmitButton = Module.extend({
+class SubmitButton {
 
     /**
      * Sets up stuff.
      * @abstract
      * @param {Object} options - Instantiation options
      */
-    initialize: function (options) {
-        this.options = _.extend({
+    constructor (options) {
+        options = _.extend({
             el: null,
             disabledClass: 'disabled',
             onClick: null
         }, options);
 
-        Module.prototype.initialize.call(this, this.options);
-
-        this.options.el.kit.addEventListener('click', 'onClick', this);
-    },
+        this.options = options;
+        this._onClickEventListener = this.onClick.bind(this);
+        this.options.el.addEventListener('click', this._onClickEventListener);
+    }
 
     /**
      * When the submit button is clicked.
      * @param e
      */
-    onClick: function (e) {
+    onClick (e) {
         if (this.options.onClick) {
             this.options.onClick(e);
         }
-    },
+    }
 
     /**
      * Returns the submit button element
      * @returns {HTMLElement} the submit button
      * @abstract
      */
-    getSubmitButton: function () {
+    getSubmitButton () {
         return this.options.el;
-    },
+    }
 
     /**
      * Enables the form element.
      * @abstract
      */
-    enable: function () {
+    enable () {
         var btn = this.getSubmitButton();
         btn.disabled = false;
         btn.classList.remove(this.options.disabledClass);
-    },
+    }
 
     /**
      * Disables the form element.
      * @abstract
      */
-    disable: function () {
+    disable () {
         var btn = this.getSubmitButton();
         btn.disabled = true;
         btn.classList.add(this.options.disabledClass);
-    },
+    }
 
     /**
      * Removes event listeners.
      */
-    destroy: function () {
-        this.options.el.kit.removeEventListener('click', 'onClick', this);
-        Module.prototype.destroy.call(this);
+    destroy () {
+        this.options.el.removeEventListener('click', this._onClickEventListener);
     }
-});
+}
 
 module.exports = SubmitButton;

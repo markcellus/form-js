@@ -1,7 +1,6 @@
 'use strict';
-var _ = require('underscore');
-var FormElementGroup = require('./form-element-group');
-require('element-kit');
+import _ from 'underscore';
+import FormElementGroup from './form-element-group';
 /**
  * A callback function that fires when one of the checkbox elements are selected
  * @callback Checkboxes~onChange
@@ -31,7 +30,7 @@ require('element-kit');
  * @class Checkboxes
  * @extends FormElement
  */
-var Checkboxes = FormElementGroup.extend({
+class Checkboxes extends FormElementGroup {
 
     /**
      * Initialization.
@@ -46,9 +45,9 @@ var Checkboxes = FormElementGroup.extend({
      * @param {string} [options.disabledClass] - The css class that will be applied to a checkbox item (UI-version) when it is disabled
      * @param {string|Array} [options.value] - The string matching the name attribute of the checkbox button to have selected initially (or an array of such strings)
      */
-    initialize: function (options) {
+    constructor (options) {
 
-        this.options = _.extend({
+        options = _.extend({
             inputs: [],
             onChange: null,
             containerClass: 'ui-checkbox',
@@ -58,8 +57,9 @@ var Checkboxes = FormElementGroup.extend({
             value: null
         }, options);
 
-        FormElementGroup.prototype.initialize.call(this, this.options);
-    },
+        super(options);
+        this.options = options;
+    }
 
     /**
      * When a checkbox is clicked that is a checkbox input element.
@@ -67,39 +67,39 @@ var Checkboxes = FormElementGroup.extend({
      * @param {HTMLElement} UIElement - The ui element
      * @private
      */
-    _processClick: function (formElement, UIElement) {
-        if (!UIElement.kit.classList.contains(this.options.selectedClass)) {
+    _processClick (formElement, UIElement) {
+        if (!UIElement.classList.contains(this.options.selectedClass)) {
             formElement.checked = true;
-            UIElement.kit.classList.add(this.options.selectedClass);
+            UIElement.classList.add(this.options.selectedClass);
         } else {
             formElement.checked = false;
-            UIElement.kit.classList.remove(this.options.selectedClass);
+            UIElement.classList.remove(this.options.selectedClass);
         }
         this.triggerChange(formElement, UIElement);
-    },
+    }
 
     /**
      * Selects the checkbox item.
      * @param {Number} index - The index of the checkbox item
      */
-    select: function (index) {
+    select (index) {
         var input = this.getFormElement(index),
             checkbox = this.getUIElement(index);
         if (!input.checked) {
             input.checked = true;
-            checkbox.kit.classList.add(this.options.selectedClass);
+            checkbox.classList.add(this.options.selectedClass);
             this.triggerChange(input, checkbox);
         }
-    },
+    }
 
     /**
      * Gets the unique identifier for checkboxes.
      * @returns {string}
      */
-    getElementKey: function () {
+    getElementKey () {
         return 'checkboxes';
     }
 
-});
+}
 
 module.exports = Checkboxes;

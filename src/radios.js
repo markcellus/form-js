@@ -1,7 +1,6 @@
 'use strict';
-var _ = require('underscore');
-var FormElementGroup = require('./form-element-group');
-require('element-kit');
+import _ from 'underscore';
+import FormElementGroup from './form-element-group';
 /**
  * A callback function that fires when one of the radio button elements are selected
  * @callback Radios~onChange
@@ -31,7 +30,7 @@ require('element-kit');
  * @class Radios
  * @extends FormElement
  */
-var Radios = FormElementGroup.extend({
+class Radios extends FormElementGroup {
 
     /**
      * Initialization.
@@ -46,9 +45,9 @@ var Radios = FormElementGroup.extend({
      * @param {string} [options.disabledClass] - The css class that will be applied to a radio button item (UI-version) when it is disabled
      * @param {string|Array} [options.value] - The string matching the name attribute of the toggle button to have selected initially (or an array of such strings)
      */
-    initialize: function (options) {
+    constructor (options) {
 
-        this.options = _.extend({
+        options = _.extend({
             inputs: [],
             onChange: null,
             containerClass: 'ui-radio',
@@ -58,8 +57,9 @@ var Radios = FormElementGroup.extend({
             value: null
         }, options);
 
-        FormElementGroup.prototype.initialize.call(this, this.options);
-    },
+        super(options);
+        this.options = options;
+    }
 
 
     /**
@@ -68,30 +68,30 @@ var Radios = FormElementGroup.extend({
      * @param {HTMLElement} UIElement - The ui element
      * @private
      */
-    _processClick: function (formElement, UIElement) {
+    _processClick (formElement, UIElement) {
         // radio buttons should only trigger a change if the clicked item isnt already selected
         if (this._lastRadioClicked !== formElement) {
             this.triggerAll(function (formElement, UIElement) {
-                UIElement.kit.classList.remove(this.options.selectedClass);
+                UIElement.classList.remove(this.options.selectedClass);
                 formElement.checked = false;
             }.bind(this));
             formElement.checked = true;
-            UIElement.kit.classList.add(this.options.selectedClass);
+            UIElement.classList.add(this.options.selectedClass);
             this.triggerChange(formElement, UIElement);
             this._lastRadioClicked = formElement;
         }
-    },
+    }
 
     /**
      * Selects the toggle item.
      * @param {Number} index - The index of the toggle item
      */
-    select: function (index) {
+    select (index) {
         var input = this.getFormElement(index),
             toggle = this.getUIElement(index);
         if (!input.checked) {
             input.checked = true;
-            toggle.kit.classList.add(this.options.selectedClass);
+            toggle.classList.add(this.options.selectedClass);
             this.triggerChange(input, toggle);
         }
 
@@ -101,16 +101,16 @@ var Radios = FormElementGroup.extend({
                 this.deselect(idx);
             }
         }.bind(this));
-    },
+    }
 
     /**
      * Gets the unique identifier for radio buttons.
      * @returns {string}
      */
-    getElementKey: function () {
+    getElementKey () {
         return 'radios';
     }
 
-});
+}
 
 module.exports = Radios;

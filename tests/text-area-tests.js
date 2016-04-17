@@ -44,11 +44,11 @@ module.exports = (function () {
             containerClass: containerClass
         });
         var container = wrapper.getElementsByClassName(containerClass)[0];
-        QUnit.ok(!container.kit.classList.contains(activeClass), 'container has active class initially');
+        QUnit.ok(!container.classList.contains(activeClass), 'container has active class initially');
         textareaEl.dispatchEvent(TestUtils.createEvent('focus'));
-        QUnit.ok(container.kit.classList.contains(activeClass), 'container has active class after focus');
+        QUnit.ok(container.classList.contains(activeClass), 'container has active class after focus');
         textareaEl.dispatchEvent(TestUtils.createEvent('blur'));
-        QUnit.ok(!container.kit.classList.contains(activeClass), 'container no longer has active class after it loses focus');
+        QUnit.ok(!container.classList.contains(activeClass), 'container no longer has active class after it loses focus');
         instance.destroy();
     });
 
@@ -119,11 +119,11 @@ module.exports = (function () {
             containerClass: containerClass
         });
         var containerEl = fixture.getElementsByClassName(containerClass)[0];
-        QUnit.ok(!containerEl.kit.classList.contains(disabledClass), 'does not have active class initially');
+        QUnit.ok(!containerEl.classList.contains(disabledClass), 'does not have active class initially');
         instance.disable();
-        QUnit.ok(containerEl.kit.classList.contains(disabledClass), 'has correct disabled class after disable()');
+        QUnit.ok(containerEl.classList.contains(disabledClass), 'has correct disabled class after disable()');
         instance.enable();
-        QUnit.ok(!containerEl.kit.classList.contains(disabledClass), 'does not have disabled class after enable()');
+        QUnit.ok(!containerEl.classList.contains(disabledClass), 'does not have disabled class after enable()');
         instance.destroy();
     });
 
@@ -142,9 +142,9 @@ module.exports = (function () {
         });
         var containerEl = fixture.getElementsByClassName(containerClass)[0];
         QUnit.ok(textareaEl.disabled, 'textarea is disabled initially');
-        QUnit.ok(containerEl.kit.classList.contains(disabledClass), 'container has disabled class initially because original input was disabled initially');
+        QUnit.ok(containerEl.classList.contains(disabledClass), 'container has disabled class initially because original input was disabled initially');
         instance.enable();
-        QUnit.ok(!containerEl.kit.classList.contains(disabledClass), 'when enabling, ui element\'s disabled class is removed');
+        QUnit.ok(!containerEl.classList.contains(disabledClass), 'when enabling, ui element\'s disabled class is removed');
         instance.destroy();
         QUnit.ok(textareaEl.disabled, 'input disabled boolean returns true because that\'s how it was initially');
     });

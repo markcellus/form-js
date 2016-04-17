@@ -40,7 +40,7 @@
   },
   "main": "src/index.js",
   "devDependencies": {
-    "build-tools": "^3.0.4",
+    "build-tools": "^3.1.0",
     "sinon": "^1.17.3"
   },
   "scripts": {
@@ -50,8 +50,6 @@
   },
   "dependencies": {
     "device-manager": "^1.1.1",
-    "element-kit": "^0.5.0",
-    "module-js": "^3.0.1",
     "observe-js": "^0.4.2",
     "promise": "^6.1.0",
     "underscore": "^1.8.2"

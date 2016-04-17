@@ -3,35 +3,10 @@ var Sinon = require('sinon');
 var QUnit = require('qunit');
 var TestUtils = require('test-utils');
 var SubmitButton = require('../src/submit-button');
-var Module = require('module-js');
 
 module.exports = (function () {
 
     QUnit.module('Submit Button');
-
-    QUnit.test('initializing calls Module super class initialize with options el', function() {
-        QUnit.expect(1);
-        var fixture = document.getElementById('qunit-fixture');
-        var btn = TestUtils.createHtmlElement('<button></button>');
-        fixture.appendChild(btn);
-        var moduleInitializeStub = Sinon.stub(Module.prototype, 'initialize');
-        var instance = new SubmitButton({el: btn});
-        QUnit.deepEqual(moduleInitializeStub.args[0][0].el, btn, 'Module.prototype.initialize was called and passed correct options el');
-        instance.destroy();
-        moduleInitializeStub.restore();
-    });
-
-    QUnit.test('destroying calls Module super class destroy', function() {
-        QUnit.expect(1);
-        var fixture = document.getElementById('qunit-fixture');
-        var btn = TestUtils.createHtmlElement('<button></button>');
-        fixture.appendChild(btn);
-        var moduleDestroyStub = Sinon.stub(Module.prototype, 'destroy');
-        var instance = new SubmitButton({el: btn});
-        instance.destroy();
-        QUnit.equal(moduleDestroyStub.callCount, 1, 'Module.prototype.destroy was called');
-        moduleDestroyStub.restore();
-    });
 
     QUnit.test('clicking on submit button calls onClick options callback', function() {
         QUnit.expect(1);

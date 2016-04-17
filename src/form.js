@@ -1,16 +1,13 @@
 /* global Platform */
 'use strict';
-var _ = require('underscore');
-var Module = require('module-js');
-var Dropdown = require('./dropdown');
-var InputField = require('./input-field');
-var Checkbox = require('./checkbox');
-var Radios = require('./radios');
-var TextArea = require('./text-area');
-var SubmitButton = require('./submit-button');
-var ObjectObserver = require("observe-js").ObjectObserver;
-
-require('element-kit');
+import _ from'underscore';
+import Dropdown from'./dropdown';
+import InputField from'./input-field';
+import Checkbox from'./checkbox';
+import Radios from'./radios';
+import TextArea from'./text-area';
+import SubmitButton from'./submit-button';
+import ObserveJS from 'observe-js';
 
 /**
  * The function that fires when the input value changes
@@ -37,7 +34,7 @@ require('element-kit');
  * Utility class for form elements.
  * @class Form
  */
-var Form = Module.extend({
+class Form {
 
     /**
      * Sets up the form.
@@ -56,9 +53,9 @@ var Form = Module.extend({
      * @param {Object} [options.data] - An object mapping the form elements name attributes (keys) to their values which will be binded to form's fields
      * @param {Number} [options.legacyDataPollTime] - The amount of time (in milliseconds) to poll for options.data changes for browsers that do not support native data observing
      */
-    initialize: function (options) {
+    constructor (options) {
 
-        this.options = _.extend({
+        options = _.extend({
             el: null,
             onValueChange: null,
             onGetOptions: null,
@@ -74,20 +71,22 @@ var Form = Module.extend({
             legacyDataPollTime: 125
         }, options);
 
+        this.options = options;
+
         // okay to cache here because its a "live" html collection -- yay!
         this.formEls = this.options.el.elements;
 
         this._formInstances = [];
         this._moduleCount = 0;
-        Module.prototype.initialize.call(this, this.options);
-    },
+        this.subModules = {};
+    }
 
     /**
      * Sets up data map so that we're observing its changes.
      * @returns {Object}
      * @private
      */
-    _setupDataMapping: function (rawData) {
+    _setupDataMapping (rawData) {
         var data = {};
         if (rawData) {
             data = rawData;
@@ -100,7 +99,7 @@ var Form = Module.extend({
             }
 
             // sync any changes made on data map to options data
-            this._observer = new ObjectObserver(data);
+            this._observer = new ObserveJS.ObjectObserver(data);
             this._observer.open(function (added, removed, changed) {
                 var mashup = _.extend(added, removed, changed);
                 Object.keys(mashup).forEach(function(n) {
@@ -110,12 +109,12 @@ var Form = Module.extend({
 
         }
         return data;
-    },
+    }
 
     /**
      * Returns a mapping of ids to their associated form option and selector.
      */
-    _getSelectorMap: function () {
+    _getSelectorMap () {
         return {
             dropdown: {
                 option: this.options.dropdownClass,
@@ -146,12 +145,12 @@ var Form = Module.extend({
                 tag: 'textarea'
             }
         }
-    },
+    }
 
     /**
      * Sets up the form and instantiates all necessary element classes.
      */
-    setup: function () {
+    setup () {
         var submitButtonEl = this.options.el.getElementsByClassName(this.options.submitButtonClass)[0];
 
         this._setupInstances(this._getInstanceEls('dropdown'), Dropdown);
@@ -174,7 +173,7 @@ var Form = Module.extend({
             });
         }
         this._setupDataMapping(this.options.data);
-    },
+    }
 
     /**
      * Gets the matching form elements, based on the supplied type.
@@ -182,7 +181,7 @@ var Form = Module.extend({
      * @returns {Array|HTMLCollection} Returns an array of matching elements
      * @private
      */
-    _getInstanceEls: function (type) {
+    _getInstanceEls (type) {
         var formEl = this.options.el,
             elements = [],
             map = this._getSelectorMap();
@@ -204,7 +203,7 @@ var Form = Module.extend({
             elements = formEl.getElementsByTagName(map.tag);
         }
         return elements;
-    },
+    }
 
     /**
      * Creates a single instance of a class for each of the supplied elements.
@@ -214,7 +213,7 @@ var Form = Module.extend({
      * @param {string} [elKey] - The key to use as the "el"
      * @private
      */
-    _setupInstances: function (elements, View, options, elKey) {
+    _setupInstances (elements, View, options, elKey) {
         var count = elements.length,
             i;
         if (count) {
@@ -222,7 +221,7 @@ var Form = Module.extend({
                 this._setupInstance(elements[i], View, options, elKey);
             }
         }
-    },
+    }
 
     /**
      * Creates a single instance of a class using multiple elements.
@@ -232,7 +231,7 @@ var Form = Module.extend({
      * @param {string} [elKey] - The key to use as the "el"
      * @private
      */
-    _setupInstance: function (els, View, options, elKey) {
+    _setupInstance (els, View, options, elKey) {
         elKey = elKey || 'el';
         var formOptions = this.options;
         var finalOptions = this._buildOptions(els, options);
@@ -247,7 +246,7 @@ var Form = Module.extend({
         this._moduleCount++;
         var instance = this.subModules['fe' + this._moduleCount] = new View(finalOptions);
         this._formInstances.push(instance);
-    },
+    }
 
     /**
      * Maps all supplied elements by an attribute.
@@ -255,7 +254,7 @@ var Form = Module.extend({
      * @param {string} attr - The attribute to map by (the values will be the keys in the map returned)
      * @returns {Object} Returns the final object
      */
-    mapElementsByAttribute: function (elements, attr) {
+    mapElementsByAttribute (elements, attr) {
         var map = {},
             count = elements.length,
             i,
@@ -271,17 +270,7 @@ var Form = Module.extend({
             }
         }
         return map;
-    },
-
-    /**
-     * Takes a set of elements and maps them by their name attributes.
-     * @param {HTMLCollection|Array|NodeList} elements - An array of elements
-     * @returns {{}} Returns an object with name/elements mapping
-     * @deprecated since 2.0.0
-     */
-    mapElementsByName: function (elements) {
-        return this.mapElementsByAttribute(elements, 'name');
-    },
+    }
 
     /**
      * Returns the instance (if there is one) of an element with a specified name attribute
@@ -289,7 +278,7 @@ var Form = Module.extend({
      * @returns {Object} Returns the instance that matches the name specified
      * @TODO: this method should return an array because there could be multiple form elements with the same name!
      */
-    getInstanceByName: function (name) {
+    getInstanceByName (name) {
         var i,
             instance;
 
@@ -300,7 +289,7 @@ var Form = Module.extend({
             }
         }
         return instance;
-    },
+    }
 
     /**
      * Builds the initialize options for an element.
@@ -309,7 +298,7 @@ var Form = Module.extend({
      * @returns {*|{}}
      * @private
      */
-    _buildOptions: function (el, options) {
+    _buildOptions (el, options) {
         options = options || {};
 
         if (this.options.onGetOptions) {
@@ -319,7 +308,7 @@ var Form = Module.extend({
             this._onValueChange(value, inputEl, UIElement);
         }.bind(this);
         return options;
-    },
+    }
 
     /**
      * When any form element's value changes.
@@ -328,7 +317,7 @@ var Form = Module.extend({
      * @param {HTMLElement} ui - The UI version of the element
      * @private
      */
-    _onValueChange: function (value, el, ui) {
+    _onValueChange (value, el, ui) {
         var name = el.name,
             formOptionsData = this.options.data || {},
             mapValue = formOptionsData[name];
@@ -348,42 +337,42 @@ var Form = Module.extend({
             this.options.onChange(value, el, ui);
         }
 
-    },
+    }
 
     /**
      * Disables all form elements.
      */
-    disable: function () {
+    disable () {
         var els = this.formEls,
             i,
             submitButton = this.getSubmitButtonInstance();
         this.setPropertyAll('disabled', true);
         // add disabled css classes
         for (i = 0; i < els.length; i++) {
-            els[i].kit.classList.add('disabled');
+            els[i].classList.add('disabled');
         }
         if (submitButton) {
             submitButton.disable();
         }
 
-    },
+    }
 
     /**
      * Enables all form elements.
      */
-    enable: function () {
+    enable () {
         var els = this.formEls,
             i,
             submitButton = this.getSubmitButtonInstance();
         this.setPropertyAll('disabled', false);
         // remove disabled css classes
         for (i = 0; i < els.length; i++) {
-            els[i].kit.classList.remove('disabled');
+            els[i].classList.remove('disabled');
         }
         if (submitButton) {
             submitButton.disable();
         }
-    },
+    }
 
     /**
      * Sets a property on all form elements.
@@ -391,20 +380,20 @@ var Form = Module.extend({
      * @param {string} prop - The property to change
      * @param {*} value - The value to set
      */
-    setPropertyAll: function (prop, value) {
+    setPropertyAll (prop, value) {
         var i,
             els = this.formEls;
         for (i = 0; i < els.length; i++) {
             els[i][prop] = value;
         }
-    },
+    }
 
     /**
      * Triggers a method on all form instances.
      * @param {string} method - The method
      * @param {...*} params - Any params for the method from here, onward
      */
-    triggerMethodAll: function (method, params) {
+    triggerMethodAll (method, params) {
         var args = Array.prototype.slice.call(arguments, 1),
             i, instance;
 
@@ -412,20 +401,20 @@ var Form = Module.extend({
             instance = this._formInstances[i];
             instance[method].apply(instance, args);
         }
-    },
+    }
 
     /**
      * Clears all form items.
      */
-    clear: function () {
+    clear () {
         this.triggerMethodAll('clear');
-    },
+    }
 
     /**
      * Gets an object that maps all fields to their current name/value pairs.
      * @returns {Array} Returns an array of objects
      */
-    getCurrentValues: function () {
+    getCurrentValues () {
         var map = [],
             fields = this.options.el.querySelectorAll('[name]'),
             fieldCount = fields.length,
@@ -449,27 +438,31 @@ var Form = Module.extend({
             }
         }
         return map;
-    },
+    }
 
     /**
      * Returns the submit button instance.
      * @returns {Object}
      */
-    getSubmitButtonInstance: function () {
+    getSubmitButtonInstance () {
         return this.subModules.submitButton;
-    },
+    }
 
     /**
      * Cleans up some stuff.
      */
-    destroy: function () {
+    destroy () {
         window.clearInterval(this._legacyDataPollTimer);
         if (this._observer) {
             this._observer.close();
         }
-        Module.prototype.destroy.call(this);
+        for (let key in this.subModules) {
+            if (this.subModules.hasOwnProperty(key) && this.subModules[key]) {
+                this.subModules[key].destroy();
+            }
+        }
     }
 
-});
+}
 
 module.exports = Form;

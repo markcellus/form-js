@@ -357,4 +357,31 @@ module.exports = (function () {
         instance.destroy();
     });
 
+    QUnit.test('should return "false" for checked property when clicking on ui element after destruction', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var wrapper = TestUtils.createHtmlElement(radioHtml);
+        fixture.appendChild(wrapper);
+        var inputs = wrapper.getElementsByClassName('ui-radio-input');
+        var instance = new Radios({inputs: inputs});
+        instance.destroy();
+        // click third input
+        inputs[2].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        QUnit.ok(!inputs[2].checked);
+    });
+
+    QUnit.test('should NOT call onChange callback when clicking on ui element after destruction', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var wrapper = TestUtils.createHtmlElement(radioHtml);
+        fixture.appendChild(wrapper);
+        var inputs = wrapper.getElementsByClassName('ui-radio-input');
+        var onChangeSpy = Sinon.spy();
+        var instance = new Radios({inputs: inputs, onChange: onChangeSpy});
+        instance.destroy();
+        // click third input
+        inputs[2].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        QUnit.equal(onChangeSpy.callCount, 0);
+    });
+
 })();

@@ -37,11 +37,11 @@ module.exports = (function () {
         var inputEl = container.getElementsByClassName(inputClass)[0];
         var instance = new InputField({el: inputEl});
         var uiEl = container.getElementsByClassName(containerClass)[0];
-        QUnit.ok(!uiEl.kit.classList.contains(activeClass), 'input does not have active class initially');
+        QUnit.ok(!uiEl.classList.contains(activeClass), 'input does not have active class initially');
         inputEl.dispatchEvent(TestUtils.createEvent('focus'));
-        QUnit.ok(uiEl.kit.classList.contains(activeClass), 'input now has active class after focus');
+        QUnit.ok(uiEl.classList.contains(activeClass), 'input now has active class after focus');
         inputEl.dispatchEvent(TestUtils.createEvent('blur'));
-        QUnit.ok(!uiEl.kit.classList.contains(activeClass), 'input does not have active class after it loses focus');
+        QUnit.ok(!uiEl.classList.contains(activeClass), 'input does not have active class after it loses focus');
         instance.destroy();
     });
 
@@ -91,13 +91,13 @@ module.exports = (function () {
         var inputEl = container.getElementsByClassName(inputClass)[0];
         var instance = new InputField({el: inputEl});
         var uiEl = container.getElementsByClassName(containerClass)[0];
-        QUnit.ok(!uiEl.kit.classList.contains(disabledClass), 'ui element does not have active class initially');
+        QUnit.ok(!uiEl.classList.contains(disabledClass), 'ui element does not have active class initially');
         QUnit.ok(!inputEl.disabled, 'input\'s disabled boolean returns falsy');
         instance.disable();
-        QUnit.ok(uiEl.kit.classList.contains(disabledClass), 'ui element has correct disabled class after disable()');
+        QUnit.ok(uiEl.classList.contains(disabledClass), 'ui element has correct disabled class after disable()');
         QUnit.ok(inputEl.disabled, 'input\'s disabled boolean returns truthy');
         instance.enable();
-        QUnit.ok(!uiEl.kit.classList.contains(disabledClass), 'after enable() ui element does not have disabled class');
+        QUnit.ok(!uiEl.classList.contains(disabledClass), 'after enable() ui element does not have disabled class');
         QUnit.ok(!inputEl.disabled, 'input\'s disabled boolean returns falsy');
         instance.destroy();
     });
@@ -112,10 +112,10 @@ module.exports = (function () {
         var instance = new InputField({el: inputEl});
         var uiEl = container.getElementsByClassName(containerClass)[0];
         QUnit.ok(inputEl.disabled, 'input was disabled initially');
-        QUnit.ok(uiEl.kit.classList.contains(disabledClass), 'ui element has disabled class initially because original input was disabled initially');
+        QUnit.ok(uiEl.classList.contains(disabledClass), 'ui element has disabled class initially because original input was disabled initially');
         QUnit.equal(setAttrSpy.callCount, 0, 'setAttribute was NOT called to ensure no unnecessary change events are fired');
         instance.enable();
-        QUnit.ok(!uiEl.kit.classList.contains(disabledClass), 'when enabling, ui element\'s disabled class is removed');
+        QUnit.ok(!uiEl.classList.contains(disabledClass), 'when enabling, ui element\'s disabled class is removed');
         instance.destroy();
         QUnit.ok(inputEl.disabled, 'input disabled boolean returns true because that\'s how it was initially');
         setAttrSpy.restore();

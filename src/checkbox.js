@@ -1,7 +1,6 @@
 'use strict';
-var _ = require('underscore');
-var FormElement = require('./form-element');
-require('element-kit');
+import _ from 'underscore';
+import FormElement from './form-element';
 
 /**
  * A callback function that fires when the checkbox is checked
@@ -24,7 +23,7 @@ require('element-kit');
  * @class Checkbox
  * @extends FormElement
  */
-var Checkbox = FormElement.extend({
+class Checkbox extends FormElement {
 
     /**
      * Initialization.
@@ -38,9 +37,9 @@ var Checkbox = FormElement.extend({
      * @param {string} [options.disabledClass] - The css class that will be applied to the checkbox (UI-version) when it is disabled
      * @param {boolean} [options.value] - The initial checked value to set
      */
-    initialize: function (options) {
+    constructor (options) {
 
-        this.options = _.extend({
+        options = _.extend({
             el: null,
             onChecked: null,
             onUnchecked: null,
@@ -51,25 +50,27 @@ var Checkbox = FormElement.extend({
             value: null
         }, options);
 
-        this.el = this.options.el;
+        super(options);
 
-        if (this.el.tagName.toLowerCase() !== 'input') {
+
+        if (options.el.tagName.toLowerCase() !== 'input') {
             console.warn('checkbox error: element passed in instantiation was not an input element');
         }
 
-        FormElement.prototype.initialize.call(this, this.options);
+        this.el = options.el;
+        this.options = options;
 
         this.setup();
 
-    },
+    }
 
     /**
      * Sets up html.
      */
-    setup: function () {
+    setup () {
         var input = this.getFormElement();
 
-        input.kit.classList.add(this.options.inputClass);
+        input.classList.add(this.options.inputClass);
 
         this._container = this._buildUIElement(this.el);
 
@@ -82,143 +83,147 @@ var Checkbox = FormElement.extend({
 
         this.isInitDisabled = input.disabled;
         if (this.isInitDisabled) {
-            this._container.kit.classList.add(this.options.disabledClass);
+            this._container.classList.add(this.options.disabledClass);
         }
 
         // setup events
-        this.getUIElement().kit.addEventListener('click', '_onClick', this);
-    },
+        this.addEventListener(this.getUIElement(), 'click', '_onClick', this);
+    }
 
     /**
      * When the checkbox element is clicked.
      * @private
      */
-    _onClick: function () {
+    _onClick () {
         var input = this.getFormElement();
         if (!input.disabled) {
-            if (!this.getUIElement().kit.classList.contains(this.options.checkedClass)) {
+            if (!this.getUIElement().classList.contains(this.options.checkedClass)) {
                 this.check();
             } else {
                 this.uncheck();
             }
         }
-    },
+    }
 
     /**
-     * Builds the checkbox UI-friendly version.
+     * Wraps the checkbox in a UI-friendly container div.
      * @param {HTMLInputElement} inputEl - The input element
      * @returns {HTMLElement} Returns the input element wrapped in a new container
      * @private
      */
-    _buildUIElement: function (inputEl) {
-        return inputEl.kit.appendOuterHtml('<div class="' + this.options.containerClass + '"></div>');
-    },
+    _buildUIElement (inputEl) {
+        let parent = inputEl.parentNode;
+        var outerEl = document.createElement('div');
+        outerEl.classList.add(this.options.containerClass);
+        parent.replaceChild(outerEl, inputEl);
+        outerEl.appendChild(inputEl);
+        return outerEl;
+    }
 
 
     /**
      * Checks the checkbox.
      */
-    check: function () {
+    check () {
         var input = this.getFormElement(),
             container = this.getUIElement();
         if (!input.checked) {
             input.checked = true;
         }
-        container.kit.classList.add(this.options.checkedClass);
+        container.classList.add(this.options.checkedClass);
         if (this.options.onChecked) {
             this.options.onChecked(input.value, input, container);
         }
-    },
+    }
 
     /**
      * Un-checks the checkbox.
      */
-    uncheck: function () {
+    uncheck () {
         var input = this.getFormElement(),
             container = this.getUIElement();
         if (input.checked) {
             input.checked = false;
         }
-        container.kit.classList.remove(this.options.checkedClass);
+        container.classList.remove(this.options.checkedClass);
         if (this.options.onUnchecked) {
             this.options.onUnchecked(input.value, input, container);
         }
-    },
+    }
 
     /**
      * Enables the checkbox.
      */
-    enable: function () {
+    enable () {
         this.getFormElement().disabled = false;
-        this.getUIElement().kit.classList.remove(this.options.disabledClass);
-    },
+        this.getUIElement().classList.remove(this.options.disabledClass);
+    }
 
     /**
      * Disables the checkbox.
      */
-    disable: function () {
+    disable () {
         this.getFormElement().disabled = true;
-        this.getUIElement().kit.classList.add(this.options.disabledClass);
-    },
+        this.getUIElement().classList.add(this.options.disabledClass);
+    }
 
     /**
      * Gets the checkbox input element.
      * @returns {HTMLInputElement} Returns the checkbox input element
      */
-    getFormElement: function () {
+    getFormElement () {
         return this.el;
-    },
+    }
 
     /**
      * Gets the checkbox div element.
      * @returns {HTMLElement} Returns the checkbox div element.
      */
-    getUIElement: function () {
+    getUIElement () {
         return this._container;
-    },
+    }
 
     /**
      * Gets the unique identifier for checkboxes.
      * @returns {string}
      */
-    getElementKey: function () {
+    getElementKey () {
         return 'checkbox';
-    },
+    }
 
     /**
      * Unselects the checkbox if its selected.
      */
-    clear: function () {
+    clear () {
         this.uncheck();
-    },
+    }
 
     /**
      * Returns whether the checkbox is checked or not
      * @returns {boolean} Returns a truthy value if checkbox is checked, falsy if not
      */
-    getValue: function () {
+    getValue () {
         return this.getFormElement().checked;
-    },
+    }
 
     /**
      * Checks the checkbox if a truthy value is passed.
      * @param {string|boolean} value
      */
-    setValue: function (value) {
+    setValue (value) {
         // check it if the value is truthy
         value = value ? true : false;
         this.getFormElement().checked = value;
-    },
+    }
 
     /**
      * Destruction of this class.
      */
-    destroy: function () {
+    destroy () {
         var container = this.getUIElement(),
             input = this.getFormElement();
 
-        // remove event listener
-        container.kit.removeEventListener('click', '_onClick', this);
+        this.removeEventListener(container, 'click', '_onClick', this);
 
         // remove stray html
         container.parentNode.replaceChild(input, container);
@@ -229,9 +234,9 @@ var Checkbox = FormElement.extend({
         if (this.isInitDisabled) {
             input.disabled = true;
         }
-        FormElement.prototype.destroy.call(this);
+        super.destroy();
     }
 
-});
+}
 
 module.exports = Checkbox;

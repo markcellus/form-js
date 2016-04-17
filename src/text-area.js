@@ -1,8 +1,7 @@
 'use strict';
-var _ = require('underscore');
-var FormElement = require('./form-element');
+import _  from 'underscore';
+import FormElement from './form-element';
 
-require('element-kit');
 /**
  * The function that fires when the input value changes
  * @callback TextArea~onChange
@@ -26,7 +25,7 @@ require('element-kit');
  * @class TextArea
  * @extends FormElement
  */
-var TextArea = FormElement.extend({
+class TextArea extends FormElement {
 
     /**
      * Initializes the Input Field class.
@@ -40,9 +39,9 @@ var TextArea = FormElement.extend({
      * @param {string} [options.activeClass] - The css class that will be applied to the input field container element when in focus
      * @param {string} [options.value] - An initial value to set the input field to
      */
-    initialize: function (options) {
+    constructor (options) {
 
-        this.options = _.extend({
+        options = _.extend({
             el: null,
             onChange: null,
             onKeyDownChange: null,
@@ -53,19 +52,21 @@ var TextArea = FormElement.extend({
             value: null
         }, options);
 
-        FormElement.prototype.initialize.call(this, this.options);
+        super(options);
+        this.options = options;
+
         this.setup();
-    },
+    }
 
     /**
      * Sets up events for showing/hiding tooltip.
      */
-    setup: function () {
+    setup () {
         var textArea = this.options.el,
             optionsValue = this.options.value || textArea.value;
 
         // add internal class if doesnt already exist
-        textArea.kit.classList.add(this.options.inputClass);
+        textArea.classList.add(this.options.inputClass);
 
         this._container = this._buildUIElement(textArea);
 
@@ -78,82 +79,82 @@ var TextArea = FormElement.extend({
 
         // handle disabled state
         if (this.origDisabled) {
-            this._container.kit.classList.add(this.options.disabledClass);
+            this._container.classList.add(this.options.disabledClass);
         }
 
         this._bindEvents();
 
-    },
+    }
 
     /**
      * Sets up events.
      * @private
      */
-    _bindEvents: function () {
+    _bindEvents () {
         var input = this.getFormElement();
-        input.kit.addEventListener('focus', '_onInputFocus', this);
-        input.kit.addEventListener('blur', '_onInputBlur', this);
-        input.kit.addEventListener('change', '_onInputValueChange', this);
-        input.kit.addEventListener('keydown', '_onInputKeyDown', this);
-    },
+        this.addEventListener(input, 'focus', '_onInputFocus', this);
+        this.addEventListener(input, 'blur', '_onInputBlur', this);
+        this.addEventListener(input, 'change', '_onInputValueChange', this);
+        this.addEventListener(input, 'keydown', '_onInputKeyDown', this);
+    }
 
     /**
      * Destroys events.
      * @private
      */
-    _unbindEvents: function () {
+    _unbindEvents () {
         var input = this.getFormElement();
-        input.kit.removeEventListener('focus', '_onInputFocus', this);
-        input.kit.removeEventListener('blur', '_onInputBlur', this);
-        input.kit.removeEventListener('change', '_onInputValueChange', this);
-        input.kit.removeEventListener('keydown', '_onInputKeyDown', this);
-    },
+        this.removeEventListener(input, 'focus', '_onInputFocus', this);
+        this.removeEventListener(input, 'blur', '_onInputBlur', this);
+        this.removeEventListener(input, 'change', '_onInputValueChange', this);
+        this.removeEventListener(input, 'keydown', '_onInputKeyDown', this);
+    }
 
     /**
      * When a key is pressed down while inside the input field.
      * @param {Event} e
      * @private
      */
-    _onInputKeyDown: function (e) {
+    _onInputKeyDown (e) {
         if (this.keyDownTimeoutId) {
             clearTimeout(this.keyDownTimeoutId);
         }
         // to ensure we have the most up-to-date the input field value,
         // we must defer the update evaluation until after 1 millisecond
         this.keyDownTimeoutId = setTimeout(this._triggerKeyDownChange.bind(this, e), 1);
-    },
+    }
 
     /**
      * Triggers a change event.
      * @param e
      * @private
      */
-    _triggerKeyDownChange: function (e) {
+    _triggerKeyDownChange (e) {
         if (this.options.onKeyDownChange) {
             this.options.onKeyDownChange(this.getFormElement(), this.getUIElement(), e);
         }
-    },
+    }
 
     /**
      * Sets the value of the input field.
      * @param {string} value - The new input field value
      */
-    setValue: function (value) {
+    setValue (value) {
         var input = this.getFormElement(),
             currentVal = input.value;
         if (value !== currentVal) {
             input.value = value;
             this._triggerChange();
         }
-    },
+    }
 
     /**
      * Gets the current input field value.
      * @returns {string} Returns current value
      */
-    getValue: function () {
+    getValue () {
         return this.getFormElement().value;
-    },
+    }
 
     /**
      * Builds the UI-friendly version of input field by wrapping it inside of a container.
@@ -161,31 +162,36 @@ var TextArea = FormElement.extend({
      * @returns {HTMLElement} Returns the input element wrapped in its container
      * @private
      */
-    _buildUIElement: function (inputEl) {
-        return inputEl.kit.appendOuterHtml('<div class="' + this.options.containerClass + '"></div>');
-    },
+    _buildUIElement (inputEl) {
+        let parent = inputEl.parentNode;
+        var outerEl = document.createElement('div');
+        outerEl.classList.add(this.options.containerClass);
+        parent.replaceChild(outerEl, inputEl);
+        outerEl.appendChild(inputEl);
+        return outerEl;
+    }
 
     /**
      * When the input gains focus.
      * @private
      */
-    _onInputFocus: function () {
-        this.getUIElement().kit.classList.add(this.options.activeClass);
-    },
+    _onInputFocus () {
+        this.getUIElement().classList.add(this.options.activeClass);
+    }
 
     /**
      * When the input loses focus.
      * @private
      */
-    _onInputBlur: function () {
-        this.getUIElement().kit.classList.remove(this.options.activeClass);
-    },
+    _onInputBlur () {
+        this.getUIElement().classList.remove(this.options.activeClass);
+    }
 
     /**
      * Triggers a value change.
      * @private
      */
-    _triggerChange: function (e) {
+    _triggerChange (e) {
         var args = [this.getValue(), this.getFormElement(), this.getUIElement()];
         if (e) {
             args.push(e);
@@ -193,68 +199,68 @@ var TextArea = FormElement.extend({
         if (this.options.onChange) {
             this.options.onChange.apply(this, args);
         }
-    },
+    }
 
     /**
      * When the input value changes.
      * @param {Event} e - The event that was triggered
      * @private
      */
-    _onInputValueChange: function (e) {
+    _onInputValueChange (e) {
         this._triggerChange(e);
-    },
+    }
 
     /**
      * Gets the input field element.
      * @returns {HTMLTextAreaElement} Returns the input field element
      */
-    getFormElement: function () {
+    getFormElement () {
         return this.options.el;
-    },
+    }
 
     /**
      * Gets the input field div element.
      * @returns {HTMLElement} Returns the checkbox div element.
      */
-    getUIElement: function () {
+    getUIElement () {
         return this._container;
-    },
+    }
 
     /**
      * Enables the button toggle.
      */
-    enable: function () {
+    enable () {
         this.getFormElement().removeAttribute('disabled');
-        this.getUIElement().kit.classList.remove(this.options.disabledClass);
-    },
+        this.getUIElement().classList.remove(this.options.disabledClass);
+    }
 
     /**
      * Disables the button toggle.
      */
-    disable: function () {
+    disable () {
         this.getFormElement().setAttribute('disabled', 'true');
-        this.getUIElement().kit.classList.add(this.options.disabledClass);
-    },
+        this.getUIElement().classList.add(this.options.disabledClass);
+    }
 
     /**
      * Sets the input to nothing.
      */
-    clear: function () {
+    clear () {
         this.setValue('');
-    },
+    }
 
     /**
      * Gets the unique identifier for input fields.
      * @returns {string}
      */
-    getElementKey: function () {
+    getElementKey () {
         return 'textArea';
-    },
+    }
 
     /**
      * Destruction of this class.
      */
-    destroy: function () {
+    destroy () {
         var container = this.getUIElement(),
             input = this.getFormElement();
 
@@ -268,9 +274,9 @@ var TextArea = FormElement.extend({
         // set original value back
         this.setValue(this.origValue);
 
-        FormElement.prototype.destroy.call(this);
+        super.destroy();
     }
 
-});
+}
 
 module.exports = TextArea;

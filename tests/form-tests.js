@@ -9,11 +9,10 @@ var Checkbox = require('../src/checkbox');
 var TextArea = require('../src/text-area');
 var Radios = require('../src/radios');
 var SubmitButton = require('../src/submit-button');
-var Module = require('module-js');
 
 module.exports = (function () {
 
-    QUnit.module('Form Tests');
+    QUnit.module('Form');
 
     QUnit.test('getCurrentValues() returns correct array objects on initialize', function () {
         QUnit.expect(6);
@@ -87,40 +86,6 @@ module.exports = (function () {
         instance.destroy();
     });
 
-    QUnit.test('should call initialize method of Module super class with correct el when instantiated', function () {
-        QUnit.expect(1);
-        var formEl = TestUtils.createHtmlElement('<form></form>');
-        var formOptions = {el: formEl};
-        var moduleInitializeStub = Sinon.stub(Module.prototype, 'initialize');
-        var formInstance = new Form(formOptions);
-        QUnit.deepEqual(moduleInitializeStub.args[0][0].el, formEl);
-        formInstance.destroy();
-        moduleInitializeStub.restore();
-    });
-
-    QUnit.test('specifying a css class for dropdown selects in initialize options should instantiate and destroy Dropdown class correctly', function () {
-        QUnit.expect(3);
-        var dropdownClass = 'form-dropdown-select';
-        var formEl = TestUtils.createHtmlElement(' ' +
-            '<form>' +
-                '<select name="select" class="' + dropdownClass + '" id="age-gate-form-country-label-id">' +
-                    '<option class="form-dropdown-option">North America</option>' +
-                '</select>' +
-            '</form>');
-
-        var selectEl = formEl.getElementsByTagName('select')[0];
-        var dropdownInitialize = Sinon.stub(Dropdown.prototype, 'initialize');
-        var dropdownDestroy = Sinon.stub(Dropdown.prototype, 'destroy');
-        var formInstance = new Form({el: formEl, dropdownClass: dropdownClass});
-        QUnit.equal(dropdownInitialize.callCount, 0, 'Dropdown class was not yet initialized because setup() wasnt triggered yet');
-        formInstance.setup();
-        QUnit.deepEqual(dropdownInitialize.args[0][0].el, selectEl, 'after setting up, Dropdown class was instantiated with correct options');
-        formInstance.destroy();
-        QUnit.equal(dropdownDestroy.callCount, 1, 'after destroy() is called, Dropdown class instance was destroyed');
-        dropdownDestroy.restore();
-        dropdownInitialize.restore();
-    });
-
     QUnit.test('when a select element exists, Dropdown gets instantiated with the select element in its options, and destroys correctly', function () {
         QUnit.expect(3);
         var formEl = TestUtils.createHtmlElement(' ' +
@@ -131,123 +96,111 @@ module.exports = (function () {
             '</form>');
 
         var selectEl = formEl.getElementsByTagName('select')[0];
-        var dropdownInitialize = Sinon.stub(Dropdown.prototype, 'initialize');
-        var dropdownDestroy = Sinon.stub(Dropdown.prototype, 'destroy');
         var formInstance = new Form({el: formEl});
-        QUnit.equal(dropdownInitialize.callCount, 0, 'Dropdown class was not yet initialized because setup() wasnt triggered yet');
+        QUnit.ok(!formInstance.getInstanceByName('select'), 'Dropdown class was not yet initialized because setup() wasnt triggered yet');
         formInstance.setup();
-        QUnit.deepEqual(dropdownInitialize.args[0][0].el, selectEl, 'after setting up, Dropdown class was instantiated with correct options');
+        var dropdownInstance = formInstance.getInstanceByName('select');
+        var dropdownDestroySpy = Sinon.spy(dropdownInstance, 'destroy');
+        QUnit.deepEqual(dropdownInstance.options.el, selectEl, 'after setting up, Dropdown class was instantiated with correct options');
         formInstance.destroy();
-        QUnit.equal(dropdownDestroy.callCount, 1, 'after destroy() is called, Dropdown class instance was destroyed');
-        dropdownDestroy.restore();
-        dropdownInitialize.restore();
+        QUnit.equal(dropdownDestroySpy.callCount, 1, 'after destroy() is called, Dropdown class instance was destroyed');
     });
 
-    QUnit.test('specifying a css class for input fields in initialize options should instantiate and destroy InputField class correctly', function () {
-        QUnit.expect(3);
-        var inputClass = 'text-field';
+    QUnit.test('should instantiate the Dropdown class when dropdownClass option is supplied', function () {
+        QUnit.expect(1);
+        var dropdownClass = 'form-dropdown-select';
+        var dropdownName = 'select_dropdown';
         var formEl = TestUtils.createHtmlElement(' ' +
             '<form>' +
-                '<input type="text" name="test_input_field" class="' + inputClass + '" value="text1" />' +
-            '</form>'
-        );
-        var inputEl = formEl.getElementsByTagName('input')[0];
-        var inputFieldInitialize = Sinon.stub(InputField.prototype, 'initialize');
-        var inputFieldDestroy = Sinon.stub(InputField.prototype, 'destroy');
-        var formInstance = new Form({el: formEl, inputFieldClass: inputClass});
-        QUnit.equal(inputFieldInitialize.callCount, 0, 'InputField class was not yet initialized because setup() wasnt triggered yet');
+            '<select name="' + dropdownName + '" class="' + dropdownClass + '" id="age-gate-form-country-label-id">' +
+            '<option class="form-dropdown-option">North America</option>' +
+            '</select>' +
+            '</form>');
+
+        var selectEl = formEl.getElementsByTagName('select')[0];
+        var formInstance = new Form({el: formEl, dropdownClass: dropdownClass});
         formInstance.setup();
-        QUnit.deepEqual(inputFieldInitialize.args[0][0].el, inputEl, 'after setting up, InputField class was instantiated with correct options');
+        var dropdownInstance = formInstance.getInstanceByName(dropdownName);
+        QUnit.deepEqual(dropdownInstance.options.el, selectEl, 'after setting up, Dropdown class was instantiated with correct element');
         formInstance.destroy();
-        QUnit.equal(inputFieldDestroy.callCount, 1, 'after destroy() is called, InputField class instance was destroyed');
-        inputFieldDestroy.restore();
-        inputFieldInitialize.restore();
     });
 
     QUnit.test('when an text input element exists, InputField gets instantiated with the input element in its options, and destroys correctly', function () {
         QUnit.expect(3);
+        var inputFieldName = 'test_input_field';
         var formEl = TestUtils.createHtmlElement(' ' +
             '<form>' +
-                '<input type="text" name="test_input_field" value="text1" />' +
+                '<input type="text" name="' + inputFieldName + '" value="text1" />' +
             '</form>'
         );
         var inputEl = formEl.getElementsByTagName('input')[0];
-        var inputFieldInitialize = Sinon.stub(InputField.prototype, 'initialize');
-        var inputFieldDestroy = Sinon.stub(InputField.prototype, 'destroy');
         var formInstance = new Form({el: formEl});
-        QUnit.equal(inputFieldInitialize.callCount, 0, 'InputField class was not yet initialized because setup() wasnt triggered yet');
+        QUnit.ok(!formInstance.getInstanceByName(inputFieldName), 'InputField class was not yet instantiated because setup() wasnt triggered yet');
         formInstance.setup();
-        QUnit.deepEqual(inputFieldInitialize.args[0][0].el, inputEl, 'after setting up, InputField class was instantiated with correct options');
+        var inputFieldInstance = formInstance.getInstanceByName(inputFieldName);
+        QUnit.deepEqual(inputFieldInstance.options.el, inputEl, 'after setting up, InputField class was instantiated with correct options');
+        Sinon.spy(inputFieldInstance, 'destroy');
         formInstance.destroy();
-        QUnit.equal(inputFieldDestroy.callCount, 1, 'after destroy() is called, InputField class instance was destroyed');
-        inputFieldDestroy.restore();
-        inputFieldInitialize.restore();
+        QUnit.equal(inputFieldInstance.destroy.callCount, 1, 'after destroy() is called, InputField class instance was destroyed');
     });
 
-    QUnit.test('specifying a css class for checkbox inputs in initialize options should instantiate and destroy Checkbox class correctly', function () {
-        QUnit.expect(3);
-        var checkboxClass = 'checkbox';
+    QUnit.test('specifying a css class for input fields in constructor options should instantiate and destroy InputField class correctly', function () {
+        QUnit.expect(1);
+        var inputClass = 'text-field';
+        var inputFieldName = 'test_input_field';
         var formEl = TestUtils.createHtmlElement(' ' +
-        '<form>' +
-            '<input type="checkbox" name="test_toggle" class="' + checkboxClass + '" value="toggle1" />' +
-            '<input type="checkbox" name="test_toggle" class="' + checkboxClass + '" value="toggle2" />' +
-        '</form>');
-        var checkboxEls = formEl.getElementsByClassName('checkbox');
-        var checkboxInitializeStub = Sinon.stub(Checkbox.prototype, 'initialize');
-        var checkboxDestroyStub = Sinon.stub(Checkbox.prototype, 'destroy');
-
-        var formInstance = new Form({el: formEl, checkboxClass: checkboxClass});
+            '<form>' +
+            '<input type="text" name="' + inputFieldName + '" class="' + inputClass + '" value="text1" />' +
+            '</form>'
+        );
+        var inputEl = formEl.getElementsByTagName('input')[0];
+        var formInstance = new Form({el: formEl, inputFieldClass: inputClass});
         formInstance.setup();
-        QUnit.equal(checkboxInitializeStub.args[0][0].el, checkboxEls[0], 'after setting up, first Checkbox class was instantiated with first checkbox element');
-        QUnit.equal(checkboxInitializeStub.args[1][0].el, checkboxEls[1], 'second Checkbox class was instantiated with second checkbox element');
+        var inputFieldInstance = formInstance.getInstanceByName(inputFieldName);
+        QUnit.deepEqual(inputFieldInstance.options.el, inputEl, 'after setting up, InputField class was instantiated with correct options');
         formInstance.destroy();
-        QUnit.equal(checkboxDestroyStub.callCount, 2, 'both Checkbox instances were destroyed');
-        checkboxDestroyStub.restore();
-        checkboxInitializeStub.restore();
     });
+
 
     QUnit.test('when an input checkbox element exists, Checkbox gets instantiated with the checkbox element in its options, and destroys correctly', function () {
-        QUnit.expect(3);
+        QUnit.expect(6);
         var formEl = TestUtils.createHtmlElement(' ' +
             '<form>' +
-                '<input type="checkbox" name="test_toggle" value="toggle1" />' +
-                '<input type="checkbox" name="test_toggle" value="toggle2" />' +
+                '<input type="checkbox" name="test_toggle1" value="toggle1" />' +
+                '<input type="checkbox" name="test_toggle2" value="toggle2" />' +
             '</form>');
         var checkboxEls = formEl.getElementsByTagName('input');
-        var checkboxInitializeStub = Sinon.stub(Checkbox.prototype, 'initialize');
-        var checkboxDestroyStub = Sinon.stub(Checkbox.prototype, 'destroy');
-
         var formInstance = new Form({el: formEl});
+        QUnit.ok(!formInstance.getInstanceByName('test_toggle1'));
+        QUnit.ok(!formInstance.getInstanceByName('test_toggle2'));
         formInstance.setup();
-        QUnit.equal(checkboxInitializeStub.args[0][0].el, checkboxEls[0], 'after setting up, first Checkbox class was instantiated with first checkbox element');
-        QUnit.equal(checkboxInitializeStub.args[1][0].el, checkboxEls[1], 'second Checkbox class was instantiated with second checkbox element');
+        var firstCheckboxInstance = formInstance.getInstanceByName('test_toggle1');
+        var secondCheckboxInstance = formInstance.getInstanceByName('test_toggle2');
+        Sinon.spy(firstCheckboxInstance, 'destroy');
+        Sinon.spy(secondCheckboxInstance, 'destroy');
+        QUnit.equal(firstCheckboxInstance.options.el, checkboxEls[0], 'after setting up, first Checkbox class was instantiated with first checkbox element');
+        QUnit.equal(secondCheckboxInstance.options.el, checkboxEls[1], 'second Checkbox class was instantiated with second checkbox element');
         formInstance.destroy();
-        QUnit.equal(checkboxDestroyStub.callCount, 2, 'both Checkbox instances were destroyed');
-        checkboxDestroyStub.restore();
-        checkboxInitializeStub.restore();
+        QUnit.equal(firstCheckboxInstance.destroy.callCount, 1, 'first Checkbox instance was destroyed');
+        QUnit.equal(secondCheckboxInstance.destroy.callCount, 1, 'second Checkbox instance was destroyed');
     });
 
-    QUnit.test('when multiple radio inputs exist with the same supplied css class, with the same name attribute, only one Radios instance should be created, and destroyed correctly', function () {
-        QUnit.expect(4);
-        var radioClass = 'radio';
+    QUnit.test('should instantiate the Checkbox class when checkboxClass option is supplied', function () {
+        QUnit.expect(2);
+        var checkboxClass = 'checkbox';
         var formEl = TestUtils.createHtmlElement(' ' +
             '<form>' +
-                '<input type="radio" name="test" class="' + radioClass + '" value="radioA" />' +
-                '<input type="radio" name="test" class="' + radioClass + '" value="radioB" />' +
+            '<input type="checkbox" name="test_toggle1" class="' + checkboxClass + '" value="toggle1" />' +
+            '<input type="checkbox" name="test_toggle2" class="' + checkboxClass + '" value="toggle2" />' +
             '</form>');
-        var radioEls = formEl.getElementsByClassName(radioClass);
-        var buttonToggleInitializeStub = Sinon.stub(Radios.prototype, 'initialize');
-        var buttonToggleDestroyStub = Sinon.stub(Radios.prototype, 'destroy');
-
-        var formInstance = new Form({el: formEl, buttonToggleClass: radioClass});
+        var checkboxEls = formEl.getElementsByClassName('checkbox');
+        var formInstance = new Form({el: formEl, checkboxClass: checkboxClass});
         formInstance.setup();
-        QUnit.equal(buttonToggleInitializeStub.args[0][0].inputs[0], radioEls[0], 'after setting up, Radios class was instantiated with first radio element');
-        QUnit.equal(buttonToggleInitializeStub.args[0][0].inputs[1], radioEls[1], 'Radios class was instantiated with second radio element');
-        QUnit.equal(buttonToggleInitializeStub.callCount, 1, 'Radios class was only instantiated once');
+        var firstCheckboxInstance = formInstance.getInstanceByName('test_toggle1');
+        var secondCheckboxInstance = formInstance.getInstanceByName('test_toggle2');
+        QUnit.equal(firstCheckboxInstance.options.el, checkboxEls[0], 'after setting up, first Checkbox class was instantiated with first checkbox element');
+        QUnit.equal(secondCheckboxInstance.options.el, checkboxEls[1], 'second Checkbox class was instantiated with second checkbox element');
         formInstance.destroy();
-        QUnit.equal(buttonToggleDestroyStub.callCount, 1, 'Radios instance was destroyed');
-        buttonToggleDestroyStub.restore();
-        buttonToggleInitializeStub.restore();
     });
 
     QUnit.test('when multiple radio inputs exist with the same name attribute, only one Radios instance should be created, and destroyed correctly', function () {
@@ -258,23 +211,59 @@ module.exports = (function () {
                 '<input type="radio" name="test" value="radioB" />' +
             '</form>');
         var radioEls = formEl.getElementsByTagName('input');
-        var buttonToggleInitializeStub = Sinon.stub(Radios.prototype, 'initialize');
-        var buttonToggleDestroyStub = Sinon.stub(Radios.prototype, 'destroy');
-
         var formInstance = new Form({el: formEl});
+        QUnit.ok(!formInstance.getInstanceByName('test'));
         formInstance.setup();
-        QUnit.equal(buttonToggleInitializeStub.args[0][0].inputs[0], radioEls[0], 'after setting up, Radios class was instantiated with first radio element');
-        QUnit.equal(buttonToggleInitializeStub.args[0][0].inputs[1], radioEls[1], 'Radios class was instantiated with second radio element');
-        QUnit.equal(buttonToggleInitializeStub.callCount, 1, 'Radios class was only instantiated once');
+        var radioButtonInstance = formInstance.getInstanceByName('test');
+        QUnit.equal(radioButtonInstance.options.inputs[0], radioEls[0], 'after setting up, Radios class was instantiated with first radio element');
+        QUnit.equal(radioButtonInstance.options.inputs[1], radioEls[1], 'Radios class was instantiated with second radio element');
+        Sinon.spy(radioButtonInstance, 'destroy');
         formInstance.destroy();
-        QUnit.equal(buttonToggleDestroyStub.callCount, 1, 'Radios instance was destroyed');
-        buttonToggleDestroyStub.restore();
-        buttonToggleInitializeStub.restore();
+        QUnit.equal(radioButtonInstance.destroy.callCount, 1, 'Radios instance was destroyed');
     });
 
+    QUnit.test('should instantiate the Radios class when buttonToggleClass option is supplied', function () {
+        QUnit.expect(2);
+        var radioClass = 'radio';
+        var formEl = TestUtils.createHtmlElement(' ' +
+            '<form>' +
+            '<input type="radio" name="test" class="' + radioClass + '" value="radioA" />' +
+            '<input type="radio" name="test" class="' + radioClass + '" value="radioB" />' +
+            '</form>');
+        var radioEls = formEl.getElementsByClassName(radioClass);
+        var formInstance = new Form({el: formEl, buttonToggleClass: radioClass});
+        formInstance.setup();
+        var radioButtonInstance = formInstance.getInstanceByName('test');
+        QUnit.equal(radioButtonInstance.options.inputs[0], radioEls[0], 'after setting up, Radios class was instantiated with first radio element');
+        QUnit.equal(radioButtonInstance.options.inputs[1], radioEls[1], 'Radios class was instantiated with second radio element');
+        formInstance.destroy();
+    });
 
-    QUnit.test('specifying css class for radio buttons in initialize options should instantiate and destroy Radios class correctly', function () {
-        QUnit.expect(3);
+    QUnit.test('radio buttons with different name attributes should instantiate and destroy Radios class correctly', function () {
+        QUnit.expect(6);
+        var formEl = TestUtils.createHtmlElement(' ' +
+            '<form>' +
+            '<input type="radio" name="test" value="radioA" />' +
+            '<input type="radio" name="test2" value="radioB" />' +
+            '</form>');
+        var radioEls = formEl.getElementsByTagName('input');
+        var formInstance = new Form({el: formEl});
+        QUnit.ok(!formInstance.getInstanceByName('test'));
+        QUnit.ok(!formInstance.getInstanceByName('test2'));
+        formInstance.setup();
+        var firstRadiosInstance = formInstance.getInstanceByName('test');
+        var secondRadiosInstance = formInstance.getInstanceByName('test2');
+        QUnit.equal(firstRadiosInstance.options.inputs[0], radioEls[0], 'after setting up, Radios class was instantiated with first radio element');
+        QUnit.equal(secondRadiosInstance.options.inputs[0], radioEls[1], 'Radios class was instantiated again with second radio element');
+        Sinon.spy(firstRadiosInstance, 'destroy');
+        Sinon.spy(secondRadiosInstance, 'destroy');
+        formInstance.destroy();
+        QUnit.equal(firstRadiosInstance.destroy.callCount, 1, 'first radio instance was destroyed');
+        QUnit.equal(secondRadiosInstance.destroy.callCount, 1, 'second radio instance was destroyed');
+    });
+
+    QUnit.test('should instantiate multiple Radios class instances when buttonToggleClass option is supplied', function () {
+        QUnit.expect(2);
         var radioClass = 'radio';
         var formEl = TestUtils.createHtmlElement(' ' +
             '<form>' +
@@ -282,71 +271,41 @@ module.exports = (function () {
                 '<input type="radio" name="test2" class="' + radioClass + '" value="radioB" />' +
             '</form>');
         var radioEls = formEl.getElementsByClassName(radioClass);
-        var buttonToggleInitializeStub = Sinon.stub(Radios.prototype, 'initialize');
-        var buttonToggleDestroyStub = Sinon.stub(Radios.prototype, 'destroy');
-
         var formInstance = new Form({el: formEl, buttonToggleClass: radioClass});
         formInstance.setup();
-        QUnit.equal(buttonToggleInitializeStub.args[0][0].inputs[0], radioEls[0], 'after setting up, Radios class was instantiated with first radio element');
-        QUnit.equal(buttonToggleInitializeStub.args[1][0].inputs[0], radioEls[1], 'Radios class was instantiated again with second radio element');
+        var firstRadiosInstance = formInstance.getInstanceByName('test');
+        var secondRadiosInstance = formInstance.getInstanceByName('test2');
+        QUnit.equal(firstRadiosInstance.options.inputs[0], radioEls[0], 'after setting up, Radios class was instantiated with first radio element');
+        QUnit.equal(secondRadiosInstance.options.inputs[0], radioEls[1], 'Radios class was instantiated again with second radio element');
         formInstance.destroy();
-        QUnit.equal(buttonToggleDestroyStub.callCount, 2, 'all Radios instances were destroyed');
-        buttonToggleDestroyStub.restore();
-        buttonToggleInitializeStub.restore();
-    });
-
-    QUnit.test('radio buttons without css classes should instantiate and destroy Radios class correctly', function () {
-        QUnit.expect(3);
-        var formEl = TestUtils.createHtmlElement(' ' +
-            '<form>' +
-                '<input type="radio" name="test" value="radioA" />' +
-                '<input type="radio" name="test2" value="radioB" />' +
-            '</form>');
-        var radioEls = formEl.getElementsByTagName('input');
-        var buttonToggleInitializeStub = Sinon.stub(Radios.prototype, 'initialize');
-        var buttonToggleDestroyStub = Sinon.stub(Radios.prototype, 'destroy');
-
-        var formInstance = new Form({el: formEl});
-        formInstance.setup();
-        QUnit.equal(buttonToggleInitializeStub.args[0][0].inputs[0], radioEls[0], 'after setting up, Radios class was instantiated with first radio element');
-        QUnit.equal(buttonToggleInitializeStub.args[1][0].inputs[0], radioEls[1], 'Radios class was instantiated again with second radio element');
-        formInstance.destroy();
-        QUnit.equal(buttonToggleDestroyStub.callCount, 2, 'all Radios instances were destroyed');
-        buttonToggleDestroyStub.restore();
-        buttonToggleInitializeStub.restore();
     });
 
     QUnit.test('SubmitButton class should NOT be instantiated if there is no element that matches the passed class', function () {
         QUnit.expect(1);
         var btnClass = 'submity';
         var formEl = TestUtils.createHtmlElement('<form></form>');
-        var submitButtonInitialize = Sinon.stub(SubmitButton.prototype, 'initialize');
-        var submitButtonDestroy = Sinon.stub(SubmitButton.prototype, 'destroy');
         var formInstance = new Form({el: formEl, submitButtonClass: btnClass});
         formInstance.setup();
-        QUnit.equal(submitButtonInitialize.callCount, 0, 'SubmitButton class was NOT instantiated');
+        QUnit.ok(!formInstance.getSubmitButtonInstance(), 'SubmitButton class was NOT instantiated');
         formInstance.destroy();
-        submitButtonDestroy.restore();
-        submitButtonInitialize.restore();
     });
 
     QUnit.test('SubmitButton class should be instantiated and destroyed correctly if there is an element that matches the passed class', function () {
-        QUnit.expect(2);
+        QUnit.expect(3);
         var btnClass = 'submity';
         var formEl = TestUtils.createHtmlElement(' ' +
             '<form>' +
             '<button type="submit" name="test" class="' + btnClass + '" /></button>' +
             '</form>');
         var buttonEl = formEl.getElementsByClassName(btnClass)[0];
-        var submitButtonInitialize = Sinon.stub(SubmitButton.prototype, 'initialize');
-        var submitButtonDestroy = Sinon.stub(SubmitButton.prototype, 'destroy');
         var formInstance = new Form({el: formEl, submitButtonClass: btnClass});
+        QUnit.ok(!formInstance.getSubmitButtonInstance());
         formInstance.setup();
-        QUnit.equal(submitButtonInitialize.args[0][0].el, buttonEl, 'after setting up, SubmitButton class was instantiated with correct element');
+        var submitButtonInstance = formInstance.getSubmitButtonInstance();
+        QUnit.equal(submitButtonInstance.options.el, buttonEl, 'after setting up, SubmitButton class was instantiated with correct element');
+        Sinon.spy(submitButtonInstance, 'destroy');
         formInstance.destroy();
-        QUnit.equal(submitButtonDestroy.callCount, 1, 'SubmitButton instance was destroyed');
-        submitButtonDestroy.restore();
-        submitButtonInitialize.restore();
+        QUnit.equal(submitButtonInstance.destroy.callCount, 1, 'SubmitButton instance was destroyed');
     });
 
     QUnit.test('getInstanceByName()', function () {
@@ -477,26 +436,6 @@ module.exports = (function () {
         instance.destroy();
     });
 
-    QUnit.test('specifying a css class for textarea elements in initialize options should instantiate and destroy TextArea class correctly', function () {
-        QUnit.expect(3);
-        var textAreaClass = 'form-text-area';
-        var formEl = TestUtils.createHtmlElement(' ' +
-            '<form>' +
-                '<textarea name="select" class="' + textAreaClass + '"></textarea>' +
-            '</form>');
-        var textAreaEl = formEl.getElementsByTagName('textarea')[0];
-        var textAreaInitializeStub = Sinon.stub(TextArea.prototype, 'initialize');
-        var textAreaDestroyStub = Sinon.stub(TextArea.prototype, 'destroy');
-        var formInstance = new Form({el: formEl, textAreaClass: textAreaClass});
-        QUnit.equal(textAreaInitializeStub.callCount, 0, 'TextArea class was not yet initialized because setup() wasnt triggered yet');
-        formInstance.setup();
-        QUnit.deepEqual(textAreaInitializeStub.args[0][0].el, textAreaEl, 'after setting up, TextArea class was instantiated with correct options');
-        formInstance.destroy();
-        QUnit.equal(textAreaDestroyStub.callCount, 1, 'after destroy() is called, TextArea class instance was destroyed');
-        textAreaDestroyStub.restore();
-        textAreaInitializeStub.restore();
-    });
-
     QUnit.test('when a textarea element exists, TextArea gets instantiated with the element as its el option, and destroys correctly', function () {
         QUnit.expect(3);
         var formEl = TestUtils.createHtmlElement(' ' +
@@ -504,16 +443,29 @@ module.exports = (function () {
                 '<textarea name="select"></textarea>' +
             '</form>');
         var textAreaEl = formEl.getElementsByTagName('textarea')[0];
-        var textAreaInitializeStub = Sinon.stub(TextArea.prototype, 'initialize');
-        var textAreaDestroyStub = Sinon.stub(TextArea.prototype, 'destroy');
         var formInstance = new Form({el: formEl});
-        QUnit.equal(textAreaInitializeStub.callCount, 0, 'TextArea class was not yet initialized because setup() wasnt triggered yet');
+        QUnit.ok(!formInstance.getInstanceByName('select'), 'TextArea class was not yet initialized because setup() wasnt triggered yet');
         formInstance.setup();
-        QUnit.deepEqual(textAreaInitializeStub.args[0][0].el, textAreaEl, 'after setting up, TextArea class was instantiated with correct options');
+        var textAreaInstance = formInstance.getInstanceByName('select');
+        QUnit.deepEqual(textAreaInstance.options.el, textAreaEl, 'after setting up, TextArea class was instantiated with correct options');
+        Sinon.spy(textAreaInstance, 'destroy');
         formInstance.destroy();
-        QUnit.equal(textAreaDestroyStub.callCount, 1, 'after destroy() is called, TextArea class instance was destroyed');
-        textAreaDestroyStub.restore();
-        textAreaInitializeStub.restore();
+        QUnit.equal(textAreaInstance.destroy.callCount, 1, 'after destroy() is called, TextArea class instance was destroyed');
+    });
+
+    QUnit.test('should instantiate the TextArea class when textAreaClass option is supplied', function () {
+        QUnit.expect(1);
+        var textAreaClass = 'form-text-area';
+        var formEl = TestUtils.createHtmlElement(' ' +
+            '<form>' +
+            '<textarea name="select" class="' + textAreaClass + '"></textarea>' +
+            '</form>');
+        var textAreaEl = formEl.getElementsByTagName('textarea')[0];
+        var formInstance = new Form({el: formEl, textAreaClass: textAreaClass});
+        formInstance.setup();
+        var textAreaInstance = formInstance.getInstanceByName('select');
+        QUnit.deepEqual(textAreaInstance.options.el, textAreaEl, 'after setting up, TextArea class was instantiated with correct options');
+        formInstance.destroy();
     });
 
     QUnit.test('onValueChange() options callback is fired when input field in form changes', function () {
