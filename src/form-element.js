@@ -1,4 +1,6 @@
 'use strict';
+// Import babel's polyfill here to allow for new Map() constructor
+import 'babel-polyfill';
 
 /**
  * Bubbles up each parent node of the element, triggering the callback on each element until traversal

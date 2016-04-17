@@ -49,6 +49,7 @@
     "test": "bt test"
   },
   "dependencies": {
+    "babel-polyfill": "^6.7.4",
     "device-manager": "^1.1.1",
     "observe-js": "^0.4.2",
     "promise": "^6.1.0",
