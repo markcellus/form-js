@@ -3,20 +3,33 @@
     <style>
 
         /* hide the native checkbox, because its not as pretty */
-        .my-checkbox-input {
+        .input-checkbox {
             display: none;
         }
 
         /* the "un-checked" state of the pretty checkbox */
         .my-checkbox {
-            width: 10px;
-            height: 10px;
+            width: 20px;
+            height: 20px;
             background: grey;
+            display: inline-block;
         }
 
         /* the "checked" state of the pretty checkbox */
         .my-checkbox-checked {
-            background: pink;
+            position: relative;
+        }
+
+        .my-checkbox-checked:before {
+            content: "";
+            position: absolute;
+            top: 15%;;
+            left: 15%;
+            display: block;
+            background: red;
+            width: 70%;
+            height: 70%;
+            border-radius: 20px;
         }
 
     </style>
@@ -27,30 +40,33 @@
 <label>The world's simplest checkbox</label>
 <input type="checkbox" class="input-checkbox" value="" name="mycheck" />
 
-<!-- don't forget requirejs -->
-<script src="path/to/require.js"></script>
+<div><strong>Status:</strong> <span id="checked-status-text"></span></div>
+
+<script src="../dist/form.js"></script>
 
 <script>
-    require(['path/to/form'], function (Form) {
+    var statusText = document.getElementById('checked-status-text');
 
-        var checkbox = new Form.Checkbox({
-            el: document.getElementsByClassName('input-checkbox')[0],
-            containerClass: 'my-checkbox',
-            inputClass: 'my-checkbox-input',
-            checkedClass: 'my-checkbox-checked'
+    var checkbox = new Form.Checkbox({
+        el: document.getElementsByClassName('input-checkbox')[0],
+        containerClass: 'my-checkbox',
+        inputClass: 'my-checkbox-input',
+        checkedClass: 'my-checkbox-checked',
+        onChecked: function () {
+            statusText.textContent = 'checked';
+        },
+        onUnchecked: function () {
+            statusText.textContent = 'unchecked';
+        }
 
-        });
+    });
 
-        // check it
-        checkbox.check();
+    // check it
+    checkbox.check();
 
-        //un-check it
-        checkbox.uncheck();
+    //un-check it
+    checkbox.uncheck();
 
-        // dont forget to destroy when you're done
-        checkbox.destroy();
-
-    })
 </script>
 
 </body>

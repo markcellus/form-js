@@ -4,14 +4,33 @@
 
         /* the toggle containers */
         .toggle {
+            width: 20px;
+            height: 20px;
+            background: grey;
+            display: inline-block;
+            cursor: pointer;
         }
 
         /* input field versions of toggles */
-        .toggle-input {
+        input {
+            display: none;
         }
 
         /* clicked toggles */
         .toggle-clicked {
+            position: relative;
+        }
+
+        .toggle-clicked:before {
+            content: "";
+            position: absolute;
+            top: 15%;;
+            left: 15%;
+            display: block;
+            background: pink;
+            width: 70%;
+            height: 70%;
+            border-radius: 20px;
         }
 
     </style>
@@ -25,35 +44,22 @@
 <input type="checkbox" value="VA" name="state" />
 <input type="checkbox" value="DC" name="state" />
 
-<!-- don't forget requirejs -->
-<script src="path/to/require.js"></script>
+<script src="../dist/form.js"></script>
 
 <script>
-    require(['path/to/form'], function (Form) {
+    var toggle = new Form.Checkboxes({
+        inputs: document.getElementsByTagName('input'),
+        containerClass: 'toggle',
+        inputClass: 'toggle-input',
+        selectedClass: 'toggle-clicked',
+        onChange: function () {
+            console.log(this, arguments);
+        }
+    });
 
-        var toggle = new Form.Checkboxes({
-            inputs: document.getElementsByTagName('input'),
-            containerClass: 'toggle',
-            inputClass: 'toggle-input',
-            selectedClass: 'toggle-clicked'
-        });
+    // select second toggle on load
+    toggle.select(1);
 
-        // select second toggle
-        toggle.select(1);
-
-        // de-select second toggle
-        toggle.deselect(1);
-
-        // select first toggle
-        toggle.select(0);
-
-        // select third toggle too
-        toggle.select(2);
-
-        // don't forget to destroy
-        toggle.destroy();
-
-    })
 </script>
 
 </body>

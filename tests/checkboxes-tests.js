@@ -75,8 +75,35 @@ module.exports = (function () {
         instance.destroy();
     });
 
-    QUnit.test('clicking should apply the appropriate active classes', function() {
-        QUnit.expect(12);
+    QUnit.test('clicking on input element should apply the appropriate active classes', function() {
+        QUnit.expect(8);
+        var fixture = document.getElementById('qunit-fixture');
+        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        fixture.appendChild(wrapper);
+        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        var instance = new Checkboxes({inputs: inputs});
+        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        // click first input
+        inputs[0].click();
+        QUnit.ok(UIElements[0].classList.contains(selectedClass), 'first input ui element contains active class');
+        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second input ui element does NOT contain active class');
+        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third input ui element does NOT contain active class');
+        // click first input again
+        inputs[0].click();
+        QUnit.ok(!UIElements[0].classList.contains(selectedClass), 'first input ui element no longer contains active class');
+        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second input ui element does NOT contain active class');
+        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third input ui element does NOT contain active class');
+        // click second input
+        inputs[1].click();
+        QUnit.ok(UIElements[1].classList.contains(selectedClass), 'second input ui element now contains active class');
+        // click third input
+        inputs[2].click();
+        QUnit.ok(UIElements[2].classList.contains(selectedClass), 'third input ui element now contains active class');
+        instance.destroy();
+    });
+
+    QUnit.test('clicking on input element should trigger onChange callback option', function() {
+        QUnit.expect(4);
         var fixture = document.getElementById('qunit-fixture');
         var wrapper = TestUtils.createHtmlElement(checkboxHtml);
         fixture.appendChild(wrapper);
@@ -85,30 +112,50 @@ module.exports = (function () {
         var instance = new Checkboxes({inputs: inputs, onChange: onChangeSpy});
         var UIElements = wrapper.getElementsByClassName('ui-checkbox');
         // click first input
-        inputs[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        inputs[0].click();
         QUnit.deepEqual(onChangeSpy.args[0], [inputs[0].value, inputs[0], UIElements[0]], 'clicking on first input input fires onChange callback with correct args');
-        QUnit.ok(UIElements[0].classList.contains(selectedClass), 'first input ui element contains active class');
-        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second input ui element does NOT contain active class');
-        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third input ui element does NOT contain active class');
         // click first input again
-        inputs[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        inputs[0].click();
         QUnit.deepEqual(onChangeSpy.args[1], [inputs[0].value, inputs[0], UIElements[0]], 'clicking on first input input again fires onChange callback again with correct args');
-        QUnit.ok(!UIElements[0].classList.contains(selectedClass), 'first input ui element no longer contains active class');
-        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second input ui element does NOT contain active class');
-        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third input ui element does NOT contain active class');
         // click second input
-        inputs[1].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        inputs[1].click();
         QUnit.deepEqual(onChangeSpy.args[2], [inputs[1].value, inputs[1], UIElements[1]], 'clicking on second input input fires onChange callback with correct args');
-        QUnit.ok(UIElements[1].classList.contains(selectedClass), 'second input ui element now contains active class');
         // click third input
-        inputs[2].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        inputs[2].click();
         QUnit.deepEqual(onChangeSpy.args[3], [inputs[2].value, inputs[2], UIElements[2]], 'clicking on third input input fires onChange callback with correct args');
-        QUnit.ok(UIElements[2].classList.contains(selectedClass), 'third input ui element now contains active class');
         instance.destroy();
     });
 
-    QUnit.test('clicking label', function() {
-        QUnit.expect(12);
+    QUnit.test('clicking on input\'s label parent adds and removes css active classes appropriately', function() {
+        QUnit.expect(8);
+        var fixture = document.getElementById('qunit-fixture');
+        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        fixture.appendChild(wrapper);
+        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        var labels = wrapper.getElementsByTagName('label');
+        var instance = new Checkboxes({inputs: inputs});
+        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        // click first label
+        labels[0].click();
+        QUnit.ok(UIElements[0].classList.contains(selectedClass), 'first label ui element contains active class');
+        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second label ui element does NOT contain active class');
+        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third label ui element does NOT contain active class');
+        // click first label again
+        labels[0].click();
+        QUnit.ok(!UIElements[0].classList.contains(selectedClass), 'first label ui element no longer contains active class');
+        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second label ui element does NOT contain active class');
+        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third label ui element does NOT contain active class');
+        // click second label
+        labels[1].click();
+        QUnit.ok(UIElements[1].classList.contains(selectedClass), 'second label ui element now contains active class');
+        // click third label
+        labels[2].click();
+        QUnit.ok(UIElements[2].classList.contains(selectedClass), 'third label ui element now contains active class');
+        instance.destroy();
+    });
+
+    QUnit.test('clicking on input\'s label parent call onChange callback option', function() {
+        QUnit.expect(4);
         var fixture = document.getElementById('qunit-fixture');
         var wrapper = TestUtils.createHtmlElement(checkboxHtml);
         fixture.appendChild(wrapper);
@@ -118,25 +165,17 @@ module.exports = (function () {
         var instance = new Checkboxes({inputs: inputs, onChange: onChangeSpy});
         var UIElements = wrapper.getElementsByClassName('ui-checkbox');
         // click first label
-        labels[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        labels[0].click();
         QUnit.deepEqual(onChangeSpy.args[0], [inputs[0].value, inputs[0], UIElements[0]], 'clicking on first label fires onChange callback with correct args');
-        QUnit.ok(UIElements[0].classList.contains(selectedClass), 'first label ui element contains active class');
-        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second label ui element does NOT contain active class');
-        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third label ui element does NOT contain active class');
         // click first label again
-        labels[0].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        labels[0].click();
         QUnit.deepEqual(onChangeSpy.args[1], [inputs[0].value, inputs[0], UIElements[0]], 'clicking on first label again fires onChange callback again with correct args');
-        QUnit.ok(!UIElements[0].classList.contains(selectedClass), 'first label ui element no longer contains active class');
-        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second label ui element does NOT contain active class');
-        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third label ui element does NOT contain active class');
         // click second label
-        labels[1].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        labels[1].click();
         QUnit.deepEqual(onChangeSpy.args[2], [inputs[1].value, inputs[1], UIElements[1]], 'clicking on second label fires onChange callback with correct args');
-        QUnit.ok(UIElements[1].classList.contains(selectedClass), 'second label ui element now contains active class');
         // click third label
-        labels[2].dispatchEvent(TestUtils.createEvent('click', {bubbles:true, cancelable: true}));
+        labels[2].click();
         QUnit.deepEqual(onChangeSpy.args[3], [inputs[2].value, inputs[2], UIElements[2]], 'clicking on third label fires onChange callback with correct args');
-        QUnit.ok(UIElements[2].classList.contains(selectedClass), 'third label ui element now contains active class');
         instance.destroy();
     });
 
@@ -367,6 +406,57 @@ module.exports = (function () {
         QUnit.equal(inputs[0].checked, true, 'first input\'s checked property returns true initially because value was passed to options that matches it');
         QUnit.equal(inputs[1].checked, true, 'second input\'s checked property returns true initially because value was passed to options that matches it');
         QUnit.equal(inputs[2].checked, false, 'third input\'s checked property returns false because its value doesnt match value passed in initialize options');
+        instance.destroy();
+    });
+
+    QUnit.test('clicking on UI elements should apply the appropriate active classes', function() {
+        QUnit.expect(8);
+        var fixture = document.getElementById('qunit-fixture');
+        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        fixture.appendChild(wrapper);
+        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        var instance = new Checkboxes({inputs: inputs});
+        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        // click first input
+        UIElements[0].click();
+        QUnit.ok(UIElements[0].classList.contains(selectedClass), 'first input ui element contains active class');
+        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second input ui element does NOT contain active class');
+        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third input ui element does NOT contain active class');
+        // click first input again
+        UIElements[0].click();
+        QUnit.ok(!UIElements[0].classList.contains(selectedClass), 'first input ui element no longer contains active class');
+        QUnit.ok(!UIElements[1].classList.contains(selectedClass), 'second input ui element does NOT contain active class');
+        QUnit.ok(!UIElements[2].classList.contains(selectedClass), 'third input ui element does NOT contain active class');
+        // click second input
+        UIElements[1].click();
+        QUnit.ok(UIElements[1].classList.contains(selectedClass), 'second input ui element now contains active class');
+        // click third input
+        UIElements[2].click();
+        QUnit.ok(UIElements[2].classList.contains(selectedClass), 'third input ui element now contains active class');
+        instance.destroy();
+    });
+
+    QUnit.test('clicking on UI elements should trigger onChange callback option', function() {
+        QUnit.expect(4);
+        var fixture = document.getElementById('qunit-fixture');
+        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        fixture.appendChild(wrapper);
+        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        var onChangeSpy = Sinon.spy();
+        var instance = new Checkboxes({inputs: inputs, onChange: onChangeSpy});
+        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        // click first input
+        UIElements[0].click();
+        QUnit.deepEqual(onChangeSpy.args[0], [inputs[0].value, inputs[0], UIElements[0]], 'clicking on first input input fires onChange callback with correct args');
+        // click first input again
+        UIElements[0].click();
+        QUnit.deepEqual(onChangeSpy.args[1], [inputs[0].value, inputs[0], UIElements[0]], 'clicking on first input input again fires onChange callback again with correct args');
+        // click second input
+        UIElements[1].click();
+        QUnit.deepEqual(onChangeSpy.args[2], [inputs[1].value, inputs[1], UIElements[1]], 'clicking on second input input fires onChange callback with correct args');
+        // click third input
+        UIElements[2].click();
+        QUnit.deepEqual(onChangeSpy.args[3], [inputs[2].value, inputs[2], UIElements[2]], 'clicking on third input input fires onChange callback with correct args');
         instance.destroy();
     });
 

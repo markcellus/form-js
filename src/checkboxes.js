@@ -10,22 +10,6 @@ import FormElementGroup from './form-element-group';
  */
 
 /**
- * A callback function that fires when one of the checkbox elements are selected
- * @callback Checkboxes~onSelect
- * @param {string} value - The value of the input element that was selected
- * @param {HTMLInputElement} input - The input element that was selected
- * @param {HTMLElement} UIElement - The container of the input element that was selected
- */
-
-/**
- * A callback function that fires when one of the checkbox elements are de-selected
- * @callback Checkboxes~onDeselect
- * @param {string} value - The value of the input element that was de-selected
- * @param {HTMLInputElement} input - The input element that was de-selected
- * @param {HTMLElement} UIElement - The container of the input element that was de-selected
- */
-
-/**
  * Groups input checkbox elements.
  * @class Checkboxes
  * @extends FormElement
@@ -39,8 +23,6 @@ class Checkboxes extends FormElementGroup {
      * @param {Checkboxes~onChange} [options.onChange] - A callback function that fires when one of the checkbox elements are selected
      * @param {string} [options.containerClass] - The css class that will be applied to each checkbox item's container
      * @param {string} [options.inputClass] - The css class that will be applied to each checkbox item (input element)
-     * @param {Checkboxes~onSelect} [options.onSelect] - A callback function that fires when the checkbox element is selected
-     * @param {Checkboxes~onDeselect} [options.onDeselect] - A callback function that fires when the checkbox element is deselected
      * @param {string} [options.selectedClass] - The css class that will be applied to a checkbox item (UI-version) when it is selected
      * @param {string} [options.disabledClass] - The css class that will be applied to a checkbox item (UI-version) when it is disabled
      * @param {string|Array} [options.value] - The string matching the name attribute of the checkbox button to have selected initially (or an array of such strings)
@@ -61,13 +43,24 @@ class Checkboxes extends FormElementGroup {
         this.options = options;
     }
 
+    _onFormElementClick (formElement, UIElement) {
+        if (!UIElement.classList.contains(this.options.selectedClass)) {
+            UIElement.classList.add(this.options.selectedClass);
+            formElement.checked = true;
+        } else {
+            UIElement.classList.remove(this.options.selectedClass);
+            formElement.checked = false;
+        }
+        this.triggerChange(formElement, UIElement);
+    }
+
     /**
-     * When a checkbox is clicked that is a checkbox input element.
-     * @param {HTMLInputElement} formElement - The checkbox element
-     * @param {HTMLElement} UIElement - The ui element
+     * When a checkbox UI element is clicked.
+     * @param {HTMLCheckboxElement} formElement - The checkbox element that was clicked
+     * @param {HTMLElement} UIElement - The checkbox UI element that was clicked
      * @private
      */
-    _processClick (formElement, UIElement) {
+    _onUIElementClick (formElement, UIElement) {
         if (!UIElement.classList.contains(this.options.selectedClass)) {
             formElement.checked = true;
             UIElement.classList.add(this.options.selectedClass);

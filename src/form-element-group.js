@@ -10,22 +10,6 @@ import FormElement from './form-element';
  */
 
 /**
- * A callback function that fires when one of the form elements are selected
- * @callback FormElementGroup~onSelect
- * @param {string} value - The value of the input element that was selected
- * @param {HTMLInputElement} input - The input element that was selected
- * @param {HTMLElement} UIElement - The container of the input element that was selected
- */
-
-/**
- * A callback function that fires when one of the form elements are de-selected
- * @callback FormElementGroup~onDeselect
- * @param {string} value - The value of the input element that was de-selected
- * @param {HTMLInputElement} input - The input element that was de-selected
- * @param {HTMLElement} UIElement - The container of the input element that was de-selected
- */
-
-/**
  * Base class to handle grouped form elements.
  * @class FormElementGroup
  * @extends FormElement
@@ -39,8 +23,6 @@ class FormElementGroup extends FormElement {
      * @param {FormElementGroup~onChange} [options.onChange] - A callback function that fires when one of the form elements are selected
      * @param {string} [options.containerClass] - The css class that will be applied to each form element's container
      * @param {string} [options.inputClass] - The css class that will be applied to each form element item (input element)
-     * @param {FormElementGroup~onSelect} [options.onSelect] - A callback function that fires when a form element is selected
-     * @param {FormElementGroup~onDeselect} [options.onDeselect] - A callback function that fires when a form element is deselected
      * @param {string} [options.selectedClass] - The css class that will be applied to a form element item (UI-version) when it is selected
      * @param {string} [options.disabledClass] - The css class that will be applied to a form element item (UI-version) when it is disabled
      * @param {string|Array} [options.value] - The string matching the name attribute of the form element button to have selected initially (or an array of such strings)
@@ -118,8 +100,9 @@ class FormElementGroup extends FormElement {
      * @private
      */
     _setupEvents () {
-        this.triggerAll(function (formElement) {
-            this.addEventListener(formElement, 'click', '_onFormElementClick', this);
+        this.triggerAll(function (formElement, UIElement) {
+            this.addEventListener(formElement, 'click', '_onFormElementClickEventListener', this);
+            this.addEventListener(UIElement, 'click', '_onUIElementClickEventListener', this);
         }.bind(this));
     }
 
@@ -154,31 +137,53 @@ class FormElementGroup extends FormElement {
     }
 
     /**
-     * When the input field is clicked.
+     * When one of the UI elements (or its parent <label>) is clicked.
      * @param {Event} e
      * @private
      */
-    _onFormElementClick (e) {
-        var formEl = e.currentTarget.getElementsByClassName(this.options.inputClass)[0],
-            UIElement = e.currentTarget.getElementsByClassName(this.options.containerClass)[0];
-
-        // this function will fire multiple times do to events bubbling up
-        // we only care when the event bubbles up to the input field
-        if (e.currentTarget === e.target) {
-            formEl = e.target;
-            UIElement = e.target.parentElement;
-            this._processClick(formEl, UIElement);
-        }
+    _onFormElementClickEventListener (e) {
+        let formElement = e.target;
+        let UIElement = formElement.parentElement;
+        this._onFormElementClick(formElement, UIElement);
     }
 
     /**
-     * A function that should be overridden to process a click on any form element.
-     * @param {HTMLInputElement} formElement
-     * @param {HTMLElement} UIElement
+     * An abstract method to handle clicks to any given form element
+     * @param {HTMLInputElement} formElement - The form element that was clicked
+     * @param {HTMLElement} UIElement - The UI version of the form element that was clicked
+     * @private
      * @abstract
+     */
+    _onFormElementClick (formElement, UIElement) {}
+
+    /**
+     * When one of the UI elements (or its parent <label>) is clicked.
+     * @param {Event} e
      * @private
      */
-    _processClick (formElement, UIElement) {}
+    _onUIElementClickEventListener (e) {
+        // we are preventing default here to ensure default
+        // checkbox is not going to be checked since
+        // we're updating the checked boolean manually later
+        e.preventDefault();
+
+        // respond to clicks made to the UI element ONLY
+        if (e.currentTarget !== e.target) {
+            return;
+        }
+        let formElement = e.currentTarget.getElementsByClassName(this.options.inputClass)[0];
+        let UIElement = e.currentTarget;
+        this._onUIElementClick(formElement, UIElement);
+    }
+
+    /**
+     * An abstract method to handle clicks to any given UI element
+     * @param {HTMLInputElement} formElement - The form element nested under the UI element that was clicked
+     * @param {HTMLElement} UIElement - The UI version of the form element that was clicked
+     * @private
+     * @abstract
+     */
+    _onUIElementClick (formElement, UIElement) {}
 
     /**
      * Builds the UI-friendly version of the form elements and wraps them in their appropriate containers.
@@ -350,7 +355,8 @@ class FormElementGroup extends FormElement {
     destroy () {
         this.triggerAll(function (formElement, UIElement) {
             UIElement.parentNode.replaceChild(formElement, UIElement);
-            this.removeEventListener(formElement, 'click', '_onFormElementClick', this);
+            this.removeEventListener(formElement, 'click', '_onFormElementClickEventListener', this);
+            this.removeEventListener(UIElement, 'click', '_onUIElementClickEventListener', this);
         }.bind(this));
         super.destroy();
     }
