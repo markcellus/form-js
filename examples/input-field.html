@@ -2,8 +2,13 @@
 <head>
     <style>
 
+        button {
+            display: inline-block;
+        }
+
         /* The input field container */
         .my-field {
+            display: inline-block;
         }
 
         /* The input field element */
@@ -19,40 +24,46 @@
 <body>
 
 <!-- our starter html -->
-<label>The world's simplest input field</label>
+<h1>The world's simplest input field</h1>
 <input type="text" value="" name="words" id="my-text" />
 
+<button id="enable-btn">Enable</button>
+<button id="disable-btn">Disable</button>
+
+<p><strong>Current Value:</strong> <span id="input-value"></span></p>
+
 <!-- don't forget requirejs -->
-<script src="path/to/require.js"></script>
+<script src="../dist/form.js"></script>
 
 <script>
-    require(['path/to/form'], function (Form) {
 
-        var field = new Form.InputField({
-            el: document.getElementById('my-text'),
-            containerClass: 'my-field',
-            inputClass: 'my-field-input',
-            activeClass: 'my-field-active'
-        });
+    var valueContainer = document.getElementById('input-value');
+    var enableBtn = document.getElementById('enable-btn');
+    var disableBtn = document.getElementById('disable-btn');
 
-        // get the current input value
-        field.getValue();
-
-        // set the input field's value to a new value
-        field.setValue('newValue');
-
-        // disable the input field
-        field.disable();
-
-        // re-enable the input field
+    enableBtn.onclick = function () {
         field.enable();
+    };
 
-        // don't forget to destroy the input field when you're done
-        field.destroy();
+    disableBtn.onclick = function () {
+        field.disable();
+    };
 
-        // more methods and advanced functionality is available in the documentation
+    var field = new Form.InputField({
+        el: document.getElementById('my-text'),
+        containerClass: 'my-field',
+        inputClass: 'my-field-input',
+        activeClass: 'my-field-active',
+        onKeyDownChange: function (value) {
+            valueContainer.textContent = value;
+        }
+    });
 
-    })
+    // set the input field's value to a default value on load
+    var defaultVal = 'newValue';
+    field.setValue(defaultVal);
+    valueContainer.textContent = defaultVal;
+
 </script>
 
 </body>
