@@ -53,12 +53,15 @@ class Radios extends FormElementGroup {
     _onFormElementClick (formElement, UIElement) {
         // radio buttons should only trigger a change if the clicked item isnt already selected
         if (this._lastRadioClicked !== formElement) {
-            this.triggerAll(function (formElement, UIElement) {
-                UIElement.classList.remove(this.options.selectedClass);
-                formElement.checked = false;
+            this.triggerAll(function (formEl, UIEl) {
+                if (formEl !== formElement) {
+                    UIEl.classList.remove(this.options.selectedClass);
+                    formEl.checked = false;
+                } else {
+                    UIEl.classList.add(this.options.selectedClass);
+                    formEl.checked = true;
+                }
             }.bind(this));
-            formElement.checked = true;
-            UIElement.classList.add(this.options.selectedClass);
             this.triggerChange(formElement, UIElement);
             this._lastRadioClicked = formElement;
         }
