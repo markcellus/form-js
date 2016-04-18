@@ -1,17 +1,35 @@
 <html>
 <head>
     <style>
+        /* input field versions of toggles */
+        input {
+            display: none;
+        }
 
         /* the toggle containers */
         .toggle {
-        }
-
-        /* input field versions of toggles */
-        .toggle-input {
+            width: 20px;
+            height: 20px;
+            background: grey;
+            display: inline-block;
+            cursor: pointer;
         }
 
         /* clicked toggles */
         .toggle-clicked {
+            position: relative;
+        }
+
+        .toggle-clicked:before {
+            content: "";
+            position: absolute;
+            top: 15%;;
+            left: 15%;
+            display: block;
+            background: pink;
+            width: 70%;
+            height: 70%;
+            border-radius: 20px;
         }
 
     </style>
@@ -25,30 +43,18 @@
 <input type="radio" value="VA" name="state" />
 <input type="radio" value="DC" name="state" />
 
-<!-- don't forget requirejs -->
-<script src="path/to/require.js"></script>
+<script src="../dist/form.js"></script>
 
 <script>
-    require(['path/to/form'], function (Form) {
+    var toggle = new Form.Radios({
+        inputs: document.getElementsByTagName('input'),
+        containerClass: 'toggle',
+        inputClass: 'toggle-input',
+        selectedClass: 'toggle-clicked'
+    });
 
-        var toggle = new Form.Radios({
-            inputs: document.getElementsByTagName('input'),
-            containerClass: 'toggle',
-            inputClass: 'toggle-input',
-            selectedClass: 'toggle-clicked'
-        });
-
-        // select second toggle
-        toggle.select(1);
-
-        // select third toggle (will automatically unselect the previous
-        // selected toggle because thats how radio buttons work in the real-world
-        toggle.select(2);
-
-        // don't forget to destroy
-        toggle.destroy();
-
-    })
+    // select third toggle on load
+    toggle.select(2);
 </script>
 
 </body>
