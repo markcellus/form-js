@@ -4,6 +4,9 @@ import _ from'underscore';
 import Dropdown from'./dropdown';
 import InputField from'./input-field';
 import Checkbox from'./checkbox';
+import Checkboxes from'./checkboxes';
+import FormElement from'./form-element';
+import FormElementGroup from'./form-element-group';
 import Radios from'./radios';
 import TextArea from'./text-area';
 import SubmitButton from'./submit-button';
@@ -464,5 +467,15 @@ class Form {
     }
 
 }
+
+Form.Checkbox = Checkbox;
+Form.Checkboxes = Checkboxes;
+Form.Dropdown = Dropdown;
+Form.FormElement = FormElement;
+Form.FormElementGroup = FormElementGroup;
+Form.InputField = InputField;
+Form.Radios = Radios;
+Form.SubmitButton = SubmitButton;
+Form.TextArea = TextArea;
 
 module.exports = Form;

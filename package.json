@@ -38,7 +38,7 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
-  "main": "src/index.js",
+  "main": "src/form.js",
   "devDependencies": {
     "build-tools": "^3.1.0",
     "sinon": "^1.17.3"
