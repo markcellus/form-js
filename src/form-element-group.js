@@ -102,7 +102,7 @@ class FormElementGroup extends FormElement {
     _setupEvents () {
         this.triggerAll(function (formElement, UIElement) {
             this.addEventListener(formElement, 'click', '_onFormElementClickEventListener', this);
-            this.addEventListener(UIElement, 'click', '_onUIElementClickEventListener', this);
+            this.addEventListener(UIElement, 'click', '_onUIElementClickEventListener', this, true);
         }.bind(this));
     }
 
@@ -144,10 +144,9 @@ class FormElementGroup extends FormElement {
     _onFormElementClickEventListener (e) {
         let formElement = e.target;
         let UIElement = formElement.parentElement;
-        // we must stop event from bubbling up to the UI element so that
-        // this._onUIElementClickEventListener() doesnt run inadvertently
-        e.stopPropagation();
-        this._onFormElementClick(formElement, UIElement);
+        if (e.target === e.currentTarget) {
+            this._onFormElementClick(formElement, UIElement);
+        }
     }
 
     /**
@@ -165,18 +164,18 @@ class FormElementGroup extends FormElement {
      * @private
      */
     _onUIElementClickEventListener (e) {
-        // we are preventing default here to ensure default
-        // checkbox is not going to be checked since
-        // we're updating the checked boolean manually later
-        e.preventDefault();
-
+        var formElement;
+        var UIElement;
         // respond to clicks made to the UI element ONLY
-        if (e.currentTarget !== e.target) {
-            return;
+        if (e.target === e.currentTarget && e.target.classList.contains(this.options.containerClass)) {
+            // we are preventing default here to ensure default
+            // checkbox is not going to be checked since
+            // we're updating the checked boolean manually later
+            e.preventDefault();
+            UIElement = e.target;
+            formElement = e.target.getElementsByClassName(this.options.inputClass)[0];
+            this._onUIElementClick(formElement, UIElement);
         }
-        let formElement = e.currentTarget.getElementsByClassName(this.options.inputClass)[0];
-        let UIElement = e.currentTarget;
-        this._onUIElementClick(formElement, UIElement);
     }
 
     /**
@@ -359,7 +358,7 @@ class FormElementGroup extends FormElement {
         this.triggerAll(function (formElement, UIElement) {
             UIElement.parentNode.replaceChild(formElement, UIElement);
             this.removeEventListener(formElement, 'click', '_onFormElementClickEventListener', this);
-            this.removeEventListener(UIElement, 'click', '_onUIElementClickEventListener', this);
+            this.removeEventListener(UIElement, 'click', '_onUIElementClickEventListener', this, true);
         }.bind(this));
         super.destroy();
     }
