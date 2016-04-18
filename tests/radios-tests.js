@@ -139,6 +139,36 @@ module.exports = (function () {
         instance.destroy();
     });
 
+    QUnit.test('clicking on input elements should reflect correct checked boolean value', function() {
+        QUnit.expect(12);
+        var fixture = document.getElementById('qunit-fixture');
+        var wrapper = TestUtils.createHtmlElement(radioHtml);
+        fixture.appendChild(wrapper);
+        var inputs = wrapper.getElementsByClassName('ui-radio-input');
+        var instance = new Radios({inputs: inputs});
+        // click first toggle
+        inputs[0].click();
+        QUnit.ok(inputs[0].checked, 'after first click on first input, boolean is "true');
+        QUnit.ok(!inputs[1].checked, 'second input, boolean is "false');
+        QUnit.ok(!inputs[2].checked, 'third input, boolean is "false');
+        // click first input again
+        inputs[0].click();
+        QUnit.ok(inputs[0].checked, 'after second click on first input, boolean is still "true');
+        QUnit.ok(!inputs[1].checked, 'second input, boolean is "false');
+        QUnit.ok(!inputs[2].checked, 'third input, boolean is "false');
+        // click second input
+        inputs[1].click();
+        QUnit.ok(inputs[1].checked, 'after click on second input, boolean on it is "true');
+        QUnit.ok(!inputs[0].checked, 'first input, boolean is "false');
+        QUnit.ok(!inputs[2].checked, 'third input, boolean is "false');
+        // click third input
+        inputs[2].click();
+        QUnit.ok(inputs[2].checked, 'after click on third input, boolean on it is "true');
+        QUnit.ok(!inputs[0].checked, 'first input, boolean is "false');
+        QUnit.ok(!inputs[1].checked, 'second input, boolean is "false');
+        instance.destroy();
+    });
+
     QUnit.test('clicking on input\'s parent label should add and remove css active classes appropriately', function() {
         QUnit.expect(12);
         var fixture = document.getElementById('qunit-fixture');

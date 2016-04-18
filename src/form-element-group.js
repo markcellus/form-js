@@ -144,6 +144,9 @@ class FormElementGroup extends FormElement {
     _onFormElementClickEventListener (e) {
         let formElement = e.target;
         let UIElement = formElement.parentElement;
+        // we must stop event from bubbling up to the UI element so that
+        // this._onUIElementClickEventListener() doesnt run inadvertently
+        e.stopPropagation();
         this._onFormElementClick(formElement, UIElement);
     }
 
