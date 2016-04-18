@@ -1,10 +1,107 @@
 <html>
 <body>
 
+<style>
+
+    input[type=checkbox] {
+        display: none;
+    }
+
+    .ui-checkbox {
+        width: 20px;
+        height: 20px;
+        background: grey;
+        display: inline-block;
+    }
+
+    .ui-checkbox-checked {
+        position: relative;
+    }
+
+    .ui-checkbox-checked:before {
+        content: "";
+        position: absolute;
+        top: 15%;;
+        left: 15%;
+        display: block;
+        background: red;
+        width: 70%;
+        height: 70%;
+        border-radius: 20px;
+    }
+
+    select {
+        display: none;
+    }
+
+    .dropdown-container {
+        width: 200px;
+        height: 20px;
+        position: relative;
+        border: 1px solid lightgray;
+        border-radius: 3px;
+        cursor: pointer;
+        margin-bottom: 20px;
+    }
+
+    .dropdown-option-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: none;
+        background: grey;
+        width: 100%;
+        height: auto;
+        z-index: 2;
+    }
+
+    .dropdown-option-container-active .dropdown-option-container {
+        display: block;
+    }
+
+    .dropdown-option {
+        box-sizing: border-box;
+        padding: 6px 0;
+        border-bottom: 1px solid black;
+    }
+
+    input[type=radio] {
+        display: none;
+    }
+
+    label {
+        margin-bottom: 20px;
+    }
+
+    .ui-radio {
+        width: 20px;
+        height: 20px;
+        background: grey;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .ui-radio-selected {
+        position: relative;
+    }
+
+    .ui-radio-selected:before {
+        content: "";
+        position: absolute;
+        top: 15%;;
+        left: 15%;
+        display: block;
+        background: pink;
+        width: 70%;
+        height: 70%;
+        border-radius: 20px;
+    }
+</style>
+
 <!-- our starter html -->
 <h1>The world's simplest form</h1>
 <form>
-    <input type="checkbox" value="" name="mycheck" />
+    <label><input type="checkbox" value="" name="mycheck" /> Check me out</label>
 
     <input type="text" value="" name="name" />
 
@@ -19,28 +116,19 @@
 
 </form>
 
-<!-- don't forget requirejs -->
-<script src="path/to/require.js"></script>
+<script src="../dist/form.js"></script>
 
 <script>
-    require(['path/to/form'], function (Form) {
+    var form = new Form({
+        el: document.getElementsByTagName('form')[0],
+        onChange: function (value, formElement) {
+            console.log(arguments);
+        }
+    });
 
-        var form = new Form({
-            el: document.getElementsByName('form')[0]
-        });
+    // set up the form and prep the DOM
+    form.setup();
 
-        // set up the form and prep the DOM
-        form.setup();
-
-        // disable the form
-        form.disable();
-
-        // re-enable the form
-        form.enable();
-
-        var values = form.getCurrentValues(); // prints a serialized array of the current values in the form
-
-    })
 </script>
 
 </body>
