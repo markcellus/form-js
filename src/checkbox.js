@@ -96,7 +96,7 @@ class Checkbox extends FormElement {
         }
 
         // setup events
-        this.addEventListener(this.getUIElement(), 'click', '_onUIElementClick', this);
+        this.addEventListener(this.getUIElement(), 'click', '_onUIElementClick', this, true);
         this.addEventListener(input, 'click', '_onFormElementClick', this);
     }
 
@@ -106,14 +106,7 @@ class Checkbox extends FormElement {
      * @private
      */
     _onFormElementClick (e) {
-        var input = this.getFormElement();
-
-        // we must stop event from bubbling up to the UI element
-        // so that we dont inadvertently trigger its listener
-        e.stopPropagation();
-
-
-        if (!input.disabled) {
+        if (e.target === e.currentTarget && !e.target.disabled) {
             if (!this.getUIElement().classList.contains(this.options.checkedClass)) {
                 this.check();
             } else {
@@ -129,17 +122,12 @@ class Checkbox extends FormElement {
      */
     _onUIElementClick (e) {
         var input = this.getFormElement();
-
-        // we are preventing default here to ensure default
-        // checkbox is not going to be checked since
-        // we're updating the checked boolean manually below
-        e.preventDefault();
-
-        if (e.target !== e.currentTarget) {
-            return;
-        }
-
-        if (!input.disabled) {
+        // respond to clicks made to the UI element ONLY
+        if (!input.disabled && e.target === e.currentTarget && e.target.classList.contains(this.options.containerClass)) {
+            // we are preventing default here to ensure default
+            // checkbox is not going to be checked since
+            // we're updating the checked boolean manually below
+            e.preventDefault();
             if (!this.getUIElement().classList.contains(this.options.checkedClass)) {
                 this.check();
             } else {
@@ -276,7 +264,7 @@ class Checkbox extends FormElement {
         var container = this.getUIElement(),
             input = this.getFormElement();
 
-        this.removeEventListener(container, 'click', '_onUIElementClick', this);
+        this.removeEventListener(container, 'click', '_onUIElementClick', this, true);
         this.removeEventListener(input, 'click', '_onFormElementClick', this);
 
         // remove stray html

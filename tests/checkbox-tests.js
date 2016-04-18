@@ -90,35 +90,35 @@ module.exports = (function () {
         checkbox.destroy();
     });
 
-    //QUnit.test('clicking on and off ui element', function () {
-    //    QUnit.expect(12);
-    //    var fixture = document.getElementById('qunit-fixture');
-    //    var container = TestUtils.createHtmlElement(html);
-    //    fixture.appendChild(container);
-    //    var input = container.getElementsByClassName('ui-checkbox-input')[0];
-    //    var checkSpy = Sinon.spy(Checkbox.prototype, 'check');
-    //    var uncheckSpy = Sinon.spy(Checkbox.prototype, 'uncheck');
-    //    var instance = new Checkbox({el: input});
-    //    var checkboxEl = container.getElementsByClassName('ui-checkbox')[0];
-    //    QUnit.equal(checkSpy.callCount, 0, 'check() method was not called initially');
-    //    QUnit.equal(uncheckSpy.callCount, 0, 'uncheck() method was not called initially');
-    //    QUnit.equal(input.checked, false, 'input checked boolean returns false');
-    //    checkboxEl.dispatchEvent(TestUtils.createEvent('click'));
-    //    QUnit.equal(checkSpy.callCount, 1, 'clicking checkbox element calls check() method');
-    //    QUnit.equal(uncheckSpy.callCount, 0, 'uncheck() method was not called');
-    //    QUnit.equal(input.checked, true, 'input checked boolean returns true');
-    //    checkboxEl.dispatchEvent(TestUtils.createEvent('click'));
-    //    QUnit.equal(uncheckSpy.callCount, 1, 'clicking checkbox element a second time calls uncheck() method');
-    //    QUnit.equal(checkSpy.callCount, 1, 'check() method was not called');
-    //    QUnit.equal(input.checked, false, 'input checked boolean returns false');
-    //    instance.destroy();
-    //    checkboxEl.dispatchEvent(TestUtils.createEvent('click'));
-    //    QUnit.equal(checkSpy.callCount, 1, 'clicking checkbox element again does NOT call check() method because instance was destroyed');
-    //    QUnit.equal(uncheckSpy.callCount, 1, 'uncheck() method was not called');
-    //    QUnit.equal(input.checked, false, 'input checked boolean returns false');
-    //    checkSpy.restore();
-    //    uncheckSpy.restore();
-    //});
+    QUnit.test('clicking on and off ui element', function () {
+       QUnit.expect(12);
+       var fixture = document.getElementById('qunit-fixture');
+       var container = TestUtils.createHtmlElement(html);
+       fixture.appendChild(container);
+       var input = container.getElementsByClassName('ui-checkbox-input')[0];
+       var checkSpy = Sinon.spy(Checkbox.prototype, 'check');
+       var uncheckSpy = Sinon.spy(Checkbox.prototype, 'uncheck');
+       var instance = new Checkbox({el: input});
+       var checkboxUIEl = container.getElementsByClassName('ui-checkbox')[0];
+       QUnit.equal(checkSpy.callCount, 0, 'check() method was not called initially');
+       QUnit.equal(uncheckSpy.callCount, 0, 'uncheck() method was not called initially');
+       QUnit.equal(input.checked, false, 'input checked boolean returns false');
+       checkboxUIEl.dispatchEvent(TestUtils.createEvent('click'));
+       QUnit.equal(checkSpy.callCount, 1, 'clicking checkbox element calls check() method');
+       QUnit.equal(uncheckSpy.callCount, 0, 'uncheck() method was not called');
+       QUnit.equal(input.checked, true, 'input checked boolean returns true');
+       checkboxUIEl.dispatchEvent(TestUtils.createEvent('click'));
+       QUnit.equal(uncheckSpy.callCount, 1, 'clicking checkbox element a second time calls uncheck() method');
+       QUnit.equal(checkSpy.callCount, 1, 'check() method was not called');
+       QUnit.equal(input.checked, false, 'input checked boolean returns false');
+       instance.destroy();
+       checkboxUIEl.dispatchEvent(TestUtils.createEvent('click'));
+       QUnit.equal(checkSpy.callCount, 1, 'clicking checkbox element again does NOT call check() method because instance was destroyed');
+       QUnit.equal(uncheckSpy.callCount, 1, 'uncheck() method was not called');
+       QUnit.equal(input.checked, false, 'input checked boolean returns false');
+       checkSpy.restore();
+       uncheckSpy.restore();
+    });
 
     QUnit.test('clicking on and off input\'s label', function () {
         var html = '<div><label for="inp" class="checkbox-label"></label><input type="checkbox" id="inp" class="ui-checkbox-input" value="NY" name="ny" /> New York</div>';
@@ -150,30 +150,30 @@ module.exports = (function () {
         uncheckSpy.restore();
     });
 
-    //QUnit.test('clicking on and off when disabled', function () {
-    //    QUnit.expect(5);
-    //    var fixture = document.getElementById('qunit-fixture');
-    //    var container = TestUtils.createHtmlElement(html);
-    //    fixture.appendChild(container);
-    //    var input = container.getElementsByClassName('ui-checkbox-input')[0];
-    //    var checkSpy = Sinon.spy(Checkbox.prototype, 'check');
-    //    var uncheckSpy = Sinon.spy(Checkbox.prototype, 'uncheck');
-    //    var instance = new Checkbox({el: input});
-    //    var checkboxEl = container.getElementsByClassName('ui-checkbox')[0];
-    //    instance.disable(); //disable
-    //    checkboxEl.dispatchEvent(TestUtils.createEvent('click'));
-    //    QUnit.equal(checkSpy.callCount, 0, 'clicking checkbox element while its disabled does not call check() method');
-    //    QUnit.equal(uncheckSpy.callCount, 0, 'clicking checkbox element while its disabled does not call uncheck() method');
-    //    instance.enable();
-    //    checkboxEl.dispatchEvent(TestUtils.createEvent('click'));
-    //    QUnit.equal(checkSpy.callCount, 1, 'after enabling, clicking checkbox element calls check() method');
-    //    checkboxEl.dispatchEvent(TestUtils.createEvent('click'));
-    //    QUnit.equal(uncheckSpy.callCount, 1, 'clicking checkbox element a second time calls uncheck() method');
-    //    QUnit.equal(checkSpy.callCount, 1, 'check() method was not called');
-    //    instance.destroy();
-    //    checkSpy.restore();
-    //    uncheckSpy.restore();
-    //});
+    QUnit.test('clicking on and off when disabled', function () {
+       QUnit.expect(5);
+       var fixture = document.getElementById('qunit-fixture');
+       var container = TestUtils.createHtmlElement(html);
+       fixture.appendChild(container);
+       var input = container.getElementsByClassName('ui-checkbox-input')[0];
+       var checkSpy = Sinon.spy(Checkbox.prototype, 'check');
+       var uncheckSpy = Sinon.spy(Checkbox.prototype, 'uncheck');
+       var instance = new Checkbox({el: input});
+       var checkboxEl = container.getElementsByClassName('ui-checkbox')[0];
+       instance.disable(); //disable
+       checkboxEl.dispatchEvent(TestUtils.createEvent('click'));
+       QUnit.equal(checkSpy.callCount, 0, 'clicking checkbox element while its disabled does not call check() method');
+       QUnit.equal(uncheckSpy.callCount, 0, 'clicking checkbox element while its disabled does not call uncheck() method');
+       instance.enable();
+       checkboxEl.dispatchEvent(TestUtils.createEvent('click'));
+       QUnit.equal(checkSpy.callCount, 1, 'after enabling, clicking checkbox element calls check() method');
+       checkboxEl.dispatchEvent(TestUtils.createEvent('click'));
+       QUnit.equal(uncheckSpy.callCount, 1, 'clicking checkbox element a second time calls uncheck() method');
+       QUnit.equal(checkSpy.callCount, 1, 'check() method was not called');
+       instance.destroy();
+       checkSpy.restore();
+       uncheckSpy.restore();
+    });
 
     QUnit.test('enabling and disabling', function () {
         QUnit.expect(6);
