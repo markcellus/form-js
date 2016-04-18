@@ -19,6 +19,14 @@ import FormElement from './form-element';
  */
 
 /**
+ * A callback function that fires when the checkbox is un-checked
+ * @callback Checkbox~onChange
+ * @param {boolean} value - True if checked, false if not
+ * @param {HTMLInputElement} input - The checkbox input element
+ * @param {HTMLElement} UIElement - The checkbox element's container
+ */
+
+/**
  * Adds JS functionality to an input checkbox.
  * @class Checkbox
  * @extends FormElement
@@ -31,6 +39,7 @@ class Checkbox extends FormElement {
      * @param {HTMLInputElement} options.el - The input element checkbox
      * @param {Checkbox~onChecked} [options.onChecked] - A callback function that fires when the checkbox is checked
      * @param {Checkbox~onUnchecked} [options.onUnchecked] - A callback function that fires when the checkbox is un-checked
+     * @param {Checkbox~onChange} [options.onChange] - A callback function that fires when the checkbox value changes
      * @param {string} [options.containerClass] - The css class that will be applied to the UI-version of the checkbox
      * @param {string} [options.inputClass] - The css class that will be applied to the form version of the checkbox
      * @param {string} [options.checkedClass] - The css class that will be applied to the checkbox (UI-version) when it is checked
@@ -87,15 +96,49 @@ class Checkbox extends FormElement {
         }
 
         // setup events
-        this.addEventListener(this.getUIElement(), 'click', '_onClick', this);
+        this.addEventListener(this.getUIElement(), 'click', '_onUIElementClick', this);
+        this.addEventListener(input, 'click', '_onFormElementClick', this);
     }
 
     /**
-     * When the checkbox element is clicked.
+     * When the checkbox input element is clicked.
+     * @param {Event} e
      * @private
      */
-    _onClick () {
+    _onFormElementClick (e) {
         var input = this.getFormElement();
+
+        // we must stop event from bubbling up to the UI element
+        // so that we dont inadvertently trigger its listener
+        e.stopPropagation();
+
+
+        if (!input.disabled) {
+            if (!this.getUIElement().classList.contains(this.options.checkedClass)) {
+                this.check();
+            } else {
+                this.uncheck();
+            }
+        }
+    }
+
+    /**
+     * When the checkbox UI element is clicked.
+     * @param {Event} e
+     * @private
+     */
+    _onUIElementClick (e) {
+        var input = this.getFormElement();
+
+        // we are preventing default here to ensure default
+        // checkbox is not going to be checked since
+        // we're updating the checked boolean manually below
+        e.preventDefault();
+
+        if (e.target !== e.currentTarget) {
+            return;
+        }
+
         if (!input.disabled) {
             if (!this.getUIElement().classList.contains(this.options.checkedClass)) {
                 this.check();
@@ -131,8 +174,12 @@ class Checkbox extends FormElement {
             input.checked = true;
         }
         container.classList.add(this.options.checkedClass);
+        let value = this.getValue();
         if (this.options.onChecked) {
-            this.options.onChecked(input.value, input, container);
+            this.options.onChecked(value, input, container);
+        }
+        if (this.options.onChange) {
+            this.options.onChange(value, input, container);
         }
     }
 
@@ -146,8 +193,12 @@ class Checkbox extends FormElement {
             input.checked = false;
         }
         container.classList.remove(this.options.checkedClass);
+        let value = this.getValue();
         if (this.options.onUnchecked) {
-            this.options.onUnchecked(input.value, input, container);
+            this.options.onUnchecked(value, input, container);
+        }
+        if (this.options.onChange) {
+            this.options.onChange(value, input, container);
         }
     }
 
@@ -223,7 +274,8 @@ class Checkbox extends FormElement {
         var container = this.getUIElement(),
             input = this.getFormElement();
 
-        this.removeEventListener(container, 'click', '_onClick', this);
+        this.removeEventListener(container, 'click', '_onUIElementClick', this);
+        this.removeEventListener(input, 'click', '_onFormElementClick', this);
 
         // remove stray html
         container.parentNode.replaceChild(input, container);

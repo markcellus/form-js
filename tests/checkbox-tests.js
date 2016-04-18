@@ -263,4 +263,19 @@ module.exports = (function () {
         checkbox.destroy();
     });
 
+    QUnit.test('clicking on ui element should trigger onChange callback option with correct args', function() {
+        QUnit.expect(2);
+        var fixture = document.getElementById('qunit-fixture');
+        var container = TestUtils.createHtmlElement(html);
+        fixture.appendChild(container);
+        var input = container.getElementsByClassName('ui-checkbox-input')[0];
+        var onChangeSpy = Sinon.spy();
+        var checkbox = new Checkbox({el: input, onChange: onChangeSpy});
+        var UICheckbox = container.getElementsByClassName('ui-checkbox')[0];
+        QUnit.equal(onChangeSpy.callCount, 0);
+        UICheckbox.click();
+        QUnit.deepEqual(onChangeSpy.args[0], ['NY', input, UICheckbox]);
+        checkbox.destroy();
+    });
+
 })();
