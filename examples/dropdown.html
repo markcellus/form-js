@@ -2,25 +2,37 @@
 <head>
     <style>
 
-        .my-dropdown {
-            width: 100px;
-            height: 20px;
-        }
-
-        .my-dropdown.my-dropdown-options-container-active {
-
-        }
-
         /* hide the dropdown options container initially */
-        .my-dropdown-options-container {
+        select {
             display: none;
         }
 
-        /* when the dropdown options container is shown */
-        .my-dropdown.my-dropdown-options-container-active .my-dropdown-options-container {
-            width: 100px;
-            height: auto;
+        .my-dropdown {
+            width: 200px;
+            height: 20px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .my-dropdown-options-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
             background: grey;
+            width: 100%;
+            height: auto;
+        }
+
+        /* when the dropdown options container is shown */
+        .my-dropdown-options-container-active .my-dropdown-options-container {
+            display: block;
+        }
+
+        .dropdown-option {
+            box-sizing: border-box;
+            padding: 6px 0;
+            border-bottom: 1px solid black;
         }
 
     </style>
@@ -33,24 +45,19 @@
     <option value="DC">Washington, DC</option>
 </select>
 
-<script src="path/to/form.js"></script>
+<script src="../dist/form.js"></script>
 
 <script>
     var dropdown = new Form.Dropdown({
-        el: document.getElementsByClassName('select')[0],
+        el: document.getElementsByTagName('select')[0],
         containerClass: 'my-dropdown',
         optionsContainerClass: 'my-dropdown-options-container',
         optionsContainerActiveClass: 'my-dropdown-options-container-active'
     });
 
-    // set value
-    dropdown.setValue('MD');
+    // set value to MD on load
+    dropdown.setValue('VA');
 
-    //get current value
-    dropdown.getValue();
-
-    // destroy when done
-    dropdown.destroy();
 </script>
 
 </body>
