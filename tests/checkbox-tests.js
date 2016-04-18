@@ -59,22 +59,34 @@ module.exports = (function () {
         QUnit.ok(input.checked, 'input checked boolean returns true because that\'s how it was initially');
     });
 
-    QUnit.test('checking/unchecking callbacks', function() {
-        QUnit.expect(4);
+    QUnit.test('should trigger onChecked callback option with correct args when checked', function() {
+        QUnit.expect(2);
         var fixture = document.getElementById('qunit-fixture');
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
         var input = container.getElementsByClassName('ui-checkbox-input')[0];
         var onCheckedSpy = Sinon.spy();
-        var onUncheckedSpy = Sinon.spy();
-        var checkbox = new Checkbox({el: input, onChecked: onCheckedSpy, onUnchecked: onUncheckedSpy});
+        var checkbox = new Checkbox({el: input, onChecked: onCheckedSpy});
         var UICheckbox = container.getElementsByClassName('ui-checkbox')[0];
         checkbox.check();
         QUnit.deepEqual(onCheckedSpy.args[0], ['NY', input, UICheckbox], 'on check(), onChecked callback was fired with correct args');
-        QUnit.equal(onUncheckedSpy.callCount, 0, 'onUnchecked callback was NOT fired yet');
         checkbox.uncheck();
-        QUnit.deepEqual(onUncheckedSpy.args[0], ['NY', input, UICheckbox], 'on uncheck(), onUnchecked callback was fired with correct args');
         QUnit.equal(onCheckedSpy.callCount, 1, 'onChecked callback was NOT fired');
+        checkbox.destroy();
+    });
+
+    QUnit.test('should trigger onUnchecked callback option with empty string and correct args when unchecked', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var container = TestUtils.createHtmlElement(html);
+        fixture.appendChild(container);
+        var input = container.getElementsByClassName('ui-checkbox-input')[0];
+        var onUncheckedSpy = Sinon.spy();
+        var checkbox = new Checkbox({el: input, onUnchecked: onUncheckedSpy});
+        var UICheckbox = container.getElementsByClassName('ui-checkbox')[0];
+        checkbox.check();
+        checkbox.uncheck();
+        QUnit.deepEqual(onUncheckedSpy.args[0], ['', input, UICheckbox], 'on uncheck(), onUnchecked callback was fired with correct args');
         checkbox.destroy();
     });
 
@@ -201,32 +213,39 @@ module.exports = (function () {
         setAttrSpy.restore();
     });
 
-    QUnit.test('passing truthy value to setValue() should check the checkbox, and passing a falsy value should uncheck it', function() {
-        QUnit.expect(3);
+    QUnit.test('should set the value passed to setValue() onto the checkbox form element', function() {
+        QUnit.expect(1);
         var fixture = document.getElementById('qunit-fixture');
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
         var checkboxEl = container.getElementsByClassName('ui-checkbox-input')[0];
         var checkbox = new Checkbox({el: checkboxEl});
-        QUnit.ok(!checkboxEl.checked, 'not checked by default');
-        checkbox.setValue('true');
-        QUnit.equal(checkboxEl.checked, true);
-        checkbox.setValue(null);
-        QUnit.equal(checkboxEl.checked, false);
+        var testVal = 'blah';
+        checkbox.setValue(testVal);
+        QUnit.equal(checkboxEl.value, testVal);
         checkbox.destroy();
     });
 
-    QUnit.test('getValue() should return true when checkbox is checked and false when not', function() {
-        QUnit.expect(2);
+    QUnit.test('getValue() should return value of the checkbox when checked', function() {
+        QUnit.expect(1);
         var fixture = document.getElementById('qunit-fixture');
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
         var checkbox = new Checkbox({el: container.getElementsByClassName('ui-checkbox-input')[0]});
-        // check checkbox
         checkbox.check();
-        QUnit.equal(checkbox.getValue(), true);
+        QUnit.equal(checkbox.getValue(), 'NY');
+        checkbox.destroy();
+    });
+
+    QUnit.test('getValue() should return empty string when unchecked', function() {
+        QUnit.expect(1);
+        var fixture = document.getElementById('qunit-fixture');
+        var container = TestUtils.createHtmlElement(html);
+        fixture.appendChild(container);
+        var checkbox = new Checkbox({el: container.getElementsByClassName('ui-checkbox-input')[0]});
+        checkbox.check();
         checkbox.uncheck();
-        QUnit.equal(checkbox.getValue(), false);
+        QUnit.equal(checkbox.getValue(), '');
         checkbox.destroy();
     });
 
@@ -264,7 +283,7 @@ module.exports = (function () {
     });
 
     QUnit.test('clicking on ui element should trigger onChange callback option with correct args', function() {
-        QUnit.expect(2);
+        QUnit.expect(3);
         var fixture = document.getElementById('qunit-fixture');
         var container = TestUtils.createHtmlElement(html);
         fixture.appendChild(container);
@@ -274,7 +293,26 @@ module.exports = (function () {
         var UICheckbox = container.getElementsByClassName('ui-checkbox')[0];
         QUnit.equal(onChangeSpy.callCount, 0);
         UICheckbox.click();
-        QUnit.deepEqual(onChangeSpy.args[0], ['NY', input, UICheckbox]);
+        QUnit.deepEqual(onChangeSpy.args[0], [true, input, UICheckbox], 'onChange was called with truth value when clicked to check');
+        UICheckbox.click();
+        QUnit.deepEqual(onChangeSpy.args[1], [false, input, UICheckbox], 'onChange was called with false value when clicked to uncheck');
+        checkbox.destroy();
+    });
+
+    QUnit.test('clicking on input checkbox element should trigger onChange callback option with correct args', function() {
+        QUnit.expect(3);
+        var fixture = document.getElementById('qunit-fixture');
+        var container = TestUtils.createHtmlElement(html);
+        fixture.appendChild(container);
+        var input = container.getElementsByClassName('ui-checkbox-input')[0];
+        var onChangeSpy = Sinon.spy();
+        var checkbox = new Checkbox({el: input, onChange: onChangeSpy});
+        var UICheckbox = container.getElementsByClassName('ui-checkbox')[0];
+        QUnit.equal(onChangeSpy.callCount, 0);
+        input.click();
+        QUnit.deepEqual(onChangeSpy.args[0], [true, input, UICheckbox], 'onChange was called with truth value when clicked to check');
+        input.click();
+        QUnit.deepEqual(onChangeSpy.args[1], [false, input, UICheckbox], 'onChange was called with false value when clicked to uncheck');
         checkbox.destroy();
     });
 

@@ -179,7 +179,7 @@ class Checkbox extends FormElement {
             this.options.onChecked(value, input, container);
         }
         if (this.options.onChange) {
-            this.options.onChange(value, input, container);
+            this.options.onChange(true, input, container);
         }
     }
 
@@ -193,12 +193,11 @@ class Checkbox extends FormElement {
             input.checked = false;
         }
         container.classList.remove(this.options.checkedClass);
-        let value = this.getValue();
         if (this.options.onUnchecked) {
-            this.options.onUnchecked(value, input, container);
+            this.options.onUnchecked('', input, container);
         }
         if (this.options.onChange) {
-            this.options.onChange(value, input, container);
+            this.options.onChange(false, input, container);
         }
     }
 
@@ -251,20 +250,23 @@ class Checkbox extends FormElement {
 
     /**
      * Returns whether the checkbox is checked or not
-     * @returns {boolean} Returns a truthy value if checkbox is checked, falsy if not
+     * @returns {string} Returns the checkbox value attribute
      */
     getValue () {
-        return this.getFormElement().checked;
+        let formEl = this.getFormElement();
+        if (formEl.checked) {
+            return formEl.value;
+        } else {
+            return '';
+        }
     }
 
     /**
-     * Checks the checkbox if a truthy value is passed.
-     * @param {string|boolean} value
+     * Sets the checkbox value attribute.
+     * @param {string} value
      */
     setValue (value) {
-        // check it if the value is truthy
-        value = value ? true : false;
-        this.getFormElement().checked = value;
+        this.getFormElement().value = value;
     }
 
     /**
