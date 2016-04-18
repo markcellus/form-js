@@ -1,10 +1,6588 @@
 /** 
-* form-js - v3.2.2.
+* form-js - v4.0.0.
 * https://github.com/mkay581/form-js.git
 * Copyright 2016 Mark Kennedy. Licensed MIT.
 */
 
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Form = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = setTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    clearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        setTimeout(drainQueue, 0);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],2:[function(require,module,exports){
+(function (global){
+/* eslint max-len: 0 */
+
+"use strict";
+
+require("core-js/shim");
+
+require("babel-regenerator-runtime");
+
+// Should be removed in the next major release:
+
+require("core-js/fn/regexp/escape");
+
+if (global._babelPolyfill) {
+  throw new Error("only one instance of babel-polyfill is allowed");
+}
+global._babelPolyfill = true;
+
+var DEFINE_PROPERTY = "defineProperty";
+function define(O, key, value) {
+  O[key] || Object[DEFINE_PROPERTY](O, key, {
+    writable: true,
+    configurable: true,
+    value: value
+  });
+}
+
+define(String.prototype, "padLeft", "".padStart);
+define(String.prototype, "padRight", "".padEnd);
+
+"pop,reverse,shift,keys,values,entries,indexOf,every,some,forEach,map,filter,find,findIndex,includes,join,slice,concat,push,splice,unshift,sort,lastIndexOf,reduce,reduceRight,copyWithin,fill".split(",").forEach(function (key) {
+  [][key] && define(Array, key, Function.call.bind([][key]));
+});
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"babel-regenerator-runtime":291,"core-js/fn/regexp/escape":3,"core-js/shim":290}],3:[function(require,module,exports){
+require('../../modules/core.regexp.escape');
+module.exports = require('../../modules/_core').RegExp.escape;
+},{"../../modules/_core":23,"../../modules/core.regexp.escape":118}],4:[function(require,module,exports){
+module.exports = function(it){
+  if(typeof it != 'function')throw TypeError(it + ' is not a function!');
+  return it;
+};
+},{}],5:[function(require,module,exports){
+var cof = require('./_cof');
+module.exports = function(it, msg){
+  if(typeof it != 'number' && cof(it) != 'Number')throw TypeError(msg);
+  return +it;
+};
+},{"./_cof":18}],6:[function(require,module,exports){
+// 22.1.3.31 Array.prototype[@@unscopables]
+var UNSCOPABLES = require('./_wks')('unscopables')
+  , ArrayProto  = Array.prototype;
+if(ArrayProto[UNSCOPABLES] == undefined)require('./_hide')(ArrayProto, UNSCOPABLES, {});
+module.exports = function(key){
+  ArrayProto[UNSCOPABLES][key] = true;
+};
+},{"./_hide":40,"./_wks":115}],7:[function(require,module,exports){
+module.exports = function(it, Constructor, name, forbiddenField){
+  if(!(it instanceof Constructor) || (forbiddenField !== undefined && forbiddenField in it)){
+    throw TypeError(name + ': incorrect invocation!');
+  } return it;
+};
+},{}],8:[function(require,module,exports){
+var isObject = require('./_is-object');
+module.exports = function(it){
+  if(!isObject(it))throw TypeError(it + ' is not an object!');
+  return it;
+};
+},{"./_is-object":49}],9:[function(require,module,exports){
+// 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
+'use strict';
+var toObject = require('./_to-object')
+  , toIndex  = require('./_to-index')
+  , toLength = require('./_to-length');
+
+module.exports = [].copyWithin || function copyWithin(target/*= 0*/, start/*= 0, end = @length*/){
+  var O     = toObject(this)
+    , len   = toLength(O.length)
+    , to    = toIndex(target, len)
+    , from  = toIndex(start, len)
+    , end   = arguments.length > 2 ? arguments[2] : undefined
+    , count = Math.min((end === undefined ? len : toIndex(end, len)) - from, len - to)
+    , inc   = 1;
+  if(from < to && to < from + count){
+    inc  = -1;
+    from += count - 1;
+    to   += count - 1;
+  }
+  while(count-- > 0){
+    if(from in O)O[to] = O[from];
+    else delete O[to];
+    to   += inc;
+    from += inc;
+  } return O;
+};
+},{"./_to-index":105,"./_to-length":108,"./_to-object":109}],10:[function(require,module,exports){
+// 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
+'use strict';
+var toObject = require('./_to-object')
+  , toIndex  = require('./_to-index')
+  , toLength = require('./_to-length');
+module.exports = function fill(value /*, start = 0, end = @length */){
+  var O      = toObject(this)
+    , length = toLength(O.length)
+    , aLen   = arguments.length
+    , index  = toIndex(aLen > 1 ? arguments[1] : undefined, length)
+    , end    = aLen > 2 ? arguments[2] : undefined
+    , endPos = end === undefined ? length : toIndex(end, length);
+  while(endPos > index)O[index++] = value;
+  return O;
+};
+},{"./_to-index":105,"./_to-length":108,"./_to-object":109}],11:[function(require,module,exports){
+var forOf = require('./_for-of');
+
+module.exports = function(iter, ITERATOR){
+  var result = [];
+  forOf(iter, false, result.push, result, ITERATOR);
+  return result;
+};
+
+},{"./_for-of":37}],12:[function(require,module,exports){
+// false -> Array#indexOf
+// true  -> Array#includes
+var toIObject = require('./_to-iobject')
+  , toLength  = require('./_to-length')
+  , toIndex   = require('./_to-index');
+module.exports = function(IS_INCLUDES){
+  return function($this, el, fromIndex){
+    var O      = toIObject($this)
+      , length = toLength(O.length)
+      , index  = toIndex(fromIndex, length)
+      , value;
+    // Array#includes uses SameValueZero equality algorithm
+    if(IS_INCLUDES && el != el)while(length > index){
+      value = O[index++];
+      if(value != value)return true;
+    // Array#toIndex ignores holes, Array#includes - not
+    } else for(;length > index; index++)if(IS_INCLUDES || index in O){
+      if(O[index] === el)return IS_INCLUDES || index || 0;
+    } return !IS_INCLUDES && -1;
+  };
+};
+},{"./_to-index":105,"./_to-iobject":107,"./_to-length":108}],13:[function(require,module,exports){
+// 0 -> Array#forEach
+// 1 -> Array#map
+// 2 -> Array#filter
+// 3 -> Array#some
+// 4 -> Array#every
+// 5 -> Array#find
+// 6 -> Array#findIndex
+var ctx      = require('./_ctx')
+  , IObject  = require('./_iobject')
+  , toObject = require('./_to-object')
+  , toLength = require('./_to-length')
+  , asc      = require('./_array-species-create');
+module.exports = function(TYPE, $create){
+  var IS_MAP        = TYPE == 1
+    , IS_FILTER     = TYPE == 2
+    , IS_SOME       = TYPE == 3
+    , IS_EVERY      = TYPE == 4
+    , IS_FIND_INDEX = TYPE == 6
+    , NO_HOLES      = TYPE == 5 || IS_FIND_INDEX
+    , create        = $create || asc;
+  return function($this, callbackfn, that){
+    var O      = toObject($this)
+      , self   = IObject(O)
+      , f      = ctx(callbackfn, that, 3)
+      , length = toLength(self.length)
+      , index  = 0
+      , result = IS_MAP ? create($this, length) : IS_FILTER ? create($this, 0) : undefined
+      , val, res;
+    for(;length > index; index++)if(NO_HOLES || index in self){
+      val = self[index];
+      res = f(val, index, O);
+      if(TYPE){
+        if(IS_MAP)result[index] = res;            // map
+        else if(res)switch(TYPE){
+          case 3: return true;                    // some
+          case 5: return val;                     // find
+          case 6: return index;                   // findIndex
+          case 2: result.push(val);               // filter
+        } else if(IS_EVERY)return false;          // every
+      }
+    }
+    return IS_FIND_INDEX ? -1 : IS_SOME || IS_EVERY ? IS_EVERY : result;
+  };
+};
+},{"./_array-species-create":15,"./_ctx":25,"./_iobject":45,"./_to-length":108,"./_to-object":109}],14:[function(require,module,exports){
+var aFunction = require('./_a-function')
+  , toObject  = require('./_to-object')
+  , IObject   = require('./_iobject')
+  , toLength  = require('./_to-length');
+
+module.exports = function(that, callbackfn, aLen, memo, isRight){
+  aFunction(callbackfn);
+  var O      = toObject(that)
+    , self   = IObject(O)
+    , length = toLength(O.length)
+    , index  = isRight ? length - 1 : 0
+    , i      = isRight ? -1 : 1;
+  if(aLen < 2)for(;;){
+    if(index in self){
+      memo = self[index];
+      index += i;
+      break;
+    }
+    index += i;
+    if(isRight ? index < 0 : length <= index){
+      throw TypeError('Reduce of empty array with no initial value');
+    }
+  }
+  for(;isRight ? index >= 0 : length > index; index += i)if(index in self){
+    memo = callbackfn(memo, self[index], index, O);
+  }
+  return memo;
+};
+},{"./_a-function":4,"./_iobject":45,"./_to-length":108,"./_to-object":109}],15:[function(require,module,exports){
+// 9.4.2.3 ArraySpeciesCreate(originalArray, length)
+var isObject = require('./_is-object')
+  , isArray  = require('./_is-array')
+  , SPECIES  = require('./_wks')('species');
+module.exports = function(original, length){
+  var C;
+  if(isArray(original)){
+    C = original.constructor;
+    // cross-realm fallback
+    if(typeof C == 'function' && (C === Array || isArray(C.prototype)))C = undefined;
+    if(isObject(C)){
+      C = C[SPECIES];
+      if(C === null)C = undefined;
+    }
+  } return new (C === undefined ? Array : C)(length);
+};
+},{"./_is-array":47,"./_is-object":49,"./_wks":115}],16:[function(require,module,exports){
+'use strict';
+var aFunction  = require('./_a-function')
+  , isObject   = require('./_is-object')
+  , invoke     = require('./_invoke')
+  , arraySlice = [].slice
+  , factories  = {};
+
+var construct = function(F, len, args){
+  if(!(len in factories)){
+    for(var n = [], i = 0; i < len; i++)n[i] = 'a[' + i + ']';
+    factories[len] = Function('F,a', 'return new F(' + n.join(',') + ')');
+  } return factories[len](F, args);
+};
+
+module.exports = Function.bind || function bind(that /*, args... */){
+  var fn       = aFunction(this)
+    , partArgs = arraySlice.call(arguments, 1);
+  var bound = function(/* args... */){
+    var args = partArgs.concat(arraySlice.call(arguments));
+    return this instanceof bound ? construct(fn, args.length, args) : invoke(fn, args, that);
+  };
+  if(isObject(fn.prototype))bound.prototype = fn.prototype;
+  return bound;
+};
+},{"./_a-function":4,"./_invoke":44,"./_is-object":49}],17:[function(require,module,exports){
+// getting tag from 19.1.3.6 Object.prototype.toString()
+var cof = require('./_cof')
+  , TAG = require('./_wks')('toStringTag')
+  // ES3 wrong here
+  , ARG = cof(function(){ return arguments; }()) == 'Arguments';
+
+// fallback for IE11 Script Access Denied error
+var tryGet = function(it, key){
+  try {
+    return it[key];
+  } catch(e){ /* empty */ }
+};
+
+module.exports = function(it){
+  var O, T, B;
+  return it === undefined ? 'Undefined' : it === null ? 'Null'
+    // @@toStringTag case
+    : typeof (T = tryGet(O = Object(it), TAG)) == 'string' ? T
+    // builtinTag case
+    : ARG ? cof(O)
+    // ES3 arguments fallback
+    : (B = cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
+};
+},{"./_cof":18,"./_wks":115}],18:[function(require,module,exports){
+var toString = {}.toString;
+
+module.exports = function(it){
+  return toString.call(it).slice(8, -1);
+};
+},{}],19:[function(require,module,exports){
+'use strict';
+var dP          = require('./_object-dp').f
+  , create      = require('./_object-create')
+  , hide        = require('./_hide')
+  , redefineAll = require('./_redefine-all')
+  , ctx         = require('./_ctx')
+  , anInstance  = require('./_an-instance')
+  , defined     = require('./_defined')
+  , forOf       = require('./_for-of')
+  , $iterDefine = require('./_iter-define')
+  , step        = require('./_iter-step')
+  , setSpecies  = require('./_set-species')
+  , DESCRIPTORS = require('./_descriptors')
+  , fastKey     = require('./_meta').fastKey
+  , SIZE        = DESCRIPTORS ? '_s' : 'size';
+
+var getEntry = function(that, key){
+  // fast case
+  var index = fastKey(key), entry;
+  if(index !== 'F')return that._i[index];
+  // frozen object case
+  for(entry = that._f; entry; entry = entry.n){
+    if(entry.k == key)return entry;
+  }
+};
+
+module.exports = {
+  getConstructor: function(wrapper, NAME, IS_MAP, ADDER){
+    var C = wrapper(function(that, iterable){
+      anInstance(that, C, NAME, '_i');
+      that._i = create(null); // index
+      that._f = undefined;    // first entry
+      that._l = undefined;    // last entry
+      that[SIZE] = 0;         // size
+      if(iterable != undefined)forOf(iterable, IS_MAP, that[ADDER], that);
+    });
+    redefineAll(C.prototype, {
+      // 23.1.3.1 Map.prototype.clear()
+      // 23.2.3.2 Set.prototype.clear()
+      clear: function clear(){
+        for(var that = this, data = that._i, entry = that._f; entry; entry = entry.n){
+          entry.r = true;
+          if(entry.p)entry.p = entry.p.n = undefined;
+          delete data[entry.i];
+        }
+        that._f = that._l = undefined;
+        that[SIZE] = 0;
+      },
+      // 23.1.3.3 Map.prototype.delete(key)
+      // 23.2.3.4 Set.prototype.delete(value)
+      'delete': function(key){
+        var that  = this
+          , entry = getEntry(that, key);
+        if(entry){
+          var next = entry.n
+            , prev = entry.p;
+          delete that._i[entry.i];
+          entry.r = true;
+          if(prev)prev.n = next;
+          if(next)next.p = prev;
+          if(that._f == entry)that._f = next;
+          if(that._l == entry)that._l = prev;
+          that[SIZE]--;
+        } return !!entry;
+      },
+      // 23.2.3.6 Set.prototype.forEach(callbackfn, thisArg = undefined)
+      // 23.1.3.5 Map.prototype.forEach(callbackfn, thisArg = undefined)
+      forEach: function forEach(callbackfn /*, that = undefined */){
+        anInstance(this, C, 'forEach');
+        var f = ctx(callbackfn, arguments.length > 1 ? arguments[1] : undefined, 3)
+          , entry;
+        while(entry = entry ? entry.n : this._f){
+          f(entry.v, entry.k, this);
+          // revert to the last existing entry
+          while(entry && entry.r)entry = entry.p;
+        }
+      },
+      // 23.1.3.7 Map.prototype.has(key)
+      // 23.2.3.7 Set.prototype.has(value)
+      has: function has(key){
+        return !!getEntry(this, key);
+      }
+    });
+    if(DESCRIPTORS)dP(C.prototype, 'size', {
+      get: function(){
+        return defined(this[SIZE]);
+      }
+    });
+    return C;
+  },
+  def: function(that, key, value){
+    var entry = getEntry(that, key)
+      , prev, index;
+    // change existing entry
+    if(entry){
+      entry.v = value;
+    // create new entry
+    } else {
+      that._l = entry = {
+        i: index = fastKey(key, true), // <- index
+        k: key,                        // <- key
+        v: value,                      // <- value
+        p: prev = that._l,             // <- previous entry
+        n: undefined,                  // <- next entry
+        r: false                       // <- removed
+      };
+      if(!that._f)that._f = entry;
+      if(prev)prev.n = entry;
+      that[SIZE]++;
+      // add to index
+      if(index !== 'F')that._i[index] = entry;
+    } return that;
+  },
+  getEntry: getEntry,
+  setStrong: function(C, NAME, IS_MAP){
+    // add .keys, .values, .entries, [@@iterator]
+    // 23.1.3.4, 23.1.3.8, 23.1.3.11, 23.1.3.12, 23.2.3.5, 23.2.3.8, 23.2.3.10, 23.2.3.11
+    $iterDefine(C, NAME, function(iterated, kind){
+      this._t = iterated;  // target
+      this._k = kind;      // kind
+      this._l = undefined; // previous
+    }, function(){
+      var that  = this
+        , kind  = that._k
+        , entry = that._l;
+      // revert to the last existing entry
+      while(entry && entry.r)entry = entry.p;
+      // get next entry
+      if(!that._t || !(that._l = entry = entry ? entry.n : that._t._f)){
+        // or finish the iteration
+        that._t = undefined;
+        return step(1);
+      }
+      // return step by kind
+      if(kind == 'keys'  )return step(0, entry.k);
+      if(kind == 'values')return step(0, entry.v);
+      return step(0, [entry.k, entry.v]);
+    }, IS_MAP ? 'entries' : 'values' , !IS_MAP, true);
+
+    // add [@@species], 23.1.2.2, 23.2.2.2
+    setSpecies(NAME);
+  }
+};
+},{"./_an-instance":7,"./_ctx":25,"./_defined":27,"./_descriptors":28,"./_for-of":37,"./_hide":40,"./_iter-define":53,"./_iter-step":55,"./_meta":62,"./_object-create":66,"./_object-dp":67,"./_redefine-all":86,"./_set-species":91}],20:[function(require,module,exports){
+// https://github.com/DavidBruant/Map-Set.prototype.toJSON
+var classof = require('./_classof')
+  , from    = require('./_array-from-iterable');
+module.exports = function(NAME){
+  return function toJSON(){
+    if(classof(this) != NAME)throw TypeError(NAME + "#toJSON isn't generic");
+    return from(this);
+  };
+};
+},{"./_array-from-iterable":11,"./_classof":17}],21:[function(require,module,exports){
+'use strict';
+var redefineAll       = require('./_redefine-all')
+  , getWeak           = require('./_meta').getWeak
+  , anObject          = require('./_an-object')
+  , isObject          = require('./_is-object')
+  , anInstance        = require('./_an-instance')
+  , forOf             = require('./_for-of')
+  , createArrayMethod = require('./_array-methods')
+  , $has              = require('./_has')
+  , arrayFind         = createArrayMethod(5)
+  , arrayFindIndex    = createArrayMethod(6)
+  , id                = 0;
+
+// fallback for uncaught frozen keys
+var uncaughtFrozenStore = function(that){
+  return that._l || (that._l = new UncaughtFrozenStore);
+};
+var UncaughtFrozenStore = function(){
+  this.a = [];
+};
+var findUncaughtFrozen = function(store, key){
+  return arrayFind(store.a, function(it){
+    return it[0] === key;
+  });
+};
+UncaughtFrozenStore.prototype = {
+  get: function(key){
+    var entry = findUncaughtFrozen(this, key);
+    if(entry)return entry[1];
+  },
+  has: function(key){
+    return !!findUncaughtFrozen(this, key);
+  },
+  set: function(key, value){
+    var entry = findUncaughtFrozen(this, key);
+    if(entry)entry[1] = value;
+    else this.a.push([key, value]);
+  },
+  'delete': function(key){
+    var index = arrayFindIndex(this.a, function(it){
+      return it[0] === key;
+    });
+    if(~index)this.a.splice(index, 1);
+    return !!~index;
+  }
+};
+
+module.exports = {
+  getConstructor: function(wrapper, NAME, IS_MAP, ADDER){
+    var C = wrapper(function(that, iterable){
+      anInstance(that, C, NAME, '_i');
+      that._i = id++;      // collection id
+      that._l = undefined; // leak store for uncaught frozen objects
+      if(iterable != undefined)forOf(iterable, IS_MAP, that[ADDER], that);
+    });
+    redefineAll(C.prototype, {
+      // 23.3.3.2 WeakMap.prototype.delete(key)
+      // 23.4.3.3 WeakSet.prototype.delete(value)
+      'delete': function(key){
+        if(!isObject(key))return false;
+        var data = getWeak(key);
+        if(data === true)return uncaughtFrozenStore(this)['delete'](key);
+        return data && $has(data, this._i) && delete data[this._i];
+      },
+      // 23.3.3.4 WeakMap.prototype.has(key)
+      // 23.4.3.4 WeakSet.prototype.has(value)
+      has: function has(key){
+        if(!isObject(key))return false;
+        var data = getWeak(key);
+        if(data === true)return uncaughtFrozenStore(this).has(key);
+        return data && $has(data, this._i);
+      }
+    });
+    return C;
+  },
+  def: function(that, key, value){
+    var data = getWeak(anObject(key), true);
+    if(data === true)uncaughtFrozenStore(that).set(key, value);
+    else data[that._i] = value;
+    return that;
+  },
+  ufstore: uncaughtFrozenStore
+};
+},{"./_an-instance":7,"./_an-object":8,"./_array-methods":13,"./_for-of":37,"./_has":39,"./_is-object":49,"./_meta":62,"./_redefine-all":86}],22:[function(require,module,exports){
+'use strict';
+var global            = require('./_global')
+  , $export           = require('./_export')
+  , redefine          = require('./_redefine')
+  , redefineAll       = require('./_redefine-all')
+  , meta              = require('./_meta')
+  , forOf             = require('./_for-of')
+  , anInstance        = require('./_an-instance')
+  , isObject          = require('./_is-object')
+  , fails             = require('./_fails')
+  , $iterDetect       = require('./_iter-detect')
+  , setToStringTag    = require('./_set-to-string-tag')
+  , inheritIfRequired = require('./_inherit-if-required');
+
+module.exports = function(NAME, wrapper, methods, common, IS_MAP, IS_WEAK){
+  var Base  = global[NAME]
+    , C     = Base
+    , ADDER = IS_MAP ? 'set' : 'add'
+    , proto = C && C.prototype
+    , O     = {};
+  var fixMethod = function(KEY){
+    var fn = proto[KEY];
+    redefine(proto, KEY,
+      KEY == 'delete' ? function(a){
+        return IS_WEAK && !isObject(a) ? false : fn.call(this, a === 0 ? 0 : a);
+      } : KEY == 'has' ? function has(a){
+        return IS_WEAK && !isObject(a) ? false : fn.call(this, a === 0 ? 0 : a);
+      } : KEY == 'get' ? function get(a){
+        return IS_WEAK && !isObject(a) ? undefined : fn.call(this, a === 0 ? 0 : a);
+      } : KEY == 'add' ? function add(a){ fn.call(this, a === 0 ? 0 : a); return this; }
+        : function set(a, b){ fn.call(this, a === 0 ? 0 : a, b); return this; }
+    );
+  };
+  if(typeof C != 'function' || !(IS_WEAK || proto.forEach && !fails(function(){
+    new C().entries().next();
+  }))){
+    // create collection constructor
+    C = common.getConstructor(wrapper, NAME, IS_MAP, ADDER);
+    redefineAll(C.prototype, methods);
+    meta.NEED = true;
+  } else {
+    var instance             = new C
+      // early implementations not supports chaining
+      , HASNT_CHAINING       = instance[ADDER](IS_WEAK ? {} : -0, 1) != instance
+      // V8 ~  Chromium 40- weak-collections throws on primitives, but should return false
+      , THROWS_ON_PRIMITIVES = fails(function(){ instance.has(1); })
+      // most early implementations doesn't supports iterables, most modern - not close it correctly
+      , ACCEPT_ITERABLES     = $iterDetect(function(iter){ new C(iter); }) // eslint-disable-line no-new
+      // for early implementations -0 and +0 not the same
+      , BUGGY_ZERO = !IS_WEAK && fails(function(){
+        // V8 ~ Chromium 42- fails only with 5+ elements
+        var $instance = new C()
+          , index     = 5;
+        while(index--)$instance[ADDER](index, index);
+        return !$instance.has(-0);
+      });
+    if(!ACCEPT_ITERABLES){ 
+      C = wrapper(function(target, iterable){
+        anInstance(target, C, NAME);
+        var that = inheritIfRequired(new Base, target, C);
+        if(iterable != undefined)forOf(iterable, IS_MAP, that[ADDER], that);
+        return that;
+      });
+      C.prototype = proto;
+      proto.constructor = C;
+    }
+    if(THROWS_ON_PRIMITIVES || BUGGY_ZERO){
+      fixMethod('delete');
+      fixMethod('has');
+      IS_MAP && fixMethod('get');
+    }
+    if(BUGGY_ZERO || HASNT_CHAINING)fixMethod(ADDER);
+    // weak collections should not contains .clear method
+    if(IS_WEAK && proto.clear)delete proto.clear;
+  }
+
+  setToStringTag(C, NAME);
+
+  O[NAME] = C;
+  $export($export.G + $export.W + $export.F * (C != Base), O);
+
+  if(!IS_WEAK)common.setStrong(C, NAME, IS_MAP);
+
+  return C;
+};
+},{"./_an-instance":7,"./_export":32,"./_fails":34,"./_for-of":37,"./_global":38,"./_inherit-if-required":43,"./_is-object":49,"./_iter-detect":54,"./_meta":62,"./_redefine":87,"./_redefine-all":86,"./_set-to-string-tag":92}],23:[function(require,module,exports){
+var core = module.exports = {version: '2.2.2'};
+if(typeof __e == 'number')__e = core; // eslint-disable-line no-undef
+},{}],24:[function(require,module,exports){
+'use strict';
+var $defineProperty = require('./_object-dp')
+  , createDesc      = require('./_property-desc');
+
+module.exports = function(object, index, value){
+  if(index in object)$defineProperty.f(object, index, createDesc(0, value));
+  else object[index] = value;
+};
+},{"./_object-dp":67,"./_property-desc":85}],25:[function(require,module,exports){
+// optional / simple context binding
+var aFunction = require('./_a-function');
+module.exports = function(fn, that, length){
+  aFunction(fn);
+  if(that === undefined)return fn;
+  switch(length){
+    case 1: return function(a){
+      return fn.call(that, a);
+    };
+    case 2: return function(a, b){
+      return fn.call(that, a, b);
+    };
+    case 3: return function(a, b, c){
+      return fn.call(that, a, b, c);
+    };
+  }
+  return function(/* ...args */){
+    return fn.apply(that, arguments);
+  };
+};
+},{"./_a-function":4}],26:[function(require,module,exports){
+'use strict';
+var anObject    = require('./_an-object')
+  , toPrimitive = require('./_to-primitive')
+  , NUMBER      = 'number';
+
+module.exports = function(hint){
+  if(hint !== 'string' && hint !== NUMBER && hint !== 'default')throw TypeError('Incorrect hint');
+  return toPrimitive(anObject(this), hint != NUMBER);
+};
+},{"./_an-object":8,"./_to-primitive":110}],27:[function(require,module,exports){
+// 7.2.1 RequireObjectCoercible(argument)
+module.exports = function(it){
+  if(it == undefined)throw TypeError("Can't call method on  " + it);
+  return it;
+};
+},{}],28:[function(require,module,exports){
+// Thank's IE8 for his funny defineProperty
+module.exports = !require('./_fails')(function(){
+  return Object.defineProperty({}, 'a', {get: function(){ return 7; }}).a != 7;
+});
+},{"./_fails":34}],29:[function(require,module,exports){
+var isObject = require('./_is-object')
+  , document = require('./_global').document
+  // in old IE typeof document.createElement is 'object'
+  , is = isObject(document) && isObject(document.createElement);
+module.exports = function(it){
+  return is ? document.createElement(it) : {};
+};
+},{"./_global":38,"./_is-object":49}],30:[function(require,module,exports){
+// IE 8- don't enum bug keys
+module.exports = (
+  'constructor,hasOwnProperty,isPrototypeOf,propertyIsEnumerable,toLocaleString,toString,valueOf'
+).split(',');
+},{}],31:[function(require,module,exports){
+// all enumerable object keys, includes symbols
+var getKeys = require('./_object-keys')
+  , gOPS    = require('./_object-gops')
+  , pIE     = require('./_object-pie');
+module.exports = function(it){
+  var result     = getKeys(it)
+    , getSymbols = gOPS.f;
+  if(getSymbols){
+    var symbols = getSymbols(it)
+      , isEnum  = pIE.f
+      , i       = 0
+      , key;
+    while(symbols.length > i)if(isEnum.call(it, key = symbols[i++]))result.push(key);
+  } return result;
+};
+},{"./_object-gops":73,"./_object-keys":76,"./_object-pie":77}],32:[function(require,module,exports){
+var global    = require('./_global')
+  , core      = require('./_core')
+  , hide      = require('./_hide')
+  , redefine  = require('./_redefine')
+  , ctx       = require('./_ctx')
+  , PROTOTYPE = 'prototype';
+
+var $export = function(type, name, source){
+  var IS_FORCED = type & $export.F
+    , IS_GLOBAL = type & $export.G
+    , IS_STATIC = type & $export.S
+    , IS_PROTO  = type & $export.P
+    , IS_BIND   = type & $export.B
+    , target    = IS_GLOBAL ? global : IS_STATIC ? global[name] || (global[name] = {}) : (global[name] || {})[PROTOTYPE]
+    , exports   = IS_GLOBAL ? core : core[name] || (core[name] = {})
+    , expProto  = exports[PROTOTYPE] || (exports[PROTOTYPE] = {})
+    , key, own, out, exp;
+  if(IS_GLOBAL)source = name;
+  for(key in source){
+    // contains in native
+    own = !IS_FORCED && target && target[key] !== undefined;
+    // export native or passed
+    out = (own ? target : source)[key];
+    // bind timers to global for call from export context
+    exp = IS_BIND && own ? ctx(out, global) : IS_PROTO && typeof out == 'function' ? ctx(Function.call, out) : out;
+    // extend global
+    if(target)redefine(target, key, out, type & $export.U);
+    // export
+    if(exports[key] != out)hide(exports, key, exp);
+    if(IS_PROTO && expProto[key] != out)expProto[key] = out;
+  }
+};
+global.core = core;
+// type bitmap
+$export.F = 1;   // forced
+$export.G = 2;   // global
+$export.S = 4;   // static
+$export.P = 8;   // proto
+$export.B = 16;  // bind
+$export.W = 32;  // wrap
+$export.U = 64;  // safe
+$export.R = 128; // real proto method for `library` 
+module.exports = $export;
+},{"./_core":23,"./_ctx":25,"./_global":38,"./_hide":40,"./_redefine":87}],33:[function(require,module,exports){
+var MATCH = require('./_wks')('match');
+module.exports = function(KEY){
+  var re = /./;
+  try {
+    '/./'[KEY](re);
+  } catch(e){
+    try {
+      re[MATCH] = false;
+      return !'/./'[KEY](re);
+    } catch(f){ /* empty */ }
+  } return true;
+};
+},{"./_wks":115}],34:[function(require,module,exports){
+module.exports = function(exec){
+  try {
+    return !!exec();
+  } catch(e){
+    return true;
+  }
+};
+},{}],35:[function(require,module,exports){
+'use strict';
+var hide     = require('./_hide')
+  , redefine = require('./_redefine')
+  , fails    = require('./_fails')
+  , defined  = require('./_defined')
+  , wks      = require('./_wks');
+
+module.exports = function(KEY, length, exec){
+  var SYMBOL   = wks(KEY)
+    , fns      = exec(defined, SYMBOL, ''[KEY])
+    , strfn    = fns[0]
+    , rxfn     = fns[1];
+  if(fails(function(){
+    var O = {};
+    O[SYMBOL] = function(){ return 7; };
+    return ''[KEY](O) != 7;
+  })){
+    redefine(String.prototype, KEY, strfn);
+    hide(RegExp.prototype, SYMBOL, length == 2
+      // 21.2.5.8 RegExp.prototype[@@replace](string, replaceValue)
+      // 21.2.5.11 RegExp.prototype[@@split](string, limit)
+      ? function(string, arg){ return rxfn.call(string, this, arg); }
+      // 21.2.5.6 RegExp.prototype[@@match](string)
+      // 21.2.5.9 RegExp.prototype[@@search](string)
+      : function(string){ return rxfn.call(string, this); }
+    );
+  }
+};
+},{"./_defined":27,"./_fails":34,"./_hide":40,"./_redefine":87,"./_wks":115}],36:[function(require,module,exports){
+'use strict';
+// 21.2.5.3 get RegExp.prototype.flags
+var anObject = require('./_an-object');
+module.exports = function(){
+  var that   = anObject(this)
+    , result = '';
+  if(that.global)     result += 'g';
+  if(that.ignoreCase) result += 'i';
+  if(that.multiline)  result += 'm';
+  if(that.unicode)    result += 'u';
+  if(that.sticky)     result += 'y';
+  return result;
+};
+},{"./_an-object":8}],37:[function(require,module,exports){
+var ctx         = require('./_ctx')
+  , call        = require('./_iter-call')
+  , isArrayIter = require('./_is-array-iter')
+  , anObject    = require('./_an-object')
+  , toLength    = require('./_to-length')
+  , getIterFn   = require('./core.get-iterator-method');
+module.exports = function(iterable, entries, fn, that, ITERATOR){
+  var iterFn = ITERATOR ? function(){ return iterable; } : getIterFn(iterable)
+    , f      = ctx(fn, that, entries ? 2 : 1)
+    , index  = 0
+    , length, step, iterator;
+  if(typeof iterFn != 'function')throw TypeError(iterable + ' is not iterable!');
+  // fast case for arrays with default iterator
+  if(isArrayIter(iterFn))for(length = toLength(iterable.length); length > index; index++){
+    entries ? f(anObject(step = iterable[index])[0], step[1]) : f(iterable[index]);
+  } else for(iterator = iterFn.call(iterable); !(step = iterator.next()).done; ){
+    call(iterator, f, step.value, entries);
+  }
+};
+},{"./_an-object":8,"./_ctx":25,"./_is-array-iter":46,"./_iter-call":51,"./_to-length":108,"./core.get-iterator-method":116}],38:[function(require,module,exports){
+// https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
+var global = module.exports = typeof window != 'undefined' && window.Math == Math
+  ? window : typeof self != 'undefined' && self.Math == Math ? self : Function('return this')();
+if(typeof __g == 'number')__g = global; // eslint-disable-line no-undef
+},{}],39:[function(require,module,exports){
+var hasOwnProperty = {}.hasOwnProperty;
+module.exports = function(it, key){
+  return hasOwnProperty.call(it, key);
+};
+},{}],40:[function(require,module,exports){
+var dP         = require('./_object-dp')
+  , createDesc = require('./_property-desc');
+module.exports = require('./_descriptors') ? function(object, key, value){
+  return dP.f(object, key, createDesc(1, value));
+} : function(object, key, value){
+  object[key] = value;
+  return object;
+};
+},{"./_descriptors":28,"./_object-dp":67,"./_property-desc":85}],41:[function(require,module,exports){
+module.exports = require('./_global').document && document.documentElement;
+},{"./_global":38}],42:[function(require,module,exports){
+module.exports = !require('./_descriptors') && !require('./_fails')(function(){
+  return Object.defineProperty(require('./_dom-create')('div'), 'a', {get: function(){ return 7; }}).a != 7;
+});
+},{"./_descriptors":28,"./_dom-create":29,"./_fails":34}],43:[function(require,module,exports){
+var isObject       = require('./_is-object')
+  , setPrototypeOf = require('./_set-proto').set;
+module.exports = function(that, target, C){
+  var P, S = target.constructor;
+  if(S !== C && typeof S == 'function' && (P = S.prototype) !== C.prototype && isObject(P) && setPrototypeOf){
+    setPrototypeOf(that, P);
+  } return that;
+};
+},{"./_is-object":49,"./_set-proto":90}],44:[function(require,module,exports){
+// fast apply, http://jsperf.lnkit.com/fast-apply/5
+module.exports = function(fn, args, that){
+  var un = that === undefined;
+  switch(args.length){
+    case 0: return un ? fn()
+                      : fn.call(that);
+    case 1: return un ? fn(args[0])
+                      : fn.call(that, args[0]);
+    case 2: return un ? fn(args[0], args[1])
+                      : fn.call(that, args[0], args[1]);
+    case 3: return un ? fn(args[0], args[1], args[2])
+                      : fn.call(that, args[0], args[1], args[2]);
+    case 4: return un ? fn(args[0], args[1], args[2], args[3])
+                      : fn.call(that, args[0], args[1], args[2], args[3]);
+  } return              fn.apply(that, args);
+};
+},{}],45:[function(require,module,exports){
+// fallback for non-array-like ES3 and non-enumerable old V8 strings
+var cof = require('./_cof');
+module.exports = Object('z').propertyIsEnumerable(0) ? Object : function(it){
+  return cof(it) == 'String' ? it.split('') : Object(it);
+};
+},{"./_cof":18}],46:[function(require,module,exports){
+// check on default Array iterator
+var Iterators  = require('./_iterators')
+  , ITERATOR   = require('./_wks')('iterator')
+  , ArrayProto = Array.prototype;
+
+module.exports = function(it){
+  return it !== undefined && (Iterators.Array === it || ArrayProto[ITERATOR] === it);
+};
+},{"./_iterators":56,"./_wks":115}],47:[function(require,module,exports){
+// 7.2.2 IsArray(argument)
+var cof = require('./_cof');
+module.exports = Array.isArray || function isArray(arg){
+  return cof(arg) == 'Array';
+};
+},{"./_cof":18}],48:[function(require,module,exports){
+// 20.1.2.3 Number.isInteger(number)
+var isObject = require('./_is-object')
+  , floor    = Math.floor;
+module.exports = function isInteger(it){
+  return !isObject(it) && isFinite(it) && floor(it) === it;
+};
+},{"./_is-object":49}],49:[function(require,module,exports){
+module.exports = function(it){
+  return typeof it === 'object' ? it !== null : typeof it === 'function';
+};
+},{}],50:[function(require,module,exports){
+// 7.2.8 IsRegExp(argument)
+var isObject = require('./_is-object')
+  , cof      = require('./_cof')
+  , MATCH    = require('./_wks')('match');
+module.exports = function(it){
+  var isRegExp;
+  return isObject(it) && ((isRegExp = it[MATCH]) !== undefined ? !!isRegExp : cof(it) == 'RegExp');
+};
+},{"./_cof":18,"./_is-object":49,"./_wks":115}],51:[function(require,module,exports){
+// call something on iterator step with safe closing on error
+var anObject = require('./_an-object');
+module.exports = function(iterator, fn, value, entries){
+  try {
+    return entries ? fn(anObject(value)[0], value[1]) : fn(value);
+  // 7.4.6 IteratorClose(iterator, completion)
+  } catch(e){
+    var ret = iterator['return'];
+    if(ret !== undefined)anObject(ret.call(iterator));
+    throw e;
+  }
+};
+},{"./_an-object":8}],52:[function(require,module,exports){
+'use strict';
+var create         = require('./_object-create')
+  , descriptor     = require('./_property-desc')
+  , setToStringTag = require('./_set-to-string-tag')
+  , IteratorPrototype = {};
+
+// 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
+require('./_hide')(IteratorPrototype, require('./_wks')('iterator'), function(){ return this; });
+
+module.exports = function(Constructor, NAME, next){
+  Constructor.prototype = create(IteratorPrototype, {next: descriptor(1, next)});
+  setToStringTag(Constructor, NAME + ' Iterator');
+};
+},{"./_hide":40,"./_object-create":66,"./_property-desc":85,"./_set-to-string-tag":92,"./_wks":115}],53:[function(require,module,exports){
+'use strict';
+var LIBRARY        = require('./_library')
+  , $export        = require('./_export')
+  , redefine       = require('./_redefine')
+  , hide           = require('./_hide')
+  , has            = require('./_has')
+  , Iterators      = require('./_iterators')
+  , $iterCreate    = require('./_iter-create')
+  , setToStringTag = require('./_set-to-string-tag')
+  , getPrototypeOf = require('./_object-gpo')
+  , ITERATOR       = require('./_wks')('iterator')
+  , BUGGY          = !([].keys && 'next' in [].keys()) // Safari has buggy iterators w/o `next`
+  , FF_ITERATOR    = '@@iterator'
+  , KEYS           = 'keys'
+  , VALUES         = 'values';
+
+var returnThis = function(){ return this; };
+
+module.exports = function(Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCED){
+  $iterCreate(Constructor, NAME, next);
+  var getMethod = function(kind){
+    if(!BUGGY && kind in proto)return proto[kind];
+    switch(kind){
+      case KEYS: return function keys(){ return new Constructor(this, kind); };
+      case VALUES: return function values(){ return new Constructor(this, kind); };
+    } return function entries(){ return new Constructor(this, kind); };
+  };
+  var TAG        = NAME + ' Iterator'
+    , DEF_VALUES = DEFAULT == VALUES
+    , VALUES_BUG = false
+    , proto      = Base.prototype
+    , $native    = proto[ITERATOR] || proto[FF_ITERATOR] || DEFAULT && proto[DEFAULT]
+    , $default   = $native || getMethod(DEFAULT)
+    , $entries   = DEFAULT ? !DEF_VALUES ? $default : getMethod('entries') : undefined
+    , $anyNative = NAME == 'Array' ? proto.entries || $native : $native
+    , methods, key, IteratorPrototype;
+  // Fix native
+  if($anyNative){
+    IteratorPrototype = getPrototypeOf($anyNative.call(new Base));
+    if(IteratorPrototype !== Object.prototype){
+      // Set @@toStringTag to native iterators
+      setToStringTag(IteratorPrototype, TAG, true);
+      // fix for some old engines
+      if(!LIBRARY && !has(IteratorPrototype, ITERATOR))hide(IteratorPrototype, ITERATOR, returnThis);
+    }
+  }
+  // fix Array#{values, @@iterator}.name in V8 / FF
+  if(DEF_VALUES && $native && $native.name !== VALUES){
+    VALUES_BUG = true;
+    $default = function values(){ return $native.call(this); };
+  }
+  // Define iterator
+  if((!LIBRARY || FORCED) && (BUGGY || VALUES_BUG || !proto[ITERATOR])){
+    hide(proto, ITERATOR, $default);
+  }
+  // Plug for library
+  Iterators[NAME] = $default;
+  Iterators[TAG]  = returnThis;
+  if(DEFAULT){
+    methods = {
+      values:  DEF_VALUES ? $default : getMethod(VALUES),
+      keys:    IS_SET     ? $default : getMethod(KEYS),
+      entries: $entries
+    };
+    if(FORCED)for(key in methods){
+      if(!(key in proto))redefine(proto, key, methods[key]);
+    } else $export($export.P + $export.F * (BUGGY || VALUES_BUG), NAME, methods);
+  }
+  return methods;
+};
+},{"./_export":32,"./_has":39,"./_hide":40,"./_iter-create":52,"./_iterators":56,"./_library":58,"./_object-gpo":74,"./_redefine":87,"./_set-to-string-tag":92,"./_wks":115}],54:[function(require,module,exports){
+var ITERATOR     = require('./_wks')('iterator')
+  , SAFE_CLOSING = false;
+
+try {
+  var riter = [7][ITERATOR]();
+  riter['return'] = function(){ SAFE_CLOSING = true; };
+  Array.from(riter, function(){ throw 2; });
+} catch(e){ /* empty */ }
+
+module.exports = function(exec, skipClosing){
+  if(!skipClosing && !SAFE_CLOSING)return false;
+  var safe = false;
+  try {
+    var arr  = [7]
+      , iter = arr[ITERATOR]();
+    iter.next = function(){ return {done: safe = true}; };
+    arr[ITERATOR] = function(){ return iter; };
+    exec(arr);
+  } catch(e){ /* empty */ }
+  return safe;
+};
+},{"./_wks":115}],55:[function(require,module,exports){
+module.exports = function(done, value){
+  return {value: value, done: !!done};
+};
+},{}],56:[function(require,module,exports){
+module.exports = {};
+},{}],57:[function(require,module,exports){
+var getKeys   = require('./_object-keys')
+  , toIObject = require('./_to-iobject');
+module.exports = function(object, el){
+  var O      = toIObject(object)
+    , keys   = getKeys(O)
+    , length = keys.length
+    , index  = 0
+    , key;
+  while(length > index)if(O[key = keys[index++]] === el)return key;
+};
+},{"./_object-keys":76,"./_to-iobject":107}],58:[function(require,module,exports){
+module.exports = false;
+},{}],59:[function(require,module,exports){
+// 20.2.2.14 Math.expm1(x)
+var $expm1 = Math.expm1;
+module.exports = (!$expm1
+  // Old FF bug
+  || $expm1(10) > 22025.465794806719 || $expm1(10) < 22025.4657948067165168
+  // Tor Browser bug
+  || $expm1(-2e-17) != -2e-17
+) ? function expm1(x){
+  return (x = +x) == 0 ? x : x > -1e-6 && x < 1e-6 ? x + x * x / 2 : Math.exp(x) - 1;
+} : $expm1;
+},{}],60:[function(require,module,exports){
+// 20.2.2.20 Math.log1p(x)
+module.exports = Math.log1p || function log1p(x){
+  return (x = +x) > -1e-8 && x < 1e-8 ? x - x * x / 2 : Math.log(1 + x);
+};
+},{}],61:[function(require,module,exports){
+// 20.2.2.28 Math.sign(x)
+module.exports = Math.sign || function sign(x){
+  return (x = +x) == 0 || x != x ? x : x < 0 ? -1 : 1;
+};
+},{}],62:[function(require,module,exports){
+var META     = require('./_uid')('meta')
+  , isObject = require('./_is-object')
+  , has      = require('./_has')
+  , setDesc  = require('./_object-dp').f
+  , id       = 0;
+var isExtensible = Object.isExtensible || function(){
+  return true;
+};
+var FREEZE = !require('./_fails')(function(){
+  return isExtensible(Object.preventExtensions({}));
+});
+var setMeta = function(it){
+  setDesc(it, META, {value: {
+    i: 'O' + ++id, // object ID
+    w: {}          // weak collections IDs
+  }});
+};
+var fastKey = function(it, create){
+  // return primitive with prefix
+  if(!isObject(it))return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
+  if(!has(it, META)){
+    // can't set metadata to uncaught frozen object
+    if(!isExtensible(it))return 'F';
+    // not necessary to add metadata
+    if(!create)return 'E';
+    // add missing metadata
+    setMeta(it);
+  // return object ID
+  } return it[META].i;
+};
+var getWeak = function(it, create){
+  if(!has(it, META)){
+    // can't set metadata to uncaught frozen object
+    if(!isExtensible(it))return true;
+    // not necessary to add metadata
+    if(!create)return false;
+    // add missing metadata
+    setMeta(it);
+  // return hash weak collections IDs
+  } return it[META].w;
+};
+// add metadata on freeze-family methods calling
+var onFreeze = function(it){
+  if(FREEZE && meta.NEED && isExtensible(it) && !has(it, META))setMeta(it);
+  return it;
+};
+var meta = module.exports = {
+  KEY:      META,
+  NEED:     false,
+  fastKey:  fastKey,
+  getWeak:  getWeak,
+  onFreeze: onFreeze
+};
+},{"./_fails":34,"./_has":39,"./_is-object":49,"./_object-dp":67,"./_uid":114}],63:[function(require,module,exports){
+var Map     = require('./es6.map')
+  , $export = require('./_export')
+  , shared  = require('./_shared')('metadata')
+  , store   = shared.store || (shared.store = new (require('./es6.weak-map')));
+
+var getOrCreateMetadataMap = function(target, targetKey, create){
+  var targetMetadata = store.get(target);
+  if(!targetMetadata){
+    if(!create)return undefined;
+    store.set(target, targetMetadata = new Map);
+  }
+  var keyMetadata = targetMetadata.get(targetKey);
+  if(!keyMetadata){
+    if(!create)return undefined;
+    targetMetadata.set(targetKey, keyMetadata = new Map);
+  } return keyMetadata;
+};
+var ordinaryHasOwnMetadata = function(MetadataKey, O, P){
+  var metadataMap = getOrCreateMetadataMap(O, P, false);
+  return metadataMap === undefined ? false : metadataMap.has(MetadataKey);
+};
+var ordinaryGetOwnMetadata = function(MetadataKey, O, P){
+  var metadataMap = getOrCreateMetadataMap(O, P, false);
+  return metadataMap === undefined ? undefined : metadataMap.get(MetadataKey);
+};
+var ordinaryDefineOwnMetadata = function(MetadataKey, MetadataValue, O, P){
+  getOrCreateMetadataMap(O, P, true).set(MetadataKey, MetadataValue);
+};
+var ordinaryOwnMetadataKeys = function(target, targetKey){
+  var metadataMap = getOrCreateMetadataMap(target, targetKey, false)
+    , keys        = [];
+  if(metadataMap)metadataMap.forEach(function(_, key){ keys.push(key); });
+  return keys;
+};
+var toMetaKey = function(it){
+  return it === undefined || typeof it == 'symbol' ? it : String(it);
+};
+var exp = function(O){
+  $export($export.S, 'Reflect', O);
+};
+
+module.exports = {
+  store: store,
+  map: getOrCreateMetadataMap,
+  has: ordinaryHasOwnMetadata,
+  get: ordinaryGetOwnMetadata,
+  set: ordinaryDefineOwnMetadata,
+  keys: ordinaryOwnMetadataKeys,
+  key: toMetaKey,
+  exp: exp
+};
+},{"./_export":32,"./_shared":94,"./es6.map":148,"./es6.weak-map":254}],64:[function(require,module,exports){
+var global    = require('./_global')
+  , macrotask = require('./_task').set
+  , Observer  = global.MutationObserver || global.WebKitMutationObserver
+  , process   = global.process
+  , Promise   = global.Promise
+  , isNode    = require('./_cof')(process) == 'process'
+  , head, last, notify;
+
+var flush = function(){
+  var parent, fn;
+  if(isNode && (parent = process.domain))parent.exit();
+  while(head){
+    fn = head.fn;
+    fn(); // <- currently we use it only for Promise - try / catch not required
+    head = head.next;
+  } last = undefined;
+  if(parent)parent.enter();
+};
+
+// Node.js
+if(isNode){
+  notify = function(){
+    process.nextTick(flush);
+  };
+// browsers with MutationObserver
+} else if(Observer){
+  var toggle = true
+    , node   = document.createTextNode('');
+  new Observer(flush).observe(node, {characterData: true}); // eslint-disable-line no-new
+  notify = function(){
+    node.data = toggle = !toggle;
+  };
+// environments with maybe non-completely correct, but existent Promise
+} else if(Promise && Promise.resolve){
+  notify = function(){
+    Promise.resolve().then(flush);
+  };
+// for other environments - macrotask based on:
+// - setImmediate
+// - MessageChannel
+// - window.postMessag
+// - onreadystatechange
+// - setTimeout
+} else {
+  notify = function(){
+    // strange IE + webpack dev server bug - use .call(global)
+    macrotask.call(global, flush);
+  };
+}
+
+module.exports = function(fn){
+  var task = {fn: fn, next: undefined};
+  if(last)last.next = task;
+  if(!head){
+    head = task;
+    notify();
+  } last = task;
+};
+},{"./_cof":18,"./_global":38,"./_task":104}],65:[function(require,module,exports){
+'use strict';
+// 19.1.2.1 Object.assign(target, source, ...)
+var getKeys  = require('./_object-keys')
+  , gOPS     = require('./_object-gops')
+  , pIE      = require('./_object-pie')
+  , toObject = require('./_to-object')
+  , IObject  = require('./_iobject')
+  , $assign  = Object.assign;
+
+// should work with symbols and should have deterministic property order (V8 bug)
+module.exports = !$assign || require('./_fails')(function(){
+  var A = {}
+    , B = {}
+    , S = Symbol()
+    , K = 'abcdefghijklmnopqrst';
+  A[S] = 7;
+  K.split('').forEach(function(k){ B[k] = k; });
+  return $assign({}, A)[S] != 7 || Object.keys($assign({}, B)).join('') != K;
+}) ? function assign(target, source){ // eslint-disable-line no-unused-vars
+  var T     = toObject(target)
+    , aLen  = arguments.length
+    , index = 1
+    , getSymbols = gOPS.f
+    , isEnum     = pIE.f;
+  while(aLen > index){
+    var S      = IObject(arguments[index++])
+      , keys   = getSymbols ? getKeys(S).concat(getSymbols(S)) : getKeys(S)
+      , length = keys.length
+      , j      = 0
+      , key;
+    while(length > j)if(isEnum.call(S, key = keys[j++]))T[key] = S[key];
+  } return T;
+} : $assign;
+},{"./_fails":34,"./_iobject":45,"./_object-gops":73,"./_object-keys":76,"./_object-pie":77,"./_to-object":109}],66:[function(require,module,exports){
+// 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
+var anObject    = require('./_an-object')
+  , dPs         = require('./_object-dps')
+  , enumBugKeys = require('./_enum-bug-keys')
+  , IE_PROTO    = require('./_shared-key')('IE_PROTO')
+  , Empty       = function(){ /* empty */ }
+  , PROTOTYPE   = 'prototype';
+
+// Create object with fake `null` prototype: use iframe Object with cleared prototype
+var createDict = function(){
+  // Thrash, waste and sodomy: IE GC bug
+  var iframe = require('./_dom-create')('iframe')
+    , i      = enumBugKeys.length
+    , gt     = '>'
+    , iframeDocument;
+  iframe.style.display = 'none';
+  require('./_html').appendChild(iframe);
+  iframe.src = 'javascript:'; // eslint-disable-line no-script-url
+  // createDict = iframe.contentWindow.Object;
+  // html.removeChild(iframe);
+  iframeDocument = iframe.contentWindow.document;
+  iframeDocument.open();
+  iframeDocument.write('<script>document.F=Object</script' + gt);
+  iframeDocument.close();
+  createDict = iframeDocument.F;
+  while(i--)delete createDict[PROTOTYPE][enumBugKeys[i]];
+  return createDict();
+};
+
+module.exports = Object.create || function create(O, Properties){
+  var result;
+  if(O !== null){
+    Empty[PROTOTYPE] = anObject(O);
+    result = new Empty;
+    Empty[PROTOTYPE] = null;
+    // add "__proto__" for Object.getPrototypeOf polyfill
+    result[IE_PROTO] = O;
+  } else result = createDict();
+  return Properties === undefined ? result : dPs(result, Properties);
+};
+},{"./_an-object":8,"./_dom-create":29,"./_enum-bug-keys":30,"./_html":41,"./_object-dps":68,"./_shared-key":93}],67:[function(require,module,exports){
+var anObject       = require('./_an-object')
+  , IE8_DOM_DEFINE = require('./_ie8-dom-define')
+  , toPrimitive    = require('./_to-primitive')
+  , dP             = Object.defineProperty;
+
+exports.f = require('./_descriptors') ? Object.defineProperty : function defineProperty(O, P, Attributes){
+  anObject(O);
+  P = toPrimitive(P, true);
+  anObject(Attributes);
+  if(IE8_DOM_DEFINE)try {
+    return dP(O, P, Attributes);
+  } catch(e){ /* empty */ }
+  if('get' in Attributes || 'set' in Attributes)throw TypeError('Accessors not supported!');
+  if('value' in Attributes)O[P] = Attributes.value;
+  return O;
+};
+},{"./_an-object":8,"./_descriptors":28,"./_ie8-dom-define":42,"./_to-primitive":110}],68:[function(require,module,exports){
+var dP       = require('./_object-dp')
+  , anObject = require('./_an-object')
+  , getKeys  = require('./_object-keys');
+
+module.exports = require('./_descriptors') ? Object.defineProperties : function defineProperties(O, Properties){
+  anObject(O);
+  var keys   = getKeys(Properties)
+    , length = keys.length
+    , i = 0
+    , P;
+  while(length > i)dP.f(O, P = keys[i++], Properties[P]);
+  return O;
+};
+},{"./_an-object":8,"./_descriptors":28,"./_object-dp":67,"./_object-keys":76}],69:[function(require,module,exports){
+// Forced replacement prototype accessors methods
+module.exports = require('./_library')|| !require('./_fails')(function(){
+  var K = Math.random();
+  // In FF throws only define methods
+  __defineSetter__.call(null, K, function(){ /* empty */});
+  delete require('./_global')[K];
+});
+},{"./_fails":34,"./_global":38,"./_library":58}],70:[function(require,module,exports){
+var pIE            = require('./_object-pie')
+  , createDesc     = require('./_property-desc')
+  , toIObject      = require('./_to-iobject')
+  , toPrimitive    = require('./_to-primitive')
+  , has            = require('./_has')
+  , IE8_DOM_DEFINE = require('./_ie8-dom-define')
+  , gOPD           = Object.getOwnPropertyDescriptor;
+
+exports.f = require('./_descriptors') ? gOPD : function getOwnPropertyDescriptor(O, P){
+  O = toIObject(O);
+  P = toPrimitive(P, true);
+  if(IE8_DOM_DEFINE)try {
+    return gOPD(O, P);
+  } catch(e){ /* empty */ }
+  if(has(O, P))return createDesc(!pIE.f.call(O, P), O[P]);
+};
+},{"./_descriptors":28,"./_has":39,"./_ie8-dom-define":42,"./_object-pie":77,"./_property-desc":85,"./_to-iobject":107,"./_to-primitive":110}],71:[function(require,module,exports){
+// fallback for IE11 buggy Object.getOwnPropertyNames with iframe and window
+var toIObject = require('./_to-iobject')
+  , gOPN      = require('./_object-gopn').f
+  , toString  = {}.toString;
+
+var windowNames = typeof window == 'object' && window && Object.getOwnPropertyNames
+  ? Object.getOwnPropertyNames(window) : [];
+
+var getWindowNames = function(it){
+  try {
+    return gOPN(it);
+  } catch(e){
+    return windowNames.slice();
+  }
+};
+
+module.exports.f = function getOwnPropertyNames(it){
+  return windowNames && toString.call(it) == '[object Window]' ? getWindowNames(it) : gOPN(toIObject(it));
+};
+
+},{"./_object-gopn":72,"./_to-iobject":107}],72:[function(require,module,exports){
+// 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
+var $keys      = require('./_object-keys-internal')
+  , hiddenKeys = require('./_enum-bug-keys').concat('length', 'prototype');
+
+exports.f = Object.getOwnPropertyNames || function getOwnPropertyNames(O){
+  return $keys(O, hiddenKeys);
+};
+},{"./_enum-bug-keys":30,"./_object-keys-internal":75}],73:[function(require,module,exports){
+exports.f = Object.getOwnPropertySymbols;
+},{}],74:[function(require,module,exports){
+// 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
+var has         = require('./_has')
+  , toObject    = require('./_to-object')
+  , IE_PROTO    = require('./_shared-key')('IE_PROTO')
+  , ObjectProto = Object.prototype;
+
+module.exports = Object.getPrototypeOf || function(O){
+  O = toObject(O);
+  if(has(O, IE_PROTO))return O[IE_PROTO];
+  if(typeof O.constructor == 'function' && O instanceof O.constructor){
+    return O.constructor.prototype;
+  } return O instanceof Object ? ObjectProto : null;
+};
+},{"./_has":39,"./_shared-key":93,"./_to-object":109}],75:[function(require,module,exports){
+var has          = require('./_has')
+  , toIObject    = require('./_to-iobject')
+  , arrayIndexOf = require('./_array-includes')(false)
+  , IE_PROTO     = require('./_shared-key')('IE_PROTO');
+
+module.exports = function(object, names){
+  var O      = toIObject(object)
+    , i      = 0
+    , result = []
+    , key;
+  for(key in O)if(key != IE_PROTO)has(O, key) && result.push(key);
+  // Don't enum bug & hidden keys
+  while(names.length > i)if(has(O, key = names[i++])){
+    ~arrayIndexOf(result, key) || result.push(key);
+  }
+  return result;
+};
+},{"./_array-includes":12,"./_has":39,"./_shared-key":93,"./_to-iobject":107}],76:[function(require,module,exports){
+// 19.1.2.14 / 15.2.3.14 Object.keys(O)
+var $keys       = require('./_object-keys-internal')
+  , enumBugKeys = require('./_enum-bug-keys');
+
+module.exports = Object.keys || function keys(O){
+  return $keys(O, enumBugKeys);
+};
+},{"./_enum-bug-keys":30,"./_object-keys-internal":75}],77:[function(require,module,exports){
+exports.f = {}.propertyIsEnumerable;
+},{}],78:[function(require,module,exports){
+// most Object methods by ES6 should accept primitives
+var $export = require('./_export')
+  , core    = require('./_core')
+  , fails   = require('./_fails');
+module.exports = function(KEY, exec){
+  var fn  = (core.Object || {})[KEY] || Object[KEY]
+    , exp = {};
+  exp[KEY] = exec(fn);
+  $export($export.S + $export.F * fails(function(){ fn(1); }), 'Object', exp);
+};
+},{"./_core":23,"./_export":32,"./_fails":34}],79:[function(require,module,exports){
+var getKeys   = require('./_object-keys')
+  , toIObject = require('./_to-iobject')
+  , isEnum    = require('./_object-pie').f;
+module.exports = function(isEntries){
+  return function(it){
+    var O      = toIObject(it)
+      , keys   = getKeys(O)
+      , length = keys.length
+      , i      = 0
+      , result = []
+      , key;
+    while(length > i)if(isEnum.call(O, key = keys[i++])){
+      result.push(isEntries ? [key, O[key]] : O[key]);
+    } return result;
+  };
+};
+},{"./_object-keys":76,"./_object-pie":77,"./_to-iobject":107}],80:[function(require,module,exports){
+// all object keys, includes non-enumerable and symbols
+var gOPN     = require('./_object-gopn')
+  , gOPS     = require('./_object-gops')
+  , anObject = require('./_an-object')
+  , Reflect  = require('./_global').Reflect;
+module.exports = Reflect && Reflect.ownKeys || function ownKeys(it){
+  var keys       = gOPN.f(anObject(it))
+    , getSymbols = gOPS.f;
+  return getSymbols ? keys.concat(getSymbols(it)) : keys;
+};
+},{"./_an-object":8,"./_global":38,"./_object-gopn":72,"./_object-gops":73}],81:[function(require,module,exports){
+var $parseFloat = require('./_global').parseFloat
+  , $trim       = require('./_string-trim').trim;
+
+module.exports = 1 / $parseFloat(require('./_string-ws') + '-0') !== -Infinity ? function parseFloat(str){
+  var string = $trim(String(str), 3)
+    , result = $parseFloat(string);
+  return result === 0 && string.charAt(0) == '-' ? -0 : result;
+} : $parseFloat;
+},{"./_global":38,"./_string-trim":102,"./_string-ws":103}],82:[function(require,module,exports){
+var $parseInt = require('./_global').parseInt
+  , $trim     = require('./_string-trim').trim
+  , ws        = require('./_string-ws')
+  , hex       = /^[\-+]?0[xX]/;
+
+module.exports = $parseInt(ws + '08') !== 8 || $parseInt(ws + '0x16') !== 22 ? function parseInt(str, radix){
+  var string = $trim(String(str), 3);
+  return $parseInt(string, (radix >>> 0) || (hex.test(string) ? 16 : 10));
+} : $parseInt;
+},{"./_global":38,"./_string-trim":102,"./_string-ws":103}],83:[function(require,module,exports){
+'use strict';
+var path      = require('./_path')
+  , invoke    = require('./_invoke')
+  , aFunction = require('./_a-function');
+module.exports = function(/* ...pargs */){
+  var fn     = aFunction(this)
+    , length = arguments.length
+    , pargs  = Array(length)
+    , i      = 0
+    , _      = path._
+    , holder = false;
+  while(length > i)if((pargs[i] = arguments[i++]) === _)holder = true;
+  return function(/* ...args */){
+    var that = this
+      , aLen = arguments.length
+      , j = 0, k = 0, args;
+    if(!holder && !aLen)return invoke(fn, pargs, that);
+    args = pargs.slice();
+    if(holder)for(;length > j; j++)if(args[j] === _)args[j] = arguments[k++];
+    while(aLen > k)args.push(arguments[k++]);
+    return invoke(fn, args, that);
+  };
+};
+},{"./_a-function":4,"./_invoke":44,"./_path":84}],84:[function(require,module,exports){
+module.exports = require('./_global');
+},{"./_global":38}],85:[function(require,module,exports){
+module.exports = function(bitmap, value){
+  return {
+    enumerable  : !(bitmap & 1),
+    configurable: !(bitmap & 2),
+    writable    : !(bitmap & 4),
+    value       : value
+  };
+};
+},{}],86:[function(require,module,exports){
+var redefine = require('./_redefine');
+module.exports = function(target, src, safe){
+  for(var key in src)redefine(target, key, src[key], safe);
+  return target;
+};
+},{"./_redefine":87}],87:[function(require,module,exports){
+var global    = require('./_global')
+  , hide      = require('./_hide')
+  , has       = require('./_has')
+  , SRC       = require('./_uid')('src')
+  , TO_STRING = 'toString'
+  , $toString = Function[TO_STRING]
+  , TPL       = ('' + $toString).split(TO_STRING);
+
+require('./_core').inspectSource = function(it){
+  return $toString.call(it);
+};
+
+(module.exports = function(O, key, val, safe){
+  var isFunction = typeof val == 'function';
+  if(isFunction)has(val, 'name') || hide(val, 'name', key);
+  if(O[key] === val)return;
+  if(isFunction)has(val, SRC) || hide(val, SRC, O[key] ? '' + O[key] : TPL.join(String(key)));
+  if(O === global){
+    O[key] = val;
+  } else {
+    if(!safe){
+      delete O[key];
+      hide(O, key, val);
+    } else {
+      if(O[key])O[key] = val;
+      else hide(O, key, val);
+    }
+  }
+// add fake Function#toString for correct work wrapped methods / constructors with methods like LoDash isNative
+})(Function.prototype, TO_STRING, function toString(){
+  return typeof this == 'function' && this[SRC] || $toString.call(this);
+});
+},{"./_core":23,"./_global":38,"./_has":39,"./_hide":40,"./_uid":114}],88:[function(require,module,exports){
+module.exports = function(regExp, replace){
+  var replacer = replace === Object(replace) ? function(part){
+    return replace[part];
+  } : replace;
+  return function(it){
+    return String(it).replace(regExp, replacer);
+  };
+};
+},{}],89:[function(require,module,exports){
+// 7.2.9 SameValue(x, y)
+module.exports = Object.is || function is(x, y){
+  return x === y ? x !== 0 || 1 / x === 1 / y : x != x && y != y;
+};
+},{}],90:[function(require,module,exports){
+// Works with __proto__ only. Old v8 can't work with null proto objects.
+/* eslint-disable no-proto */
+var isObject = require('./_is-object')
+  , anObject = require('./_an-object');
+var check = function(O, proto){
+  anObject(O);
+  if(!isObject(proto) && proto !== null)throw TypeError(proto + ": can't set as prototype!");
+};
+module.exports = {
+  set: Object.setPrototypeOf || ('__proto__' in {} ? // eslint-disable-line
+    function(test, buggy, set){
+      try {
+        set = require('./_ctx')(Function.call, require('./_object-gopd').f(Object.prototype, '__proto__').set, 2);
+        set(test, []);
+        buggy = !(test instanceof Array);
+      } catch(e){ buggy = true; }
+      return function setPrototypeOf(O, proto){
+        check(O, proto);
+        if(buggy)O.__proto__ = proto;
+        else set(O, proto);
+        return O;
+      };
+    }({}, false) : undefined),
+  check: check
+};
+},{"./_an-object":8,"./_ctx":25,"./_is-object":49,"./_object-gopd":70}],91:[function(require,module,exports){
+'use strict';
+var global      = require('./_global')
+  , dP          = require('./_object-dp')
+  , DESCRIPTORS = require('./_descriptors')
+  , SPECIES     = require('./_wks')('species');
+
+module.exports = function(KEY){
+  var C = global[KEY];
+  if(DESCRIPTORS && C && !C[SPECIES])dP.f(C, SPECIES, {
+    configurable: true,
+    get: function(){ return this; }
+  });
+};
+},{"./_descriptors":28,"./_global":38,"./_object-dp":67,"./_wks":115}],92:[function(require,module,exports){
+var def = require('./_object-dp').f
+  , has = require('./_has')
+  , TAG = require('./_wks')('toStringTag');
+
+module.exports = function(it, tag, stat){
+  if(it && !has(it = stat ? it : it.prototype, TAG))def(it, TAG, {configurable: true, value: tag});
+};
+},{"./_has":39,"./_object-dp":67,"./_wks":115}],93:[function(require,module,exports){
+var shared = require('./_shared')('keys')
+  , uid    = require('./_uid');
+module.exports = function(key){
+  return shared[key] || (shared[key] = uid(key));
+};
+},{"./_shared":94,"./_uid":114}],94:[function(require,module,exports){
+var global = require('./_global')
+  , SHARED = '__core-js_shared__'
+  , store  = global[SHARED] || (global[SHARED] = {});
+module.exports = function(key){
+  return store[key] || (store[key] = {});
+};
+},{"./_global":38}],95:[function(require,module,exports){
+// 7.3.20 SpeciesConstructor(O, defaultConstructor)
+var anObject  = require('./_an-object')
+  , aFunction = require('./_a-function')
+  , SPECIES   = require('./_wks')('species');
+module.exports = function(O, D){
+  var C = anObject(O).constructor, S;
+  return C === undefined || (S = anObject(C)[SPECIES]) == undefined ? D : aFunction(S);
+};
+},{"./_a-function":4,"./_an-object":8,"./_wks":115}],96:[function(require,module,exports){
+var fails = require('./_fails');
+
+module.exports = function(method, arg){
+  return !!method && fails(function(){
+    arg ? method.call(null, function(){}, 1) : method.call(null);
+  });
+};
+},{"./_fails":34}],97:[function(require,module,exports){
+var toInteger = require('./_to-integer')
+  , defined   = require('./_defined');
+// true  -> String#at
+// false -> String#codePointAt
+module.exports = function(TO_STRING){
+  return function(that, pos){
+    var s = String(defined(that))
+      , i = toInteger(pos)
+      , l = s.length
+      , a, b;
+    if(i < 0 || i >= l)return TO_STRING ? '' : undefined;
+    a = s.charCodeAt(i);
+    return a < 0xd800 || a > 0xdbff || i + 1 === l || (b = s.charCodeAt(i + 1)) < 0xdc00 || b > 0xdfff
+      ? TO_STRING ? s.charAt(i) : a
+      : TO_STRING ? s.slice(i, i + 2) : (a - 0xd800 << 10) + (b - 0xdc00) + 0x10000;
+  };
+};
+},{"./_defined":27,"./_to-integer":106}],98:[function(require,module,exports){
+// helper for String#{startsWith, endsWith, includes}
+var isRegExp = require('./_is-regexp')
+  , defined  = require('./_defined');
+
+module.exports = function(that, searchString, NAME){
+  if(isRegExp(searchString))throw TypeError('String#' + NAME + " doesn't accept regex!");
+  return String(defined(that));
+};
+},{"./_defined":27,"./_is-regexp":50}],99:[function(require,module,exports){
+var $export = require('./_export')
+  , fails   = require('./_fails')
+  , defined = require('./_defined')
+  , quot    = /"/g;
+// B.2.3.2.1 CreateHTML(string, tag, attribute, value)
+var createHTML = function(string, tag, attribute, value) {
+  var S  = String(defined(string))
+    , p1 = '<' + tag;
+  if(attribute !== '')p1 += ' ' + attribute + '="' + String(value).replace(quot, '&quot;') + '"';
+  return p1 + '>' + S + '</' + tag + '>';
+};
+module.exports = function(NAME, exec){
+  var O = {};
+  O[NAME] = exec(createHTML);
+  $export($export.P + $export.F * fails(function(){
+    var test = ''[NAME]('"');
+    return test !== test.toLowerCase() || test.split('"').length > 3;
+  }), 'String', O);
+};
+},{"./_defined":27,"./_export":32,"./_fails":34}],100:[function(require,module,exports){
+// https://github.com/tc39/proposal-string-pad-start-end
+var toLength = require('./_to-length')
+  , repeat   = require('./_string-repeat')
+  , defined  = require('./_defined');
+
+module.exports = function(that, maxLength, fillString, left){
+  var S            = String(defined(that))
+    , stringLength = S.length
+    , fillStr      = fillString === undefined ? ' ' : String(fillString)
+    , intMaxLength = toLength(maxLength);
+  if(intMaxLength <= stringLength)return S;
+  if(fillStr == '')fillStr = ' ';
+  var fillLen = intMaxLength - stringLength
+    , stringFiller = repeat.call(fillStr, Math.ceil(fillLen / fillStr.length));
+  if(stringFiller.length > fillLen)stringFiller = stringFiller.slice(0, fillLen);
+  return left ? stringFiller + S : S + stringFiller;
+};
+
+},{"./_defined":27,"./_string-repeat":101,"./_to-length":108}],101:[function(require,module,exports){
+'use strict';
+var toInteger = require('./_to-integer')
+  , defined   = require('./_defined');
+
+module.exports = function repeat(count){
+  var str = String(defined(this))
+    , res = ''
+    , n   = toInteger(count);
+  if(n < 0 || n == Infinity)throw RangeError("Count can't be negative");
+  for(;n > 0; (n >>>= 1) && (str += str))if(n & 1)res += str;
+  return res;
+};
+},{"./_defined":27,"./_to-integer":106}],102:[function(require,module,exports){
+var $export = require('./_export')
+  , defined = require('./_defined')
+  , fails   = require('./_fails')
+  , spaces  = require('./_string-ws')
+  , space   = '[' + spaces + ']'
+  , non     = '\u200b\u0085'
+  , ltrim   = RegExp('^' + space + space + '*')
+  , rtrim   = RegExp(space + space + '*$');
+
+var exporter = function(KEY, exec, ALIAS){
+  var exp   = {};
+  var FORCE = fails(function(){
+    return !!spaces[KEY]() || non[KEY]() != non;
+  });
+  var fn = exp[KEY] = FORCE ? exec(trim) : spaces[KEY];
+  if(ALIAS)exp[ALIAS] = fn;
+  $export($export.P + $export.F * FORCE, 'String', exp);
+};
+
+// 1 -> String#trimLeft
+// 2 -> String#trimRight
+// 3 -> String#trim
+var trim = exporter.trim = function(string, TYPE){
+  string = String(defined(string));
+  if(TYPE & 1)string = string.replace(ltrim, '');
+  if(TYPE & 2)string = string.replace(rtrim, '');
+  return string;
+};
+
+module.exports = exporter;
+},{"./_defined":27,"./_export":32,"./_fails":34,"./_string-ws":103}],103:[function(require,module,exports){
+module.exports = '\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003' +
+  '\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF';
+},{}],104:[function(require,module,exports){
+var ctx                = require('./_ctx')
+  , invoke             = require('./_invoke')
+  , html               = require('./_html')
+  , cel                = require('./_dom-create')
+  , global             = require('./_global')
+  , process            = global.process
+  , setTask            = global.setImmediate
+  , clearTask          = global.clearImmediate
+  , MessageChannel     = global.MessageChannel
+  , counter            = 0
+  , queue              = {}
+  , ONREADYSTATECHANGE = 'onreadystatechange'
+  , defer, channel, port;
+var run = function(){
+  var id = +this;
+  if(queue.hasOwnProperty(id)){
+    var fn = queue[id];
+    delete queue[id];
+    fn();
+  }
+};
+var listener = function(event){
+  run.call(event.data);
+};
+// Node.js 0.9+ & IE10+ has setImmediate, otherwise:
+if(!setTask || !clearTask){
+  setTask = function setImmediate(fn){
+    var args = [], i = 1;
+    while(arguments.length > i)args.push(arguments[i++]);
+    queue[++counter] = function(){
+      invoke(typeof fn == 'function' ? fn : Function(fn), args);
+    };
+    defer(counter);
+    return counter;
+  };
+  clearTask = function clearImmediate(id){
+    delete queue[id];
+  };
+  // Node.js 0.8-
+  if(require('./_cof')(process) == 'process'){
+    defer = function(id){
+      process.nextTick(ctx(run, id, 1));
+    };
+  // Browsers with MessageChannel, includes WebWorkers
+  } else if(MessageChannel){
+    channel = new MessageChannel;
+    port    = channel.port2;
+    channel.port1.onmessage = listener;
+    defer = ctx(port.postMessage, port, 1);
+  // Browsers with postMessage, skip WebWorkers
+  // IE8 has postMessage, but it's sync & typeof its postMessage is 'object'
+  } else if(global.addEventListener && typeof postMessage == 'function' && !global.importScripts){
+    defer = function(id){
+      global.postMessage(id + '', '*');
+    };
+    global.addEventListener('message', listener, false);
+  // IE8-
+  } else if(ONREADYSTATECHANGE in cel('script')){
+    defer = function(id){
+      html.appendChild(cel('script'))[ONREADYSTATECHANGE] = function(){
+        html.removeChild(this);
+        run.call(id);
+      };
+    };
+  // Rest old browsers
+  } else {
+    defer = function(id){
+      setTimeout(ctx(run, id, 1), 0);
+    };
+  }
+}
+module.exports = {
+  set:   setTask,
+  clear: clearTask
+};
+},{"./_cof":18,"./_ctx":25,"./_dom-create":29,"./_global":38,"./_html":41,"./_invoke":44}],105:[function(require,module,exports){
+var toInteger = require('./_to-integer')
+  , max       = Math.max
+  , min       = Math.min;
+module.exports = function(index, length){
+  index = toInteger(index);
+  return index < 0 ? max(index + length, 0) : min(index, length);
+};
+},{"./_to-integer":106}],106:[function(require,module,exports){
+// 7.1.4 ToInteger
+var ceil  = Math.ceil
+  , floor = Math.floor;
+module.exports = function(it){
+  return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
+};
+},{}],107:[function(require,module,exports){
+// to indexed object, toObject with fallback for non-array-like ES3 strings
+var IObject = require('./_iobject')
+  , defined = require('./_defined');
+module.exports = function(it){
+  return IObject(defined(it));
+};
+},{"./_defined":27,"./_iobject":45}],108:[function(require,module,exports){
+// 7.1.15 ToLength
+var toInteger = require('./_to-integer')
+  , min       = Math.min;
+module.exports = function(it){
+  return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
+};
+},{"./_to-integer":106}],109:[function(require,module,exports){
+// 7.1.13 ToObject(argument)
+var defined = require('./_defined');
+module.exports = function(it){
+  return Object(defined(it));
+};
+},{"./_defined":27}],110:[function(require,module,exports){
+// 7.1.1 ToPrimitive(input [, PreferredType])
+var isObject = require('./_is-object');
+// instead of the ES6 spec version, we didn't implement @@toPrimitive case
+// and the second argument - flag - preferred type is a string
+module.exports = function(it, S){
+  if(!isObject(it))return it;
+  var fn, val;
+  if(S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it)))return val;
+  if(typeof (fn = it.valueOf) == 'function' && !isObject(val = fn.call(it)))return val;
+  if(!S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it)))return val;
+  throw TypeError("Can't convert object to primitive value");
+};
+},{"./_is-object":49}],111:[function(require,module,exports){
+'use strict';
+if(require('./_descriptors')){
+  var LIBRARY             = require('./_library')
+    , global              = require('./_global')
+    , fails               = require('./_fails')
+    , $export             = require('./_export')
+    , $typed              = require('./_typed')
+    , $buffer             = require('./_typed-buffer')
+    , ctx                 = require('./_ctx')
+    , anInstance          = require('./_an-instance')
+    , propertyDesc        = require('./_property-desc')
+    , hide                = require('./_hide')
+    , redefineAll         = require('./_redefine-all')
+    , isInteger           = require('./_is-integer')
+    , toInteger           = require('./_to-integer')
+    , toLength            = require('./_to-length')
+    , toIndex             = require('./_to-index')
+    , toPrimitive         = require('./_to-primitive')
+    , has                 = require('./_has')
+    , same                = require('./_same-value')
+    , classof             = require('./_classof')
+    , isObject            = require('./_is-object')
+    , toObject            = require('./_to-object')
+    , isArrayIter         = require('./_is-array-iter')
+    , create              = require('./_object-create')
+    , getPrototypeOf      = require('./_object-gpo')
+    , gOPN                = require('./_object-gopn').f
+    , isIterable          = require('./core.is-iterable')
+    , getIterFn           = require('./core.get-iterator-method')
+    , uid                 = require('./_uid')
+    , wks                 = require('./_wks')
+    , createArrayMethod   = require('./_array-methods')
+    , createArrayIncludes = require('./_array-includes')
+    , speciesConstructor  = require('./_species-constructor')
+    , ArrayIterators      = require('./es6.array.iterator')
+    , Iterators           = require('./_iterators')
+    , $iterDetect         = require('./_iter-detect')
+    , setSpecies          = require('./_set-species')
+    , arrayFill           = require('./_array-fill')
+    , arrayCopyWithin     = require('./_array-copy-within')
+    , $DP                 = require('./_object-dp')
+    , $GOPD               = require('./_object-gopd')
+    , dP                  = $DP.f
+    , gOPD                = $GOPD.f
+    , RangeError          = global.RangeError
+    , TypeError           = global.TypeError
+    , Uint8Array          = global.Uint8Array
+    , ARRAY_BUFFER        = 'ArrayBuffer'
+    , SHARED_BUFFER       = 'Shared' + ARRAY_BUFFER
+    , BYTES_PER_ELEMENT   = 'BYTES_PER_ELEMENT'
+    , PROTOTYPE           = 'prototype'
+    , ArrayProto          = Array[PROTOTYPE]
+    , $ArrayBuffer        = $buffer.ArrayBuffer
+    , $DataView           = $buffer.DataView
+    , arrayForEach        = createArrayMethod(0)
+    , arrayFilter         = createArrayMethod(2)
+    , arraySome           = createArrayMethod(3)
+    , arrayEvery          = createArrayMethod(4)
+    , arrayFind           = createArrayMethod(5)
+    , arrayFindIndex      = createArrayMethod(6)
+    , arrayIncludes       = createArrayIncludes(true)
+    , arrayIndexOf        = createArrayIncludes(false)
+    , arrayValues         = ArrayIterators.values
+    , arrayKeys           = ArrayIterators.keys
+    , arrayEntries        = ArrayIterators.entries
+    , arrayLastIndexOf    = ArrayProto.lastIndexOf
+    , arrayReduce         = ArrayProto.reduce
+    , arrayReduceRight    = ArrayProto.reduceRight
+    , arrayJoin           = ArrayProto.join
+    , arraySort           = ArrayProto.sort
+    , arraySlice          = ArrayProto.slice
+    , arrayToString       = ArrayProto.toString
+    , arrayToLocaleString = ArrayProto.toLocaleString
+    , ITERATOR            = wks('iterator')
+    , TAG                 = wks('toStringTag')
+    , TYPED_CONSTRUCTOR   = uid('typed_constructor')
+    , DEF_CONSTRUCTOR     = uid('def_constructor')
+    , ALL_CONSTRUCTORS    = $typed.CONSTR
+    , TYPED_ARRAY         = $typed.TYPED
+    , VIEW                = $typed.VIEW
+    , WRONG_LENGTH        = 'Wrong length!';
+
+  var $map = createArrayMethod(1, function(O, length){
+    return allocate(speciesConstructor(O, O[DEF_CONSTRUCTOR]), length);
+  });
+
+  var LITTLE_ENDIAN = fails(function(){
+    return new Uint8Array(new Uint16Array([1]).buffer)[0] === 1;
+  });
+
+  var FORCED_SET = !!Uint8Array && !!Uint8Array[PROTOTYPE].set && fails(function(){
+    new Uint8Array(1).set({});
+  });
+
+  var strictToLength = function(it, SAME){
+    if(it === undefined)throw TypeError(WRONG_LENGTH);
+    var number = +it
+      , length = toLength(it);
+    if(SAME && !same(number, length))throw RangeError(WRONG_LENGTH);
+    return length;
+  };
+
+  var toOffset = function(it, BYTES){
+    var offset = toInteger(it);
+    if(offset < 0 || offset % BYTES)throw RangeError('Wrong offset!');
+    return offset;
+  };
+
+  var validate = function(it){
+    if(isObject(it) && TYPED_ARRAY in it)return it;
+    throw TypeError(it + ' is not a typed array!');
+  };
+
+  var allocate = function(C, length){
+    if(!(isObject(C) && TYPED_CONSTRUCTOR in C)){
+      throw TypeError('It is not a typed array constructor!');
+    } return new C(length);
+  };
+
+  var speciesFromList = function(O, list){
+    return fromList(speciesConstructor(O, O[DEF_CONSTRUCTOR]), list);
+  };
+
+  var fromList = function(C, list){
+    var index  = 0
+      , length = list.length
+      , result = allocate(C, length);
+    while(length > index)result[index] = list[index++];
+    return result;
+  };
+
+  var addGetter = function(it, key, internal){
+    dP(it, key, {get: function(){ return this._d[internal]; }});
+  };
+
+  var $from = function from(source /*, mapfn, thisArg */){
+    var O       = toObject(source)
+      , aLen    = arguments.length
+      , mapfn   = aLen > 1 ? arguments[1] : undefined
+      , mapping = mapfn !== undefined
+      , iterFn  = getIterFn(O)
+      , i, length, values, result, step, iterator;
+    if(iterFn != undefined && !isArrayIter(iterFn)){
+      for(iterator = iterFn.call(O), values = [], i = 0; !(step = iterator.next()).done; i++){
+        values.push(step.value);
+      } O = values;
+    }
+    if(mapping && aLen > 2)mapfn = ctx(mapfn, arguments[2], 2);
+    for(i = 0, length = toLength(O.length), result = allocate(this, length); length > i; i++){
+      result[i] = mapping ? mapfn(O[i], i) : O[i];
+    }
+    return result;
+  };
+
+  var $of = function of(/*...items*/){
+    var index  = 0
+      , length = arguments.length
+      , result = allocate(this, length);
+    while(length > index)result[index] = arguments[index++];
+    return result;
+  };
+
+  // iOS Safari 6.x fails here
+  var TO_LOCALE_BUG = !!Uint8Array && fails(function(){ arrayToLocaleString.call(new Uint8Array(1)); });
+
+  var $toLocaleString = function toLocaleString(){
+    return arrayToLocaleString.apply(TO_LOCALE_BUG ? arraySlice.call(validate(this)) : validate(this), arguments);
+  };
+
+  var proto = {
+    copyWithin: function copyWithin(target, start /*, end */){
+      return arrayCopyWithin.call(validate(this), target, start, arguments.length > 2 ? arguments[2] : undefined);
+    },
+    every: function every(callbackfn /*, thisArg */){
+      return arrayEvery(validate(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    fill: function fill(value /*, start, end */){ // eslint-disable-line no-unused-vars
+      return arrayFill.apply(validate(this), arguments);
+    },
+    filter: function filter(callbackfn /*, thisArg */){
+      return speciesFromList(this, arrayFilter(validate(this), callbackfn,
+        arguments.length > 1 ? arguments[1] : undefined));
+    },
+    find: function find(predicate /*, thisArg */){
+      return arrayFind(validate(this), predicate, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    findIndex: function findIndex(predicate /*, thisArg */){
+      return arrayFindIndex(validate(this), predicate, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    forEach: function forEach(callbackfn /*, thisArg */){
+      arrayForEach(validate(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    indexOf: function indexOf(searchElement /*, fromIndex */){
+      return arrayIndexOf(validate(this), searchElement, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    includes: function includes(searchElement /*, fromIndex */){
+      return arrayIncludes(validate(this), searchElement, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    join: function join(separator){ // eslint-disable-line no-unused-vars
+      return arrayJoin.apply(validate(this), arguments);
+    },
+    lastIndexOf: function lastIndexOf(searchElement /*, fromIndex */){ // eslint-disable-line no-unused-vars
+      return arrayLastIndexOf.apply(validate(this), arguments);
+    },
+    map: function map(mapfn /*, thisArg */){
+      return $map(validate(this), mapfn, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    reduce: function reduce(callbackfn /*, initialValue */){ // eslint-disable-line no-unused-vars
+      return arrayReduce.apply(validate(this), arguments);
+    },
+    reduceRight: function reduceRight(callbackfn /*, initialValue */){ // eslint-disable-line no-unused-vars
+      return arrayReduceRight.apply(validate(this), arguments);
+    },
+    reverse: function reverse(){
+      var that   = this
+        , length = validate(that).length
+        , middle = Math.floor(length / 2)
+        , index  = 0
+        , value;
+      while(index < middle){
+        value         = that[index];
+        that[index++] = that[--length];
+        that[length]  = value;
+      } return that;
+    },
+    some: function some(callbackfn /*, thisArg */){
+      return arraySome(validate(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+    },
+    sort: function sort(comparefn){
+      return arraySort.call(validate(this), comparefn);
+    },
+    subarray: function subarray(begin, end){
+      var O      = validate(this)
+        , length = O.length
+        , $begin = toIndex(begin, length);
+      return new (speciesConstructor(O, O[DEF_CONSTRUCTOR]))(
+        O.buffer,
+        O.byteOffset + $begin * O.BYTES_PER_ELEMENT,
+        toLength((end === undefined ? length : toIndex(end, length)) - $begin)
+      );
+    }
+  };
+
+  var $slice = function slice(start, end){
+    return speciesFromList(this, arraySlice.call(validate(this), start, end));
+  };
+
+  var $set = function set(arrayLike /*, offset */){
+    validate(this);
+    var offset = toOffset(arguments[1], 1)
+      , length = this.length
+      , src    = toObject(arrayLike)
+      , len    = toLength(src.length)
+      , index  = 0;
+    if(len + offset > length)throw RangeError(WRONG_LENGTH);
+    while(index < len)this[offset + index] = src[index++];
+  };
+
+  var $iterators = {
+    entries: function entries(){
+      return arrayEntries.call(validate(this));
+    },
+    keys: function keys(){
+      return arrayKeys.call(validate(this));
+    },
+    values: function values(){
+      return arrayValues.call(validate(this));
+    }
+  };
+
+  var isTAIndex = function(target, key){
+    return isObject(target)
+      && target[TYPED_ARRAY]
+      && typeof key != 'symbol'
+      && key in target
+      && String(+key) == String(key);
+  };
+  var $getDesc = function getOwnPropertyDescriptor(target, key){
+    return isTAIndex(target, key = toPrimitive(key, true))
+      ? propertyDesc(2, target[key])
+      : gOPD(target, key);
+  };
+  var $setDesc = function defineProperty(target, key, desc){
+    if(isTAIndex(target, key = toPrimitive(key, true))
+      && isObject(desc)
+      && has(desc, 'value')
+      && !has(desc, 'get')
+      && !has(desc, 'set')
+      // TODO: add validation descriptor w/o calling accessors
+      && !desc.configurable
+      && (!has(desc, 'writable') || desc.writable)
+      && (!has(desc, 'enumerable') || desc.enumerable)
+    ){
+      target[key] = desc.value;
+      return target;
+    } else return dP(target, key, desc);
+  };
+
+  if(!ALL_CONSTRUCTORS){
+    $GOPD.f = $getDesc;
+    $DP.f   = $setDesc;
+  }
+
+  $export($export.S + $export.F * !ALL_CONSTRUCTORS, 'Object', {
+    getOwnPropertyDescriptor: $getDesc,
+    defineProperty:           $setDesc
+  });
+
+  if(fails(function(){ arrayToString.call({}); })){
+    arrayToString = arrayToLocaleString = function toString(){
+      return arrayJoin.call(this);
+    }
+  }
+
+  var $TypedArrayPrototype$ = redefineAll({}, proto);
+  redefineAll($TypedArrayPrototype$, $iterators);
+  hide($TypedArrayPrototype$, ITERATOR, $iterators.values);
+  redefineAll($TypedArrayPrototype$, {
+    slice:          $slice,
+    set:            $set,
+    constructor:    function(){ /* noop */ },
+    toString:       arrayToString,
+    toLocaleString: $toLocaleString
+  });
+  addGetter($TypedArrayPrototype$, 'buffer', 'b');
+  addGetter($TypedArrayPrototype$, 'byteOffset', 'o');
+  addGetter($TypedArrayPrototype$, 'byteLength', 'l');
+  addGetter($TypedArrayPrototype$, 'length', 'e');
+  dP($TypedArrayPrototype$, TAG, {
+    get: function(){ return this[TYPED_ARRAY]; }
+  });
+
+  module.exports = function(KEY, BYTES, wrapper, CLAMPED){
+    CLAMPED = !!CLAMPED;
+    var NAME       = KEY + (CLAMPED ? 'Clamped' : '') + 'Array'
+      , ISNT_UINT8 = NAME != 'Uint8Array'
+      , GETTER     = 'get' + KEY
+      , SETTER     = 'set' + KEY
+      , TypedArray = global[NAME]
+      , Base       = TypedArray || {}
+      , TAC        = TypedArray && getPrototypeOf(TypedArray)
+      , FORCED     = !TypedArray || !$typed.ABV
+      , O          = {}
+      , TypedArrayPrototype = TypedArray && TypedArray[PROTOTYPE];
+    var getter = function(that, index){
+      var data = that._d;
+      return data.v[GETTER](index * BYTES + data.o, LITTLE_ENDIAN);
+    };
+    var setter = function(that, index, value){
+      var data = that._d;
+      if(CLAMPED)value = (value = Math.round(value)) < 0 ? 0 : value > 0xff ? 0xff : value & 0xff;
+      data.v[SETTER](index * BYTES + data.o, value, LITTLE_ENDIAN);
+    };
+    var addElement = function(that, index){
+      dP(that, index, {
+        get: function(){
+          return getter(this, index);
+        },
+        set: function(value){
+          return setter(this, index, value);
+        },
+        enumerable: true
+      });
+    };
+    if(FORCED){
+      TypedArray = wrapper(function(that, data, $offset, $length){
+        anInstance(that, TypedArray, NAME, '_d');
+        var index  = 0
+          , offset = 0
+          , buffer, byteLength, length, klass;
+        if(!isObject(data)){
+          length     = strictToLength(data, true)
+          byteLength = length * BYTES;
+          buffer     = new $ArrayBuffer(byteLength);
+        } else if(data instanceof $ArrayBuffer || (klass = classof(data)) == ARRAY_BUFFER || klass == SHARED_BUFFER){
+          buffer = data;
+          offset = toOffset($offset, BYTES);
+          var $len = data.byteLength;
+          if($length === undefined){
+            if($len % BYTES)throw RangeError(WRONG_LENGTH);
+            byteLength = $len - offset;
+            if(byteLength < 0)throw RangeError(WRONG_LENGTH);
+          } else {
+            byteLength = toLength($length) * BYTES;
+            if(byteLength + offset > $len)throw RangeError(WRONG_LENGTH);
+          }
+          length = byteLength / BYTES;
+        } else if(TYPED_ARRAY in data){
+          return fromList(TypedArray, data);
+        } else {
+          return $from.call(TypedArray, data);
+        }
+        hide(that, '_d', {
+          b: buffer,
+          o: offset,
+          l: byteLength,
+          e: length,
+          v: new $DataView(buffer)
+        });
+        while(index < length)addElement(that, index++);
+      });
+      TypedArrayPrototype = TypedArray[PROTOTYPE] = create($TypedArrayPrototype$);
+      hide(TypedArrayPrototype, 'constructor', TypedArray);
+    } else if(!$iterDetect(function(iter){
+      // V8 works with iterators, but fails in many other cases
+      // https://code.google.com/p/v8/issues/detail?id=4552
+      new TypedArray(null); // eslint-disable-line no-new
+      new TypedArray(iter); // eslint-disable-line no-new
+    }, true)){
+      TypedArray = wrapper(function(that, data, $offset, $length){
+        anInstance(that, TypedArray, NAME);
+        var klass;
+        // `ws` module bug, temporarily remove validation length for Uint8Array
+        // https://github.com/websockets/ws/pull/645
+        if(!isObject(data))return new Base(strictToLength(data, ISNT_UINT8));
+        if(data instanceof $ArrayBuffer || (klass = classof(data)) == ARRAY_BUFFER || klass == SHARED_BUFFER){
+          return $length !== undefined
+            ? new Base(data, toOffset($offset, BYTES), $length)
+            : $offset !== undefined
+              ? new Base(data, toOffset($offset, BYTES))
+              : new Base(data);
+        }
+        if(TYPED_ARRAY in data)return fromList(TypedArray, data);
+        return $from.call(TypedArray, data);
+      });
+      arrayForEach(TAC !== Function.prototype ? gOPN(Base).concat(gOPN(TAC)) : gOPN(Base), function(key){
+        if(!(key in TypedArray))hide(TypedArray, key, Base[key]);
+      });
+      TypedArray[PROTOTYPE] = TypedArrayPrototype;
+      if(!LIBRARY)TypedArrayPrototype.constructor = TypedArray;
+    }
+    var $nativeIterator   = TypedArrayPrototype[ITERATOR]
+      , CORRECT_ITER_NAME = !!$nativeIterator && ($nativeIterator.name == 'values' || $nativeIterator.name == undefined)
+      , $iterator         = $iterators.values;
+    hide(TypedArray, TYPED_CONSTRUCTOR, true);
+    hide(TypedArrayPrototype, TYPED_ARRAY, NAME);
+    hide(TypedArrayPrototype, VIEW, true);
+    hide(TypedArrayPrototype, DEF_CONSTRUCTOR, TypedArray);
+
+    if(CLAMPED ? new TypedArray(1)[TAG] != NAME : !(TAG in TypedArrayPrototype)){
+      dP(TypedArrayPrototype, TAG, {
+        get: function(){ return NAME; }
+      });
+    }
+
+    O[NAME] = TypedArray;
+
+    $export($export.G + $export.W + $export.F * (TypedArray != Base), O);
+
+    $export($export.S, NAME, {
+      BYTES_PER_ELEMENT: BYTES,
+      from: $from,
+      of: $of
+    });
+
+    if(!(BYTES_PER_ELEMENT in TypedArrayPrototype))hide(TypedArrayPrototype, BYTES_PER_ELEMENT, BYTES);
+
+    $export($export.P, NAME, proto);
+
+    setSpecies(NAME);
+
+    $export($export.P + $export.F * FORCED_SET, NAME, {set: $set});
+
+    $export($export.P + $export.F * !CORRECT_ITER_NAME, NAME, $iterators);
+
+    $export($export.P + $export.F * (TypedArrayPrototype.toString != arrayToString), NAME, {toString: arrayToString});
+
+    $export($export.P + $export.F * fails(function(){
+      new TypedArray(1).slice();
+    }), NAME, {slice: $slice});
+
+    $export($export.P + $export.F * (fails(function(){
+      return [1, 2].toLocaleString() != new TypedArray([1, 2]).toLocaleString()
+    }) || !fails(function(){
+      TypedArrayPrototype.toLocaleString.call([1, 2]);
+    })), NAME, {toLocaleString: $toLocaleString});
+
+    Iterators[NAME] = CORRECT_ITER_NAME ? $nativeIterator : $iterator;
+    if(!LIBRARY && !CORRECT_ITER_NAME)hide(TypedArrayPrototype, ITERATOR, $iterator);
+  };
+} else module.exports = function(){ /* empty */ };
+},{"./_an-instance":7,"./_array-copy-within":9,"./_array-fill":10,"./_array-includes":12,"./_array-methods":13,"./_classof":17,"./_ctx":25,"./_descriptors":28,"./_export":32,"./_fails":34,"./_global":38,"./_has":39,"./_hide":40,"./_is-array-iter":46,"./_is-integer":48,"./_is-object":49,"./_iter-detect":54,"./_iterators":56,"./_library":58,"./_object-create":66,"./_object-dp":67,"./_object-gopd":70,"./_object-gopn":72,"./_object-gpo":74,"./_property-desc":85,"./_redefine-all":86,"./_same-value":89,"./_set-species":91,"./_species-constructor":95,"./_to-index":105,"./_to-integer":106,"./_to-length":108,"./_to-object":109,"./_to-primitive":110,"./_typed":113,"./_typed-buffer":112,"./_uid":114,"./_wks":115,"./core.get-iterator-method":116,"./core.is-iterable":117,"./es6.array.iterator":129}],112:[function(require,module,exports){
+'use strict';
+var global         = require('./_global')
+  , DESCRIPTORS    = require('./_descriptors')
+  , LIBRARY        = require('./_library')
+  , $typed         = require('./_typed')
+  , hide           = require('./_hide')
+  , redefineAll    = require('./_redefine-all')
+  , fails          = require('./_fails')
+  , anInstance     = require('./_an-instance')
+  , toInteger      = require('./_to-integer')
+  , toLength       = require('./_to-length')
+  , gOPN           = require('./_object-gopn').f
+  , dP             = require('./_object-dp').f
+  , arrayFill      = require('./_array-fill')
+  , setToStringTag = require('./_set-to-string-tag')
+  , ARRAY_BUFFER   = 'ArrayBuffer'
+  , DATA_VIEW      = 'DataView'
+  , PROTOTYPE      = 'prototype'
+  , WRONG_LENGTH   = 'Wrong length!'
+  , WRONG_INDEX    = 'Wrong index!'
+  , $ArrayBuffer   = global[ARRAY_BUFFER]
+  , $DataView      = global[DATA_VIEW]
+  , Math           = global.Math
+  , parseInt       = global.parseInt
+  , RangeError     = global.RangeError
+  , Infinity       = global.Infinity
+  , BaseBuffer     = $ArrayBuffer
+  , abs            = Math.abs
+  , pow            = Math.pow
+  , min            = Math.min
+  , floor          = Math.floor
+  , log            = Math.log
+  , LN2            = Math.LN2
+  , BUFFER         = 'buffer'
+  , BYTE_LENGTH    = 'byteLength'
+  , BYTE_OFFSET    = 'byteOffset'
+  , $BUFFER        = DESCRIPTORS ? '_b' : BUFFER
+  , $LENGTH        = DESCRIPTORS ? '_l' : BYTE_LENGTH
+  , $OFFSET        = DESCRIPTORS ? '_o' : BYTE_OFFSET;
+
+// IEEE754 conversions based on https://github.com/feross/ieee754
+var packIEEE754 = function(value, mLen, nBytes){
+  var buffer = Array(nBytes)
+    , eLen   = nBytes * 8 - mLen - 1
+    , eMax   = (1 << eLen) - 1
+    , eBias  = eMax >> 1
+    , rt     = mLen === 23 ? pow(2, -24) - pow(2, -77) : 0
+    , i      = 0
+    , s      = value < 0 || value === 0 && 1 / value < 0 ? 1 : 0
+    , e, m, c;
+  value = abs(value)
+  if(value != value || value === Infinity){
+    m = value != value ? 1 : 0;
+    e = eMax;
+  } else {
+    e = floor(log(value) / LN2);
+    if(value * (c = pow(2, -e)) < 1){
+      e--;
+      c *= 2;
+    }
+    if(e + eBias >= 1){
+      value += rt / c;
+    } else {
+      value += rt * pow(2, 1 - eBias);
+    }
+    if(value * c >= 2){
+      e++;
+      c /= 2;
+    }
+    if(e + eBias >= eMax){
+      m = 0;
+      e = eMax;
+    } else if(e + eBias >= 1){
+      m = (value * c - 1) * pow(2, mLen);
+      e = e + eBias;
+    } else {
+      m = value * pow(2, eBias - 1) * pow(2, mLen);
+      e = 0;
+    }
+  }
+  for(; mLen >= 8; buffer[i++] = m & 255, m /= 256, mLen -= 8);
+  e = e << mLen | m;
+  eLen += mLen;
+  for(; eLen > 0; buffer[i++] = e & 255, e /= 256, eLen -= 8);
+  buffer[--i] |= s * 128;
+  return buffer;
+};
+var unpackIEEE754 = function(buffer, mLen, nBytes){
+  var eLen  = nBytes * 8 - mLen - 1
+    , eMax  = (1 << eLen) - 1
+    , eBias = eMax >> 1
+    , nBits = eLen - 7
+    , i     = nBytes - 1
+    , s     = buffer[i--]
+    , e     = s & 127
+    , m;
+  s >>= 7;
+  for(; nBits > 0; e = e * 256 + buffer[i], i--, nBits -= 8);
+  m = e & (1 << -nBits) - 1;
+  e >>= -nBits;
+  nBits += mLen;
+  for(; nBits > 0; m = m * 256 + buffer[i], i--, nBits -= 8);
+  if(e === 0){
+    e = 1 - eBias;
+  } else if(e === eMax){
+    return m ? NaN : s ? -Infinity : Infinity;
+  } else {
+    m = m + pow(2, mLen);
+    e = e - eBias;
+  } return (s ? -1 : 1) * m * pow(2, e - mLen);
+};
+
+var unpackI32 = function(bytes){
+  return bytes[3] << 24 | bytes[2] << 16 | bytes[1] << 8 | bytes[0];
+};
+var packI8 = function(it){
+  return [it & 0xff];
+};
+var packI16 = function(it){
+  return [it & 0xff, it >> 8 & 0xff];
+};
+var packI32 = function(it){
+  return [it & 0xff, it >> 8 & 0xff, it >> 16 & 0xff, it >> 24 & 0xff];
+};
+var packF64 = function(it){
+  return packIEEE754(it, 52, 8);
+};
+var packF32 = function(it){
+  return packIEEE754(it, 23, 4);
+};
+
+var addGetter = function(C, key, internal){
+  dP(C[PROTOTYPE], key, {get: function(){ return this[internal]; }});
+};
+
+var get = function(view, bytes, index, isLittleEndian){
+  var numIndex = +index
+    , intIndex = toInteger(numIndex);
+  if(numIndex != intIndex || intIndex < 0 || intIndex + bytes > view[$LENGTH])throw RangeError(WRONG_INDEX);
+  var store = view[$BUFFER]._b
+    , start = intIndex + view[$OFFSET]
+    , pack  = store.slice(start, start + bytes);
+  return isLittleEndian ? pack : pack.reverse();
+};
+var set = function(view, bytes, index, conversion, value, isLittleEndian){
+  var numIndex = +index
+    , intIndex = toInteger(numIndex);
+  if(numIndex != intIndex || intIndex < 0 || intIndex + bytes > view[$LENGTH])throw RangeError(WRONG_INDEX);
+  var store = view[$BUFFER]._b
+    , start = intIndex + view[$OFFSET]
+    , pack  = conversion(+value);
+  for(var i = 0; i < bytes; i++)store[start + i] = pack[isLittleEndian ? i : bytes - i - 1];
+};
+
+var validateArrayBufferArguments = function(that, length){
+  anInstance(that, $ArrayBuffer, ARRAY_BUFFER);
+  var numberLength = +length
+    , byteLength   = toLength(numberLength);
+  if(numberLength != byteLength)throw RangeError(WRONG_LENGTH);
+  return byteLength;
+};
+
+if(!$typed.ABV){
+  $ArrayBuffer = function ArrayBuffer(length){
+    var byteLength = validateArrayBufferArguments(this, length);
+    this._b       = arrayFill.call(Array(byteLength), 0);
+    this[$LENGTH] = byteLength;
+  };
+
+  $DataView = function DataView(buffer, byteOffset, byteLength){
+    anInstance(this, $DataView, DATA_VIEW);
+    anInstance(buffer, $ArrayBuffer, DATA_VIEW);
+    var bufferLength = buffer[$LENGTH]
+      , offset       = toInteger(byteOffset);
+    if(offset < 0 || offset > bufferLength)throw RangeError('Wrong offset!');
+    byteLength = byteLength === undefined ? bufferLength - offset : toLength(byteLength);
+    if(offset + byteLength > bufferLength)throw RangeError(WRONG_LENGTH);
+    this[$BUFFER] = buffer;
+    this[$OFFSET] = offset;
+    this[$LENGTH] = byteLength;
+  };
+
+  if(DESCRIPTORS){
+    addGetter($ArrayBuffer, BYTE_LENGTH, '_l');
+    addGetter($DataView, BUFFER, '_b');
+    addGetter($DataView, BYTE_LENGTH, '_l');
+    addGetter($DataView, BYTE_OFFSET, '_o');
+  }
+
+  redefineAll($DataView[PROTOTYPE], {
+    getInt8: function getInt8(byteOffset){
+      return get(this, 1, byteOffset)[0] << 24 >> 24;
+    },
+    getUint8: function getUint8(byteOffset){
+      return get(this, 1, byteOffset)[0];
+    },
+    getInt16: function getInt16(byteOffset /*, littleEndian */){
+      var bytes = get(this, 2, byteOffset, arguments[1]);
+      return (bytes[1] << 8 | bytes[0]) << 16 >> 16;
+    },
+    getUint16: function getUint16(byteOffset /*, littleEndian */){
+      var bytes = get(this, 2, byteOffset, arguments[1]);
+      return bytes[1] << 8 | bytes[0];
+    },
+    getInt32: function getInt32(byteOffset /*, littleEndian */){
+      return unpackI32(get(this, 4, byteOffset, arguments[1]));
+    },
+    getUint32: function getUint32(byteOffset /*, littleEndian */){
+      return unpackI32(get(this, 4, byteOffset, arguments[1])) >>> 0;
+    },
+    getFloat32: function getFloat32(byteOffset /*, littleEndian */){
+      return unpackIEEE754(get(this, 4, byteOffset, arguments[1]), 23, 4);
+    },
+    getFloat64: function getFloat64(byteOffset /*, littleEndian */){
+      return unpackIEEE754(get(this, 8, byteOffset, arguments[1]), 52, 8);
+    },
+    setInt8: function setInt8(byteOffset, value){
+      set(this, 1, byteOffset, packI8, value);
+    },
+    setUint8: function setUint8(byteOffset, value){
+      set(this, 1, byteOffset, packI8, value);
+    },
+    setInt16: function setInt16(byteOffset, value /*, littleEndian */){
+      set(this, 2, byteOffset, packI16, value, arguments[2]);
+    },
+    setUint16: function setUint16(byteOffset, value /*, littleEndian */){
+      set(this, 2, byteOffset, packI16, value, arguments[2]);
+    },
+    setInt32: function setInt32(byteOffset, value /*, littleEndian */){
+      set(this, 4, byteOffset, packI32, value, arguments[2]);
+    },
+    setUint32: function setUint32(byteOffset, value /*, littleEndian */){
+      set(this, 4, byteOffset, packI32, value, arguments[2]);
+    },
+    setFloat32: function setFloat32(byteOffset, value /*, littleEndian */){
+      set(this, 4, byteOffset, packF32, value, arguments[2]);
+    },
+    setFloat64: function setFloat64(byteOffset, value /*, littleEndian */){
+      set(this, 8, byteOffset, packF64, value, arguments[2]);
+    }
+  });
+} else {
+  if(!fails(function(){
+    new $ArrayBuffer;     // eslint-disable-line no-new
+  }) || !fails(function(){
+    new $ArrayBuffer(.5); // eslint-disable-line no-new
+  })){
+    $ArrayBuffer = function ArrayBuffer(length){
+      return new BaseBuffer(validateArrayBufferArguments(this, length));
+    };
+    var ArrayBufferProto = $ArrayBuffer[PROTOTYPE] = BaseBuffer[PROTOTYPE];
+    for(var keys = gOPN(BaseBuffer), j = 0, key; keys.length > j; ){
+      if(!((key = keys[j++]) in $ArrayBuffer))hide($ArrayBuffer, key, BaseBuffer[key]);
+    };
+    if(!LIBRARY)ArrayBufferProto.constructor = $ArrayBuffer;
+  }
+  // iOS Safari 7.x bug
+  var view = new $DataView(new $ArrayBuffer(2))
+    , $setInt8 = $DataView[PROTOTYPE].setInt8;
+  view.setInt8(0, 2147483648);
+  view.setInt8(1, 2147483649);
+  if(view.getInt8(0) || !view.getInt8(1))redefineAll($DataView[PROTOTYPE], {
+    setInt8: function setInt8(byteOffset, value){
+      $setInt8.call(this, byteOffset, value << 24 >> 24);
+    },
+    setUint8: function setUint8(byteOffset, value){
+      $setInt8.call(this, byteOffset, value << 24 >> 24);
+    }
+  }, true);
+}
+setToStringTag($ArrayBuffer, ARRAY_BUFFER);
+setToStringTag($DataView, DATA_VIEW);
+hide($DataView[PROTOTYPE], $typed.VIEW, true);
+exports[ARRAY_BUFFER] = $ArrayBuffer;
+exports[DATA_VIEW] = $DataView;
+},{"./_an-instance":7,"./_array-fill":10,"./_descriptors":28,"./_fails":34,"./_global":38,"./_hide":40,"./_library":58,"./_object-dp":67,"./_object-gopn":72,"./_redefine-all":86,"./_set-to-string-tag":92,"./_to-integer":106,"./_to-length":108,"./_typed":113}],113:[function(require,module,exports){
+var global = require('./_global')
+  , hide   = require('./_hide')
+  , uid    = require('./_uid')
+  , TYPED  = uid('typed_array')
+  , VIEW   = uid('view')
+  , ABV    = !!(global.ArrayBuffer && global.DataView)
+  , CONSTR = ABV
+  , i = 0, l = 9, Typed;
+
+var TypedArrayConstructors = (
+  'Int8Array,Uint8Array,Uint8ClampedArray,Int16Array,Uint16Array,Int32Array,Uint32Array,Float32Array,Float64Array'
+).split(',');
+
+while(i < l){
+  if(Typed = global[TypedArrayConstructors[i++]]){
+    hide(Typed.prototype, TYPED, true);
+    hide(Typed.prototype, VIEW, true);
+  } else CONSTR = false;
+}
+
+module.exports = {
+  ABV:    ABV,
+  CONSTR: CONSTR,
+  TYPED:  TYPED,
+  VIEW:   VIEW
+};
+},{"./_global":38,"./_hide":40,"./_uid":114}],114:[function(require,module,exports){
+var id = 0
+  , px = Math.random();
+module.exports = function(key){
+  return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));
+};
+},{}],115:[function(require,module,exports){
+var store      = require('./_shared')('wks')
+  , uid        = require('./_uid')
+  , Symbol     = require('./_global').Symbol
+  , USE_SYMBOL = typeof Symbol == 'function';
+module.exports = function(name){
+  return store[name] || (store[name] =
+    USE_SYMBOL && Symbol[name] || (USE_SYMBOL ? Symbol : uid)('Symbol.' + name));
+};
+},{"./_global":38,"./_shared":94,"./_uid":114}],116:[function(require,module,exports){
+var classof   = require('./_classof')
+  , ITERATOR  = require('./_wks')('iterator')
+  , Iterators = require('./_iterators');
+module.exports = require('./_core').getIteratorMethod = function(it){
+  if(it != undefined)return it[ITERATOR]
+    || it['@@iterator']
+    || Iterators[classof(it)];
+};
+},{"./_classof":17,"./_core":23,"./_iterators":56,"./_wks":115}],117:[function(require,module,exports){
+var classof   = require('./_classof')
+  , ITERATOR  = require('./_wks')('iterator')
+  , Iterators = require('./_iterators');
+module.exports = require('./_core').isIterable = function(it){
+  var O = Object(it);
+  return O[ITERATOR] !== undefined
+    || '@@iterator' in O
+    || Iterators.hasOwnProperty(classof(O));
+};
+},{"./_classof":17,"./_core":23,"./_iterators":56,"./_wks":115}],118:[function(require,module,exports){
+// https://github.com/benjamingr/RexExp.escape
+var $export = require('./_export')
+  , $re     = require('./_replacer')(/[\\^$*+?.()|[\]{}]/g, '\\$&');
+
+$export($export.S, 'RegExp', {escape: function escape(it){ return $re(it); }});
+
+},{"./_export":32,"./_replacer":88}],119:[function(require,module,exports){
+// 22.1.3.3 Array.prototype.copyWithin(target, start, end = this.length)
+var $export = require('./_export');
+
+$export($export.P, 'Array', {copyWithin: require('./_array-copy-within')});
+
+require('./_add-to-unscopables')('copyWithin');
+},{"./_add-to-unscopables":6,"./_array-copy-within":9,"./_export":32}],120:[function(require,module,exports){
+'use strict';
+var $export = require('./_export')
+  , $every  = require('./_array-methods')(4);
+
+$export($export.P + $export.F * !require('./_strict-method')([].every, true), 'Array', {
+  // 22.1.3.5 / 15.4.4.16 Array.prototype.every(callbackfn [, thisArg])
+  every: function every(callbackfn /* , thisArg */){
+    return $every(this, callbackfn, arguments[1]);
+  }
+});
+},{"./_array-methods":13,"./_export":32,"./_strict-method":96}],121:[function(require,module,exports){
+// 22.1.3.6 Array.prototype.fill(value, start = 0, end = this.length)
+var $export = require('./_export');
+
+$export($export.P, 'Array', {fill: require('./_array-fill')});
+
+require('./_add-to-unscopables')('fill');
+},{"./_add-to-unscopables":6,"./_array-fill":10,"./_export":32}],122:[function(require,module,exports){
+'use strict';
+var $export = require('./_export')
+  , $filter = require('./_array-methods')(2);
+
+$export($export.P + $export.F * !require('./_strict-method')([].filter, true), 'Array', {
+  // 22.1.3.7 / 15.4.4.20 Array.prototype.filter(callbackfn [, thisArg])
+  filter: function filter(callbackfn /* , thisArg */){
+    return $filter(this, callbackfn, arguments[1]);
+  }
+});
+},{"./_array-methods":13,"./_export":32,"./_strict-method":96}],123:[function(require,module,exports){
+'use strict';
+// 22.1.3.9 Array.prototype.findIndex(predicate, thisArg = undefined)
+var $export = require('./_export')
+  , $find   = require('./_array-methods')(6)
+  , KEY     = 'findIndex'
+  , forced  = true;
+// Shouldn't skip holes
+if(KEY in [])Array(1)[KEY](function(){ forced = false; });
+$export($export.P + $export.F * forced, 'Array', {
+  findIndex: function findIndex(callbackfn/*, that = undefined */){
+    return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+require('./_add-to-unscopables')(KEY);
+},{"./_add-to-unscopables":6,"./_array-methods":13,"./_export":32}],124:[function(require,module,exports){
+'use strict';
+// 22.1.3.8 Array.prototype.find(predicate, thisArg = undefined)
+var $export = require('./_export')
+  , $find   = require('./_array-methods')(5)
+  , KEY     = 'find'
+  , forced  = true;
+// Shouldn't skip holes
+if(KEY in [])Array(1)[KEY](function(){ forced = false; });
+$export($export.P + $export.F * forced, 'Array', {
+  find: function find(callbackfn/*, that = undefined */){
+    return $find(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+require('./_add-to-unscopables')(KEY);
+},{"./_add-to-unscopables":6,"./_array-methods":13,"./_export":32}],125:[function(require,module,exports){
+'use strict';
+var $export  = require('./_export')
+  , $forEach = require('./_array-methods')(0)
+  , STRICT   = require('./_strict-method')([].forEach, true);
+
+$export($export.P + $export.F * !STRICT, 'Array', {
+  // 22.1.3.10 / 15.4.4.18 Array.prototype.forEach(callbackfn [, thisArg])
+  forEach: function forEach(callbackfn /* , thisArg */){
+    return $forEach(this, callbackfn, arguments[1]);
+  }
+});
+},{"./_array-methods":13,"./_export":32,"./_strict-method":96}],126:[function(require,module,exports){
+'use strict';
+var ctx            = require('./_ctx')
+  , $export        = require('./_export')
+  , toObject       = require('./_to-object')
+  , call           = require('./_iter-call')
+  , isArrayIter    = require('./_is-array-iter')
+  , toLength       = require('./_to-length')
+  , createProperty = require('./_create-property')
+  , getIterFn      = require('./core.get-iterator-method');
+
+$export($export.S + $export.F * !require('./_iter-detect')(function(iter){ Array.from(iter); }), 'Array', {
+  // 22.1.2.1 Array.from(arrayLike, mapfn = undefined, thisArg = undefined)
+  from: function from(arrayLike/*, mapfn = undefined, thisArg = undefined*/){
+    var O       = toObject(arrayLike)
+      , C       = typeof this == 'function' ? this : Array
+      , aLen    = arguments.length
+      , mapfn   = aLen > 1 ? arguments[1] : undefined
+      , mapping = mapfn !== undefined
+      , index   = 0
+      , iterFn  = getIterFn(O)
+      , length, result, step, iterator;
+    if(mapping)mapfn = ctx(mapfn, aLen > 2 ? arguments[2] : undefined, 2);
+    // if object isn't iterable or it's array with default iterator - use simple case
+    if(iterFn != undefined && !(C == Array && isArrayIter(iterFn))){
+      for(iterator = iterFn.call(O), result = new C; !(step = iterator.next()).done; index++){
+        createProperty(result, index, mapping ? call(iterator, mapfn, [step.value, index], true) : step.value);
+      }
+    } else {
+      length = toLength(O.length);
+      for(result = new C(length); length > index; index++){
+        createProperty(result, index, mapping ? mapfn(O[index], index) : O[index]);
+      }
+    }
+    result.length = index;
+    return result;
+  }
+});
+
+},{"./_create-property":24,"./_ctx":25,"./_export":32,"./_is-array-iter":46,"./_iter-call":51,"./_iter-detect":54,"./_to-length":108,"./_to-object":109,"./core.get-iterator-method":116}],127:[function(require,module,exports){
+'use strict';
+var $export       = require('./_export')
+  , $indexOf      = require('./_array-includes')(false)
+  , $native       = [].indexOf
+  , NEGATIVE_ZERO = !!$native && 1 / [1].indexOf(1, -0) < 0;
+
+$export($export.P + $export.F * (NEGATIVE_ZERO || !require('./_strict-method')($native)), 'Array', {
+  // 22.1.3.11 / 15.4.4.14 Array.prototype.indexOf(searchElement [, fromIndex])
+  indexOf: function indexOf(searchElement /*, fromIndex = 0 */){
+    return NEGATIVE_ZERO
+      // convert -0 to +0
+      ? $native.apply(this, arguments) || 0
+      : $indexOf(this, searchElement, arguments[1]);
+  }
+});
+},{"./_array-includes":12,"./_export":32,"./_strict-method":96}],128:[function(require,module,exports){
+// 22.1.2.2 / 15.4.3.2 Array.isArray(arg)
+var $export = require('./_export');
+
+$export($export.S, 'Array', {isArray: require('./_is-array')});
+},{"./_export":32,"./_is-array":47}],129:[function(require,module,exports){
+'use strict';
+var addToUnscopables = require('./_add-to-unscopables')
+  , step             = require('./_iter-step')
+  , Iterators        = require('./_iterators')
+  , toIObject        = require('./_to-iobject');
+
+// 22.1.3.4 Array.prototype.entries()
+// 22.1.3.13 Array.prototype.keys()
+// 22.1.3.29 Array.prototype.values()
+// 22.1.3.30 Array.prototype[@@iterator]()
+module.exports = require('./_iter-define')(Array, 'Array', function(iterated, kind){
+  this._t = toIObject(iterated); // target
+  this._i = 0;                   // next index
+  this._k = kind;                // kind
+// 22.1.5.2.1 %ArrayIteratorPrototype%.next()
+}, function(){
+  var O     = this._t
+    , kind  = this._k
+    , index = this._i++;
+  if(!O || index >= O.length){
+    this._t = undefined;
+    return step(1);
+  }
+  if(kind == 'keys'  )return step(0, index);
+  if(kind == 'values')return step(0, O[index]);
+  return step(0, [index, O[index]]);
+}, 'values');
+
+// argumentsList[@@iterator] is %ArrayProto_values% (9.4.4.6, 9.4.4.7)
+Iterators.Arguments = Iterators.Array;
+
+addToUnscopables('keys');
+addToUnscopables('values');
+addToUnscopables('entries');
+},{"./_add-to-unscopables":6,"./_iter-define":53,"./_iter-step":55,"./_iterators":56,"./_to-iobject":107}],130:[function(require,module,exports){
+'use strict';
+// 22.1.3.13 Array.prototype.join(separator)
+var $export   = require('./_export')
+  , toIObject = require('./_to-iobject')
+  , arrayJoin = [].join;
+
+// fallback for not array-like strings
+$export($export.P + $export.F * (require('./_iobject') != Object || !require('./_strict-method')(arrayJoin)), 'Array', {
+  join: function join(separator){
+    return arrayJoin.call(toIObject(this), separator === undefined ? ',' : separator);
+  }
+});
+},{"./_export":32,"./_iobject":45,"./_strict-method":96,"./_to-iobject":107}],131:[function(require,module,exports){
+'use strict';
+var $export       = require('./_export')
+  , toIObject     = require('./_to-iobject')
+  , toInteger     = require('./_to-integer')
+  , toLength      = require('./_to-length')
+  , $native       = [].lastIndexOf
+  , NEGATIVE_ZERO = !!$native && 1 / [1].lastIndexOf(1, -0) < 0;
+
+$export($export.P + $export.F * (NEGATIVE_ZERO || !require('./_strict-method')($native)), 'Array', {
+  // 22.1.3.14 / 15.4.4.15 Array.prototype.lastIndexOf(searchElement [, fromIndex])
+  lastIndexOf: function lastIndexOf(searchElement /*, fromIndex = @[*-1] */){
+    // convert -0 to +0
+    if(NEGATIVE_ZERO)return $native.apply(this, arguments) || 0;
+    var O      = toIObject(this)
+      , length = toLength(O.length)
+      , index  = length - 1;
+    if(arguments.length > 1)index = Math.min(index, toInteger(arguments[1]));
+    if(index < 0)index = length + index;
+    for(;index >= 0; index--)if(index in O)if(O[index] === searchElement)return index || 0;
+    return -1;
+  }
+});
+},{"./_export":32,"./_strict-method":96,"./_to-integer":106,"./_to-iobject":107,"./_to-length":108}],132:[function(require,module,exports){
+'use strict';
+var $export = require('./_export')
+  , $map    = require('./_array-methods')(1);
+
+$export($export.P + $export.F * !require('./_strict-method')([].map, true), 'Array', {
+  // 22.1.3.15 / 15.4.4.19 Array.prototype.map(callbackfn [, thisArg])
+  map: function map(callbackfn /* , thisArg */){
+    return $map(this, callbackfn, arguments[1]);
+  }
+});
+},{"./_array-methods":13,"./_export":32,"./_strict-method":96}],133:[function(require,module,exports){
+'use strict';
+var $export        = require('./_export')
+  , createProperty = require('./_create-property');
+
+// WebKit Array.of isn't generic
+$export($export.S + $export.F * require('./_fails')(function(){
+  function F(){}
+  return !(Array.of.call(F) instanceof F);
+}), 'Array', {
+  // 22.1.2.3 Array.of( ...items)
+  of: function of(/* ...args */){
+    var index  = 0
+      , aLen   = arguments.length
+      , result = new (typeof this == 'function' ? this : Array)(aLen);
+    while(aLen > index)createProperty(result, index, arguments[index++]);
+    result.length = aLen;
+    return result;
+  }
+});
+},{"./_create-property":24,"./_export":32,"./_fails":34}],134:[function(require,module,exports){
+'use strict';
+var $export = require('./_export')
+  , $reduce = require('./_array-reduce');
+
+$export($export.P + $export.F * !require('./_strict-method')([].reduceRight, true), 'Array', {
+  // 22.1.3.19 / 15.4.4.22 Array.prototype.reduceRight(callbackfn [, initialValue])
+  reduceRight: function reduceRight(callbackfn /* , initialValue */){
+    return $reduce(this, callbackfn, arguments.length, arguments[1], true);
+  }
+});
+},{"./_array-reduce":14,"./_export":32,"./_strict-method":96}],135:[function(require,module,exports){
+'use strict';
+var $export = require('./_export')
+  , $reduce = require('./_array-reduce');
+
+$export($export.P + $export.F * !require('./_strict-method')([].reduce, true), 'Array', {
+  // 22.1.3.18 / 15.4.4.21 Array.prototype.reduce(callbackfn [, initialValue])
+  reduce: function reduce(callbackfn /* , initialValue */){
+    return $reduce(this, callbackfn, arguments.length, arguments[1], false);
+  }
+});
+},{"./_array-reduce":14,"./_export":32,"./_strict-method":96}],136:[function(require,module,exports){
+'use strict';
+var $export    = require('./_export')
+  , html       = require('./_html')
+  , cof        = require('./_cof')
+  , toIndex    = require('./_to-index')
+  , toLength   = require('./_to-length')
+  , arraySlice = [].slice;
+
+// fallback for not array-like ES3 strings and DOM objects
+$export($export.P + $export.F * require('./_fails')(function(){
+  if(html)arraySlice.call(html);
+}), 'Array', {
+  slice: function slice(begin, end){
+    var len   = toLength(this.length)
+      , klass = cof(this);
+    end = end === undefined ? len : end;
+    if(klass == 'Array')return arraySlice.call(this, begin, end);
+    var start  = toIndex(begin, len)
+      , upTo   = toIndex(end, len)
+      , size   = toLength(upTo - start)
+      , cloned = Array(size)
+      , i      = 0;
+    for(; i < size; i++)cloned[i] = klass == 'String'
+      ? this.charAt(start + i)
+      : this[start + i];
+    return cloned;
+  }
+});
+},{"./_cof":18,"./_export":32,"./_fails":34,"./_html":41,"./_to-index":105,"./_to-length":108}],137:[function(require,module,exports){
+'use strict';
+var $export = require('./_export')
+  , $some   = require('./_array-methods')(3);
+
+$export($export.P + $export.F * !require('./_strict-method')([].some, true), 'Array', {
+  // 22.1.3.23 / 15.4.4.17 Array.prototype.some(callbackfn [, thisArg])
+  some: function some(callbackfn /* , thisArg */){
+    return $some(this, callbackfn, arguments[1]);
+  }
+});
+},{"./_array-methods":13,"./_export":32,"./_strict-method":96}],138:[function(require,module,exports){
+'use strict';
+var $export   = require('./_export')
+  , aFunction = require('./_a-function')
+  , toObject  = require('./_to-object')
+  , fails     = require('./_fails')
+  , $sort     = [].sort
+  , test      = [1, 2, 3];
+
+$export($export.P + $export.F * (fails(function(){
+  // IE8-
+  test.sort(undefined);
+}) || !fails(function(){
+  // V8 bug
+  test.sort(null);
+  // Old WebKit
+}) || !require('./_strict-method')($sort)), 'Array', {
+  // 22.1.3.25 Array.prototype.sort(comparefn)
+  sort: function sort(comparefn){
+    return comparefn === undefined
+      ? $sort.call(toObject(this))
+      : $sort.call(toObject(this), aFunction(comparefn));
+  }
+});
+},{"./_a-function":4,"./_export":32,"./_fails":34,"./_strict-method":96,"./_to-object":109}],139:[function(require,module,exports){
+require('./_set-species')('Array');
+},{"./_set-species":91}],140:[function(require,module,exports){
+// 20.3.3.1 / 15.9.4.4 Date.now()
+var $export = require('./_export');
+
+$export($export.S, 'Date', {now: function(){ return new Date().getTime(); }});
+},{"./_export":32}],141:[function(require,module,exports){
+'use strict';
+// 20.3.4.36 / 15.9.5.43 Date.prototype.toISOString()
+var $export = require('./_export')
+  , fails   = require('./_fails')
+  , getTime = Date.prototype.getTime;
+
+var lz = function(num){
+  return num > 9 ? num : '0' + num;
+};
+
+// PhantomJS / old WebKit has a broken implementations
+$export($export.P + $export.F * (fails(function(){
+  return new Date(-5e13 - 1).toISOString() != '0385-07-25T07:06:39.999Z';
+}) || !fails(function(){
+  new Date(NaN).toISOString();
+})), 'Date', {
+  toISOString: function toISOString(){
+    if(!isFinite(getTime.call(this)))throw RangeError('Invalid time value');
+    var d = this
+      , y = d.getUTCFullYear()
+      , m = d.getUTCMilliseconds()
+      , s = y < 0 ? '-' : y > 9999 ? '+' : '';
+    return s + ('00000' + Math.abs(y)).slice(s ? -6 : -4) +
+      '-' + lz(d.getUTCMonth() + 1) + '-' + lz(d.getUTCDate()) +
+      'T' + lz(d.getUTCHours()) + ':' + lz(d.getUTCMinutes()) +
+      ':' + lz(d.getUTCSeconds()) + '.' + (m > 99 ? m : '0' + lz(m)) + 'Z';
+  }
+});
+},{"./_export":32,"./_fails":34}],142:[function(require,module,exports){
+'use strict';
+var $export     = require('./_export')
+  , toObject    = require('./_to-object')
+  , toPrimitive = require('./_to-primitive');
+
+$export($export.P + $export.F * require('./_fails')(function(){
+  return new Date(NaN).toJSON() !== null || Date.prototype.toJSON.call({toISOString: function(){ return 1; }}) !== 1;
+}), 'Date', {
+  toJSON: function toJSON(key){
+    var O  = toObject(this)
+      , pv = toPrimitive(O);
+    return typeof pv == 'number' && !isFinite(pv) ? null : O.toISOString();
+  }
+});
+},{"./_export":32,"./_fails":34,"./_to-object":109,"./_to-primitive":110}],143:[function(require,module,exports){
+var TO_PRIMITIVE = require('./_wks')('toPrimitive')
+  , proto        = Date.prototype;
+
+if(!(TO_PRIMITIVE in proto))require('./_hide')(proto, TO_PRIMITIVE, require('./_date-to-primitive'));
+},{"./_date-to-primitive":26,"./_hide":40,"./_wks":115}],144:[function(require,module,exports){
+var DateProto    = Date.prototype
+  , INVALID_DATE = 'Invalid Date'
+  , TO_STRING    = 'toString'
+  , $toString    = DateProto[TO_STRING]
+  , getTime      = DateProto.getTime;
+if(new Date(NaN) + '' != INVALID_DATE){
+  require('./_redefine')(DateProto, TO_STRING, function toString(){
+    var value = getTime.call(this);
+    return value === value ? $toString.call(this) : INVALID_DATE;
+  });
+}
+},{"./_redefine":87}],145:[function(require,module,exports){
+// 19.2.3.2 / 15.3.4.5 Function.prototype.bind(thisArg, args...)
+var $export = require('./_export');
+
+$export($export.P, 'Function', {bind: require('./_bind')});
+},{"./_bind":16,"./_export":32}],146:[function(require,module,exports){
+'use strict';
+var isObject       = require('./_is-object')
+  , getPrototypeOf = require('./_object-gpo')
+  , HAS_INSTANCE   = require('./_wks')('hasInstance')
+  , FunctionProto  = Function.prototype;
+// 19.2.3.6 Function.prototype[@@hasInstance](V)
+if(!(HAS_INSTANCE in FunctionProto))require('./_object-dp').f(FunctionProto, HAS_INSTANCE, {value: function(O){
+  if(typeof this != 'function' || !isObject(O))return false;
+  if(!isObject(this.prototype))return O instanceof this;
+  // for environment w/o native `@@hasInstance` logic enough `instanceof`, but add this:
+  while(O = getPrototypeOf(O))if(this.prototype === O)return true;
+  return false;
+}});
+},{"./_is-object":49,"./_object-dp":67,"./_object-gpo":74,"./_wks":115}],147:[function(require,module,exports){
+var dP         = require('./_object-dp').f
+  , createDesc = require('./_property-desc')
+  , has        = require('./_has')
+  , FProto     = Function.prototype
+  , nameRE     = /^\s*function ([^ (]*)/
+  , NAME       = 'name';
+// 19.2.4.2 name
+NAME in FProto || require('./_descriptors') && dP(FProto, NAME, {
+  configurable: true,
+  get: function(){
+    var match = ('' + this).match(nameRE)
+      , name  = match ? match[1] : '';
+    has(this, NAME) || dP(this, NAME, createDesc(5, name));
+    return name;
+  }
+});
+},{"./_descriptors":28,"./_has":39,"./_object-dp":67,"./_property-desc":85}],148:[function(require,module,exports){
+'use strict';
+var strong = require('./_collection-strong');
+
+// 23.1 Map Objects
+module.exports = require('./_collection')('Map', function(get){
+  return function Map(){ return get(this, arguments.length > 0 ? arguments[0] : undefined); };
+}, {
+  // 23.1.3.6 Map.prototype.get(key)
+  get: function get(key){
+    var entry = strong.getEntry(this, key);
+    return entry && entry.v;
+  },
+  // 23.1.3.9 Map.prototype.set(key, value)
+  set: function set(key, value){
+    return strong.def(this, key === 0 ? 0 : key, value);
+  }
+}, strong, true);
+},{"./_collection":22,"./_collection-strong":19}],149:[function(require,module,exports){
+// 20.2.2.3 Math.acosh(x)
+var $export = require('./_export')
+  , log1p   = require('./_math-log1p')
+  , sqrt    = Math.sqrt
+  , $acosh  = Math.acosh;
+
+$export($export.S + $export.F * !($acosh
+  // V8 bug: https://code.google.com/p/v8/issues/detail?id=3509
+  && Math.floor($acosh(Number.MAX_VALUE)) == 710
+  // Tor Browser bug: Math.acosh(Infinity) -> NaN 
+  && $acosh(Infinity) == Infinity
+), 'Math', {
+  acosh: function acosh(x){
+    return (x = +x) < 1 ? NaN : x > 94906265.62425156
+      ? Math.log(x) + Math.LN2
+      : log1p(x - 1 + sqrt(x - 1) * sqrt(x + 1));
+  }
+});
+},{"./_export":32,"./_math-log1p":60}],150:[function(require,module,exports){
+// 20.2.2.5 Math.asinh(x)
+var $export = require('./_export')
+  , $asinh  = Math.asinh;
+
+function asinh(x){
+  return !isFinite(x = +x) || x == 0 ? x : x < 0 ? -asinh(-x) : Math.log(x + Math.sqrt(x * x + 1));
+}
+
+// Tor Browser bug: Math.asinh(0) -> -0 
+$export($export.S + $export.F * !($asinh && 1 / $asinh(0) > 0), 'Math', {asinh: asinh});
+},{"./_export":32}],151:[function(require,module,exports){
+// 20.2.2.7 Math.atanh(x)
+var $export = require('./_export')
+  , $atanh  = Math.atanh;
+
+// Tor Browser bug: Math.atanh(-0) -> 0 
+$export($export.S + $export.F * !($atanh && 1 / $atanh(-0) < 0), 'Math', {
+  atanh: function atanh(x){
+    return (x = +x) == 0 ? x : Math.log((1 + x) / (1 - x)) / 2;
+  }
+});
+},{"./_export":32}],152:[function(require,module,exports){
+// 20.2.2.9 Math.cbrt(x)
+var $export = require('./_export')
+  , sign    = require('./_math-sign');
+
+$export($export.S, 'Math', {
+  cbrt: function cbrt(x){
+    return sign(x = +x) * Math.pow(Math.abs(x), 1 / 3);
+  }
+});
+},{"./_export":32,"./_math-sign":61}],153:[function(require,module,exports){
+// 20.2.2.11 Math.clz32(x)
+var $export = require('./_export');
+
+$export($export.S, 'Math', {
+  clz32: function clz32(x){
+    return (x >>>= 0) ? 31 - Math.floor(Math.log(x + 0.5) * Math.LOG2E) : 32;
+  }
+});
+},{"./_export":32}],154:[function(require,module,exports){
+// 20.2.2.12 Math.cosh(x)
+var $export = require('./_export')
+  , exp     = Math.exp;
+
+$export($export.S, 'Math', {
+  cosh: function cosh(x){
+    return (exp(x = +x) + exp(-x)) / 2;
+  }
+});
+},{"./_export":32}],155:[function(require,module,exports){
+// 20.2.2.14 Math.expm1(x)
+var $export = require('./_export')
+  , $expm1  = require('./_math-expm1');
+
+$export($export.S + $export.F * ($expm1 != Math.expm1), 'Math', {expm1: $expm1});
+},{"./_export":32,"./_math-expm1":59}],156:[function(require,module,exports){
+// 20.2.2.16 Math.fround(x)
+var $export   = require('./_export')
+  , sign      = require('./_math-sign')
+  , pow       = Math.pow
+  , EPSILON   = pow(2, -52)
+  , EPSILON32 = pow(2, -23)
+  , MAX32     = pow(2, 127) * (2 - EPSILON32)
+  , MIN32     = pow(2, -126);
+
+var roundTiesToEven = function(n){
+  return n + 1 / EPSILON - 1 / EPSILON;
+};
+
+
+$export($export.S, 'Math', {
+  fround: function fround(x){
+    var $abs  = Math.abs(x)
+      , $sign = sign(x)
+      , a, result;
+    if($abs < MIN32)return $sign * roundTiesToEven($abs / MIN32 / EPSILON32) * MIN32 * EPSILON32;
+    a = (1 + EPSILON32 / EPSILON) * $abs;
+    result = a - (a - $abs);
+    if(result > MAX32 || result != result)return $sign * Infinity;
+    return $sign * result;
+  }
+});
+},{"./_export":32,"./_math-sign":61}],157:[function(require,module,exports){
+// 20.2.2.17 Math.hypot([value1[, value2[, … ]]])
+var $export = require('./_export')
+  , abs     = Math.abs;
+
+$export($export.S, 'Math', {
+  hypot: function hypot(value1, value2){ // eslint-disable-line no-unused-vars
+    var sum  = 0
+      , i    = 0
+      , aLen = arguments.length
+      , larg = 0
+      , arg, div;
+    while(i < aLen){
+      arg = abs(arguments[i++]);
+      if(larg < arg){
+        div  = larg / arg;
+        sum  = sum * div * div + 1;
+        larg = arg;
+      } else if(arg > 0){
+        div  = arg / larg;
+        sum += div * div;
+      } else sum += arg;
+    }
+    return larg === Infinity ? Infinity : larg * Math.sqrt(sum);
+  }
+});
+},{"./_export":32}],158:[function(require,module,exports){
+// 20.2.2.18 Math.imul(x, y)
+var $export = require('./_export')
+  , $imul   = Math.imul;
+
+// some WebKit versions fails with big numbers, some has wrong arity
+$export($export.S + $export.F * require('./_fails')(function(){
+  return $imul(0xffffffff, 5) != -5 || $imul.length != 2;
+}), 'Math', {
+  imul: function imul(x, y){
+    var UINT16 = 0xffff
+      , xn = +x
+      , yn = +y
+      , xl = UINT16 & xn
+      , yl = UINT16 & yn;
+    return 0 | xl * yl + ((UINT16 & xn >>> 16) * yl + xl * (UINT16 & yn >>> 16) << 16 >>> 0);
+  }
+});
+},{"./_export":32,"./_fails":34}],159:[function(require,module,exports){
+// 20.2.2.21 Math.log10(x)
+var $export = require('./_export');
+
+$export($export.S, 'Math', {
+  log10: function log10(x){
+    return Math.log(x) / Math.LN10;
+  }
+});
+},{"./_export":32}],160:[function(require,module,exports){
+// 20.2.2.20 Math.log1p(x)
+var $export = require('./_export');
+
+$export($export.S, 'Math', {log1p: require('./_math-log1p')});
+},{"./_export":32,"./_math-log1p":60}],161:[function(require,module,exports){
+// 20.2.2.22 Math.log2(x)
+var $export = require('./_export');
+
+$export($export.S, 'Math', {
+  log2: function log2(x){
+    return Math.log(x) / Math.LN2;
+  }
+});
+},{"./_export":32}],162:[function(require,module,exports){
+// 20.2.2.28 Math.sign(x)
+var $export = require('./_export');
+
+$export($export.S, 'Math', {sign: require('./_math-sign')});
+},{"./_export":32,"./_math-sign":61}],163:[function(require,module,exports){
+// 20.2.2.30 Math.sinh(x)
+var $export = require('./_export')
+  , expm1   = require('./_math-expm1')
+  , exp     = Math.exp;
+
+// V8 near Chromium 38 has a problem with very small numbers
+$export($export.S + $export.F * require('./_fails')(function(){
+  return !Math.sinh(-2e-17) != -2e-17;
+}), 'Math', {
+  sinh: function sinh(x){
+    return Math.abs(x = +x) < 1
+      ? (expm1(x) - expm1(-x)) / 2
+      : (exp(x - 1) - exp(-x - 1)) * (Math.E / 2);
+  }
+});
+},{"./_export":32,"./_fails":34,"./_math-expm1":59}],164:[function(require,module,exports){
+// 20.2.2.33 Math.tanh(x)
+var $export = require('./_export')
+  , expm1   = require('./_math-expm1')
+  , exp     = Math.exp;
+
+$export($export.S, 'Math', {
+  tanh: function tanh(x){
+    var a = expm1(x = +x)
+      , b = expm1(-x);
+    return a == Infinity ? 1 : b == Infinity ? -1 : (a - b) / (exp(x) + exp(-x));
+  }
+});
+},{"./_export":32,"./_math-expm1":59}],165:[function(require,module,exports){
+// 20.2.2.34 Math.trunc(x)
+var $export = require('./_export');
+
+$export($export.S, 'Math', {
+  trunc: function trunc(it){
+    return (it > 0 ? Math.floor : Math.ceil)(it);
+  }
+});
+},{"./_export":32}],166:[function(require,module,exports){
+'use strict';
+var global            = require('./_global')
+  , has               = require('./_has')
+  , cof               = require('./_cof')
+  , inheritIfRequired = require('./_inherit-if-required')
+  , toPrimitive       = require('./_to-primitive')
+  , fails             = require('./_fails')
+  , gOPN              = require('./_object-gopn').f
+  , gOPD              = require('./_object-gopd').f
+  , dP                = require('./_object-dp').f
+  , $trim             = require('./_string-trim').trim
+  , NUMBER            = 'Number'
+  , $Number           = global[NUMBER]
+  , Base              = $Number
+  , proto             = $Number.prototype
+  // Opera ~12 has broken Object#toString
+  , BROKEN_COF        = cof(require('./_object-create')(proto)) == NUMBER
+  , TRIM              = 'trim' in String.prototype;
+
+// 7.1.3 ToNumber(argument)
+var toNumber = function(argument){
+  var it = toPrimitive(argument, false);
+  if(typeof it == 'string' && it.length > 2){
+    it = TRIM ? it.trim() : $trim(it, 3);
+    var first = it.charCodeAt(0)
+      , third, radix, maxCode;
+    if(first === 43 || first === 45){
+      third = it.charCodeAt(2);
+      if(third === 88 || third === 120)return NaN; // Number('+0x1') should be NaN, old V8 fix
+    } else if(first === 48){
+      switch(it.charCodeAt(1)){
+        case 66 : case 98  : radix = 2; maxCode = 49; break; // fast equal /^0b[01]+$/i
+        case 79 : case 111 : radix = 8; maxCode = 55; break; // fast equal /^0o[0-7]+$/i
+        default : return +it;
+      }
+      for(var digits = it.slice(2), i = 0, l = digits.length, code; i < l; i++){
+        code = digits.charCodeAt(i);
+        // parseInt parses a string to a first unavailable symbol
+        // but ToNumber should return NaN if a string contains unavailable symbols
+        if(code < 48 || code > maxCode)return NaN;
+      } return parseInt(digits, radix);
+    }
+  } return +it;
+};
+
+if(!$Number(' 0o1') || !$Number('0b1') || $Number('+0x1')){
+  $Number = function Number(value){
+    var it = arguments.length < 1 ? 0 : value
+      , that = this;
+    return that instanceof $Number
+      // check on 1..constructor(foo) case
+      && (BROKEN_COF ? fails(function(){ proto.valueOf.call(that); }) : cof(that) != NUMBER)
+        ? inheritIfRequired(new Base(toNumber(it)), that, $Number) : toNumber(it);
+  };
+  for(var keys = require('./_descriptors') ? gOPN(Base) : (
+    // ES3:
+    'MAX_VALUE,MIN_VALUE,NaN,NEGATIVE_INFINITY,POSITIVE_INFINITY,' +
+    // ES6 (in case, if modules with ES6 Number statics required before):
+    'EPSILON,isFinite,isInteger,isNaN,isSafeInteger,MAX_SAFE_INTEGER,' +
+    'MIN_SAFE_INTEGER,parseFloat,parseInt,isInteger'
+  ).split(','), j = 0, key; keys.length > j; j++){
+    if(has(Base, key = keys[j]) && !has($Number, key)){
+      dP($Number, key, gOPD(Base, key));
+    }
+  }
+  $Number.prototype = proto;
+  proto.constructor = $Number;
+  require('./_redefine')(global, NUMBER, $Number);
+}
+},{"./_cof":18,"./_descriptors":28,"./_fails":34,"./_global":38,"./_has":39,"./_inherit-if-required":43,"./_object-create":66,"./_object-dp":67,"./_object-gopd":70,"./_object-gopn":72,"./_redefine":87,"./_string-trim":102,"./_to-primitive":110}],167:[function(require,module,exports){
+// 20.1.2.1 Number.EPSILON
+var $export = require('./_export');
+
+$export($export.S, 'Number', {EPSILON: Math.pow(2, -52)});
+},{"./_export":32}],168:[function(require,module,exports){
+// 20.1.2.2 Number.isFinite(number)
+var $export   = require('./_export')
+  , _isFinite = require('./_global').isFinite;
+
+$export($export.S, 'Number', {
+  isFinite: function isFinite(it){
+    return typeof it == 'number' && _isFinite(it);
+  }
+});
+},{"./_export":32,"./_global":38}],169:[function(require,module,exports){
+// 20.1.2.3 Number.isInteger(number)
+var $export = require('./_export');
+
+$export($export.S, 'Number', {isInteger: require('./_is-integer')});
+},{"./_export":32,"./_is-integer":48}],170:[function(require,module,exports){
+// 20.1.2.4 Number.isNaN(number)
+var $export = require('./_export');
+
+$export($export.S, 'Number', {
+  isNaN: function isNaN(number){
+    return number != number;
+  }
+});
+},{"./_export":32}],171:[function(require,module,exports){
+// 20.1.2.5 Number.isSafeInteger(number)
+var $export   = require('./_export')
+  , isInteger = require('./_is-integer')
+  , abs       = Math.abs;
+
+$export($export.S, 'Number', {
+  isSafeInteger: function isSafeInteger(number){
+    return isInteger(number) && abs(number) <= 0x1fffffffffffff;
+  }
+});
+},{"./_export":32,"./_is-integer":48}],172:[function(require,module,exports){
+// 20.1.2.6 Number.MAX_SAFE_INTEGER
+var $export = require('./_export');
+
+$export($export.S, 'Number', {MAX_SAFE_INTEGER: 0x1fffffffffffff});
+},{"./_export":32}],173:[function(require,module,exports){
+// 20.1.2.10 Number.MIN_SAFE_INTEGER
+var $export = require('./_export');
+
+$export($export.S, 'Number', {MIN_SAFE_INTEGER: -0x1fffffffffffff});
+},{"./_export":32}],174:[function(require,module,exports){
+var $export     = require('./_export')
+  , $parseFloat = require('./_parse-float');
+// 20.1.2.12 Number.parseFloat(string)
+$export($export.S + $export.F * (Number.parseFloat != $parseFloat), 'Number', {parseFloat: $parseFloat});
+},{"./_export":32,"./_parse-float":81}],175:[function(require,module,exports){
+var $export   = require('./_export')
+  , $parseInt = require('./_parse-int');
+// 20.1.2.13 Number.parseInt(string, radix)
+$export($export.S + $export.F * (Number.parseInt != $parseInt), 'Number', {parseInt: $parseInt});
+},{"./_export":32,"./_parse-int":82}],176:[function(require,module,exports){
+'use strict';
+var $export      = require('./_export')
+  , anInstance   = require('./_an-instance')
+  , toInteger    = require('./_to-integer')
+  , aNumberValue = require('./_a-number-value')
+  , repeat       = require('./_string-repeat')
+  , $toFixed     = 1..toFixed
+  , floor        = Math.floor
+  , data         = [0, 0, 0, 0, 0, 0]
+  , ERROR        = 'Number.toFixed: incorrect invocation!'
+  , ZERO         = '0';
+
+var multiply = function(n, c){
+  var i  = -1
+    , c2 = c;
+  while(++i < 6){
+    c2 += n * data[i];
+    data[i] = c2 % 1e7;
+    c2 = floor(c2 / 1e7);
+  }
+};
+var divide = function(n){
+  var i = 6
+    , c = 0;
+  while(--i >= 0){
+    c += data[i];
+    data[i] = floor(c / n);
+    c = (c % n) * 1e7;
+  }
+};
+var numToString = function(){
+  var i = 6
+    , s = '';
+  while(--i >= 0){
+    if(s !== '' || i === 0 || data[i] !== 0){
+      var t = String(data[i]);
+      s = s === '' ? t : s + repeat.call(ZERO, 7 - t.length) + t;
+    }
+  } return s;
+};
+var pow = function(x, n, acc){
+  return n === 0 ? acc : n % 2 === 1 ? pow(x, n - 1, acc * x) : pow(x * x, n / 2, acc);
+};
+var log = function(x){
+  var n  = 0
+    , x2 = x;
+  while(x2 >= 4096){
+    n += 12;
+    x2 /= 4096;
+  }
+  while(x2 >= 2){
+    n  += 1;
+    x2 /= 2;
+  } return n;
+};
+
+$export($export.P + $export.F * (!!$toFixed && (
+  0.00008.toFixed(3) !== '0.000' ||
+  0.9.toFixed(0) !== '1' ||
+  1.255.toFixed(2) !== '1.25' ||
+  1000000000000000128..toFixed(0) !== '1000000000000000128'
+) || !require('./_fails')(function(){
+  // V8 ~ Android 4.3-
+  $toFixed.call({});
+})), 'Number', {
+  toFixed: function toFixed(fractionDigits){
+    var x = aNumberValue(this, ERROR)
+      , f = toInteger(fractionDigits)
+      , s = ''
+      , m = ZERO
+      , e, z, j, k;
+    if(f < 0 || f > 20)throw RangeError(ERROR);
+    if(x != x)return 'NaN';
+    if(x <= -1e21 || x >= 1e21)return String(x);
+    if(x < 0){
+      s = '-';
+      x = -x;
+    }
+    if(x > 1e-21){
+      e = log(x * pow(2, 69, 1)) - 69;
+      z = e < 0 ? x * pow(2, -e, 1) : x / pow(2, e, 1);
+      z *= 0x10000000000000;
+      e = 52 - e;
+      if(e > 0){
+        multiply(0, z);
+        j = f;
+        while(j >= 7){
+          multiply(1e7, 0);
+          j -= 7;
+        }
+        multiply(pow(10, j, 1), 0);
+        j = e - 1;
+        while(j >= 23){
+          divide(1 << 23);
+          j -= 23;
+        }
+        divide(1 << j);
+        multiply(1, 1);
+        divide(2);
+        m = numToString();
+      } else {
+        multiply(0, z);
+        multiply(1 << -e, 0);
+        m = numToString() + repeat.call(ZERO, f);
+      }
+    }
+    if(f > 0){
+      k = m.length;
+      m = s + (k <= f ? '0.' + repeat.call(ZERO, f - k) + m : m.slice(0, k - f) + '.' + m.slice(k - f));
+    } else {
+      m = s + m;
+    } return m;
+  }
+});
+},{"./_a-number-value":5,"./_an-instance":7,"./_export":32,"./_fails":34,"./_string-repeat":101,"./_to-integer":106}],177:[function(require,module,exports){
+'use strict';
+var $export      = require('./_export')
+  , $fails       = require('./_fails')
+  , aNumberValue = require('./_a-number-value')
+  , $toPrecision = 1..toPrecision;
+
+$export($export.P + $export.F * ($fails(function(){
+  // IE7-
+  return $toPrecision.call(1, undefined) !== '1';
+}) || !$fails(function(){
+  // V8 ~ Android 4.3-
+  $toPrecision.call({});
+})), 'Number', {
+  toPrecision: function toPrecision(precision){
+    var that = aNumberValue(this, 'Number#toPrecision: incorrect invocation!');
+    return precision === undefined ? $toPrecision.call(that) : $toPrecision.call(that, precision); 
+  }
+});
+},{"./_a-number-value":5,"./_export":32,"./_fails":34}],178:[function(require,module,exports){
+// 19.1.3.1 Object.assign(target, source)
+var $export = require('./_export');
+
+$export($export.S + $export.F, 'Object', {assign: require('./_object-assign')});
+},{"./_export":32,"./_object-assign":65}],179:[function(require,module,exports){
+var $export = require('./_export')
+// 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
+$export($export.S, 'Object', {create: require('./_object-create')});
+},{"./_export":32,"./_object-create":66}],180:[function(require,module,exports){
+var $export = require('./_export');
+// 19.1.2.3 / 15.2.3.7 Object.defineProperties(O, Properties)
+$export($export.S + $export.F * !require('./_descriptors'), 'Object', {defineProperties: require('./_object-dps')});
+},{"./_descriptors":28,"./_export":32,"./_object-dps":68}],181:[function(require,module,exports){
+var $export = require('./_export');
+// 19.1.2.4 / 15.2.3.6 Object.defineProperty(O, P, Attributes)
+$export($export.S + $export.F * !require('./_descriptors'), 'Object', {defineProperty: require('./_object-dp').f});
+},{"./_descriptors":28,"./_export":32,"./_object-dp":67}],182:[function(require,module,exports){
+// 19.1.2.5 Object.freeze(O)
+var isObject = require('./_is-object')
+  , meta     = require('./_meta').onFreeze;
+
+require('./_object-sap')('freeze', function($freeze){
+  return function freeze(it){
+    return $freeze && isObject(it) ? $freeze(meta(it)) : it;
+  };
+});
+},{"./_is-object":49,"./_meta":62,"./_object-sap":78}],183:[function(require,module,exports){
+// 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
+var toIObject                 = require('./_to-iobject')
+  , $getOwnPropertyDescriptor = require('./_object-gopd').f;
+
+require('./_object-sap')('getOwnPropertyDescriptor', function(){
+  return function getOwnPropertyDescriptor(it, key){
+    return $getOwnPropertyDescriptor(toIObject(it), key);
+  };
+});
+},{"./_object-gopd":70,"./_object-sap":78,"./_to-iobject":107}],184:[function(require,module,exports){
+// 19.1.2.7 Object.getOwnPropertyNames(O)
+require('./_object-sap')('getOwnPropertyNames', function(){
+  return require('./_object-gopn-ext').f;
+});
+},{"./_object-gopn-ext":71,"./_object-sap":78}],185:[function(require,module,exports){
+// 19.1.2.9 Object.getPrototypeOf(O)
+var toObject        = require('./_to-object')
+  , $getPrototypeOf = require('./_object-gpo');
+
+require('./_object-sap')('getPrototypeOf', function(){
+  return function getPrototypeOf(it){
+    return $getPrototypeOf(toObject(it));
+  };
+});
+},{"./_object-gpo":74,"./_object-sap":78,"./_to-object":109}],186:[function(require,module,exports){
+// 19.1.2.11 Object.isExtensible(O)
+var isObject = require('./_is-object');
+
+require('./_object-sap')('isExtensible', function($isExtensible){
+  return function isExtensible(it){
+    return isObject(it) ? $isExtensible ? $isExtensible(it) : true : false;
+  };
+});
+},{"./_is-object":49,"./_object-sap":78}],187:[function(require,module,exports){
+// 19.1.2.12 Object.isFrozen(O)
+var isObject = require('./_is-object');
+
+require('./_object-sap')('isFrozen', function($isFrozen){
+  return function isFrozen(it){
+    return isObject(it) ? $isFrozen ? $isFrozen(it) : false : true;
+  };
+});
+},{"./_is-object":49,"./_object-sap":78}],188:[function(require,module,exports){
+// 19.1.2.13 Object.isSealed(O)
+var isObject = require('./_is-object');
+
+require('./_object-sap')('isSealed', function($isSealed){
+  return function isSealed(it){
+    return isObject(it) ? $isSealed ? $isSealed(it) : false : true;
+  };
+});
+},{"./_is-object":49,"./_object-sap":78}],189:[function(require,module,exports){
+// 19.1.3.10 Object.is(value1, value2)
+var $export = require('./_export');
+$export($export.S, 'Object', {is: require('./_same-value')});
+},{"./_export":32,"./_same-value":89}],190:[function(require,module,exports){
+// 19.1.2.14 Object.keys(O)
+var toObject = require('./_to-object')
+  , $keys    = require('./_object-keys');
+
+require('./_object-sap')('keys', function(){
+  return function keys(it){
+    return $keys(toObject(it));
+  };
+});
+},{"./_object-keys":76,"./_object-sap":78,"./_to-object":109}],191:[function(require,module,exports){
+// 19.1.2.15 Object.preventExtensions(O)
+var isObject = require('./_is-object')
+  , meta     = require('./_meta').onFreeze;
+
+require('./_object-sap')('preventExtensions', function($preventExtensions){
+  return function preventExtensions(it){
+    return $preventExtensions && isObject(it) ? $preventExtensions(meta(it)) : it;
+  };
+});
+},{"./_is-object":49,"./_meta":62,"./_object-sap":78}],192:[function(require,module,exports){
+// 19.1.2.17 Object.seal(O)
+var isObject = require('./_is-object')
+  , meta     = require('./_meta').onFreeze;
+
+require('./_object-sap')('seal', function($seal){
+  return function seal(it){
+    return $seal && isObject(it) ? $seal(meta(it)) : it;
+  };
+});
+},{"./_is-object":49,"./_meta":62,"./_object-sap":78}],193:[function(require,module,exports){
+// 19.1.3.19 Object.setPrototypeOf(O, proto)
+var $export = require('./_export');
+$export($export.S, 'Object', {setPrototypeOf: require('./_set-proto').set});
+},{"./_export":32,"./_set-proto":90}],194:[function(require,module,exports){
+'use strict';
+// 19.1.3.6 Object.prototype.toString()
+var classof = require('./_classof')
+  , test    = {};
+test[require('./_wks')('toStringTag')] = 'z';
+if(test + '' != '[object z]'){
+  require('./_redefine')(Object.prototype, 'toString', function toString(){
+    return '[object ' + classof(this) + ']';
+  }, true);
+}
+},{"./_classof":17,"./_redefine":87,"./_wks":115}],195:[function(require,module,exports){
+var $export     = require('./_export')
+  , $parseFloat = require('./_parse-float');
+// 18.2.4 parseFloat(string)
+$export($export.G + $export.F * (parseFloat != $parseFloat), {parseFloat: $parseFloat});
+},{"./_export":32,"./_parse-float":81}],196:[function(require,module,exports){
+var $export   = require('./_export')
+  , $parseInt = require('./_parse-int');
+// 18.2.5 parseInt(string, radix)
+$export($export.G + $export.F * (parseInt != $parseInt), {parseInt: $parseInt});
+},{"./_export":32,"./_parse-int":82}],197:[function(require,module,exports){
+'use strict';
+var LIBRARY            = require('./_library')
+  , global             = require('./_global')
+  , ctx                = require('./_ctx')
+  , classof            = require('./_classof')
+  , $export            = require('./_export')
+  , isObject           = require('./_is-object')
+  , anObject           = require('./_an-object')
+  , aFunction          = require('./_a-function')
+  , anInstance         = require('./_an-instance')
+  , forOf              = require('./_for-of')
+  , setProto           = require('./_set-proto').set
+  , speciesConstructor = require('./_species-constructor')
+  , task               = require('./_task').set
+  , microtask          = require('./_microtask')
+  , PROMISE            = 'Promise'
+  , TypeError          = global.TypeError
+  , process            = global.process
+  , $Promise           = global[PROMISE]
+  , process            = global.process
+  , isNode             = classof(process) == 'process'
+  , empty              = function(){ /* empty */ }
+  , Internal, GenericPromiseCapability, Wrapper;
+
+var USE_NATIVE = !!function(){
+  try {
+    // correct subclassing with @@species support
+    var promise     = $Promise.resolve(1)
+      , FakePromise = (promise.constructor = {})[require('./_wks')('species')] = function(exec){ exec(empty, empty); };
+    // unhandled rejections tracking support, NodeJS Promise without it fails @@species test
+    return (isNode || typeof PromiseRejectionEvent == 'function') && promise.then(empty) instanceof FakePromise;
+  } catch(e){ /* empty */ }
+}();
+
+// helpers
+var sameConstructor = function(a, b){
+  // with library wrapper special case
+  return a === b || a === $Promise && b === Wrapper;
+};
+var isThenable = function(it){
+  var then;
+  return isObject(it) && typeof (then = it.then) == 'function' ? then : false;
+};
+var newPromiseCapability = function(C){
+  return sameConstructor($Promise, C)
+    ? new PromiseCapability(C)
+    : new GenericPromiseCapability(C);
+};
+var PromiseCapability = GenericPromiseCapability = function(C){
+  var resolve, reject;
+  this.promise = new C(function($$resolve, $$reject){
+    if(resolve !== undefined || reject !== undefined)throw TypeError('Bad Promise constructor');
+    resolve = $$resolve;
+    reject  = $$reject;
+  });
+  this.resolve = aFunction(resolve);
+  this.reject  = aFunction(reject);
+};
+var perform = function(exec){
+  try {
+    exec();
+  } catch(e){
+    return {error: e};
+  }
+};
+var notify = function(promise, isReject){
+  if(promise._n)return;
+  promise._n = true;
+  var chain = promise._c;
+  microtask(function(){
+    var value = promise._v
+      , ok    = promise._s == 1
+      , i     = 0;
+    var run = function(reaction){
+      var handler = ok ? reaction.ok : reaction.fail
+        , resolve = reaction.resolve
+        , reject  = reaction.reject
+        , domain  = reaction.domain
+        , result, then;
+      try {
+        if(handler){
+          if(!ok){
+            if(promise._h == 2)onHandleUnhandled(promise);
+            promise._h = 1;
+          }
+          if(handler === true)result = value;
+          else {
+            if(domain)domain.enter();
+            result = handler(value);
+            if(domain)domain.exit();
+          }
+          if(result === reaction.promise){
+            reject(TypeError('Promise-chain cycle'));
+          } else if(then = isThenable(result)){
+            then.call(result, resolve, reject);
+          } else resolve(result);
+        } else reject(value);
+      } catch(e){
+        reject(e);
+      }
+    };
+    while(chain.length > i)run(chain[i++]); // variable length - can't use forEach
+    promise._c = [];
+    promise._n = false;
+    if(isReject && !promise._h)onUnhandled(promise);
+  });
+};
+var onUnhandled = function(promise){
+  task.call(global, function(){
+    var value = promise._v
+      , abrupt, handler, console;
+    if(isUnhandled(promise)){
+      abrupt = perform(function(){
+        if(isNode){
+          process.emit('unhandledRejection', value, promise);
+        } else if(handler = global.onunhandledrejection){
+          handler({promise: promise, reason: value});
+        } else if((console = global.console) && console.error){
+          console.error('Unhandled promise rejection', value);
+        }
+      });
+      // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
+      promise._h = isNode || isUnhandled(promise) ? 2 : 1;
+    } promise._a = undefined;
+    if(abrupt)throw abrupt.error;
+  });
+};
+var isUnhandled = function(promise){
+  if(promise._h == 1)return false;
+  var chain = promise._a || promise._c
+    , i     = 0
+    , reaction;
+  while(chain.length > i){
+    reaction = chain[i++];
+    if(reaction.fail || !isUnhandled(reaction.promise))return false;
+  } return true;
+};
+var onHandleUnhandled = function(promise){
+  task.call(global, function(){
+    var handler;
+    if(isNode){
+      process.emit('rejectionHandled', promise);
+    } else if(handler = global.onrejectionhandled){
+      handler({promise: promise, reason: promise._v});
+    }
+  });
+};
+var $reject = function(value){
+  var promise = this;
+  if(promise._d)return;
+  promise._d = true;
+  promise = promise._w || promise; // unwrap
+  promise._v = value;
+  promise._s = 2;
+  if(!promise._a)promise._a = promise._c.slice();
+  notify(promise, true);
+};
+var $resolve = function(value){
+  var promise = this
+    , then;
+  if(promise._d)return;
+  promise._d = true;
+  promise = promise._w || promise; // unwrap
+  try {
+    if(promise === value)throw TypeError("Promise can't be resolved itself");
+    if(then = isThenable(value)){
+      microtask(function(){
+        var wrapper = {_w: promise, _d: false}; // wrap
+        try {
+          then.call(value, ctx($resolve, wrapper, 1), ctx($reject, wrapper, 1));
+        } catch(e){
+          $reject.call(wrapper, e);
+        }
+      });
+    } else {
+      promise._v = value;
+      promise._s = 1;
+      notify(promise, false);
+    }
+  } catch(e){
+    $reject.call({_w: promise, _d: false}, e); // wrap
+  }
+};
+
+// constructor polyfill
+if(!USE_NATIVE){
+  // 25.4.3.1 Promise(executor)
+  $Promise = function Promise(executor){
+    anInstance(this, $Promise, PROMISE, '_h');
+    aFunction(executor);
+    Internal.call(this);
+    try {
+      executor(ctx($resolve, this, 1), ctx($reject, this, 1));
+    } catch(err){
+      $reject.call(this, err);
+    }
+  };
+  Internal = function Promise(executor){
+    this._c = [];             // <- awaiting reactions
+    this._a = undefined;      // <- checked in isUnhandled reactions
+    this._s = 0;              // <- state
+    this._d = false;          // <- done
+    this._v = undefined;      // <- value
+    this._h = 0;              // <- rejection state, 0 - default, 1 - handled, 2 - unhandled
+    this._n = false;          // <- notify
+  };
+  Internal.prototype = require('./_redefine-all')($Promise.prototype, {
+    // 25.4.5.3 Promise.prototype.then(onFulfilled, onRejected)
+    then: function then(onFulfilled, onRejected){
+      var reaction    = newPromiseCapability(speciesConstructor(this, $Promise));
+      reaction.ok     = typeof onFulfilled == 'function' ? onFulfilled : true;
+      reaction.fail   = typeof onRejected == 'function' && onRejected;
+      reaction.domain = isNode ? process.domain : undefined;
+      this._c.push(reaction);
+      if(this._a)this._a.push(reaction);
+      if(this._s)notify(this, false);
+      return reaction.promise;
+    },
+    // 25.4.5.1 Promise.prototype.catch(onRejected)
+    'catch': function(onRejected){
+      return this.then(undefined, onRejected);
+    }
+  });
+  PromiseCapability = function(){
+    var promise  = new Internal;
+    this.promise = promise;
+    this.resolve = ctx($resolve, promise, 1);
+    this.reject  = ctx($reject, promise, 1);
+  };
+}
+
+$export($export.G + $export.W + $export.F * !USE_NATIVE, {Promise: $Promise});
+require('./_set-to-string-tag')($Promise, PROMISE);
+require('./_set-species')(PROMISE);
+Wrapper = require('./_core')[PROMISE];
+
+// statics
+$export($export.S + $export.F * !USE_NATIVE, PROMISE, {
+  // 25.4.4.5 Promise.reject(r)
+  reject: function reject(r){
+    var capability = newPromiseCapability(this)
+      , $$reject   = capability.reject;
+    $$reject(r);
+    return capability.promise;
+  }
+});
+$export($export.S + $export.F * (LIBRARY || !USE_NATIVE), PROMISE, {
+  // 25.4.4.6 Promise.resolve(x)
+  resolve: function resolve(x){
+    // instanceof instead of internal slot check because we should fix it without replacement native Promise core
+    if(x instanceof $Promise && sameConstructor(x.constructor, this))return x;
+    var capability = newPromiseCapability(this)
+      , $$resolve  = capability.resolve;
+    $$resolve(x);
+    return capability.promise;
+  }
+});
+$export($export.S + $export.F * !(USE_NATIVE && require('./_iter-detect')(function(iter){
+  $Promise.all(iter)['catch'](empty);
+})), PROMISE, {
+  // 25.4.4.1 Promise.all(iterable)
+  all: function all(iterable){
+    var C          = this
+      , capability = newPromiseCapability(C)
+      , resolve    = capability.resolve
+      , reject     = capability.reject;
+    var abrupt = perform(function(){
+      var values    = []
+        , index     = 0
+        , remaining = 1;
+      forOf(iterable, false, function(promise){
+        var $index        = index++
+          , alreadyCalled = false;
+        values.push(undefined);
+        remaining++;
+        C.resolve(promise).then(function(value){
+          if(alreadyCalled)return;
+          alreadyCalled  = true;
+          values[$index] = value;
+          --remaining || resolve(values);
+        }, reject);
+      });
+      --remaining || resolve(values);
+    });
+    if(abrupt)reject(abrupt.error);
+    return capability.promise;
+  },
+  // 25.4.4.4 Promise.race(iterable)
+  race: function race(iterable){
+    var C          = this
+      , capability = newPromiseCapability(C)
+      , reject     = capability.reject;
+    var abrupt = perform(function(){
+      forOf(iterable, false, function(promise){
+        C.resolve(promise).then(capability.resolve, reject);
+      });
+    });
+    if(abrupt)reject(abrupt.error);
+    return capability.promise;
+  }
+});
+},{"./_a-function":4,"./_an-instance":7,"./_an-object":8,"./_classof":17,"./_core":23,"./_ctx":25,"./_export":32,"./_for-of":37,"./_global":38,"./_is-object":49,"./_iter-detect":54,"./_library":58,"./_microtask":64,"./_redefine-all":86,"./_set-proto":90,"./_set-species":91,"./_set-to-string-tag":92,"./_species-constructor":95,"./_task":104,"./_wks":115}],198:[function(require,module,exports){
+// 26.1.1 Reflect.apply(target, thisArgument, argumentsList)
+var $export = require('./_export')
+  , _apply  = Function.apply;
+
+$export($export.S, 'Reflect', {
+  apply: function apply(target, thisArgument, argumentsList){
+    return _apply.call(target, thisArgument, argumentsList);
+  }
+});
+},{"./_export":32}],199:[function(require,module,exports){
+// 26.1.2 Reflect.construct(target, argumentsList [, newTarget])
+var $export   = require('./_export')
+  , create    = require('./_object-create')
+  , aFunction = require('./_a-function')
+  , anObject  = require('./_an-object')
+  , isObject  = require('./_is-object')
+  , bind      = require('./_bind');
+
+// MS Edge supports only 2 arguments
+// FF Nightly sets third argument as `new.target`, but does not create `this` from it
+$export($export.S + $export.F * require('./_fails')(function(){
+  function F(){}
+  return !(Reflect.construct(function(){}, [], F) instanceof F);
+}), 'Reflect', {
+  construct: function construct(Target, args /*, newTarget*/){
+    aFunction(Target);
+    var newTarget = arguments.length < 3 ? Target : aFunction(arguments[2]);
+    if(Target == newTarget){
+      // w/o altered newTarget, optimization for 0-4 arguments
+      if(args != undefined)switch(anObject(args).length){
+        case 0: return new Target;
+        case 1: return new Target(args[0]);
+        case 2: return new Target(args[0], args[1]);
+        case 3: return new Target(args[0], args[1], args[2]);
+        case 4: return new Target(args[0], args[1], args[2], args[3]);
+      }
+      // w/o altered newTarget, lot of arguments case
+      var $args = [null];
+      $args.push.apply($args, args);
+      return new (bind.apply(Target, $args));
+    }
+    // with altered newTarget, not support built-in constructors
+    var proto    = newTarget.prototype
+      , instance = create(isObject(proto) ? proto : Object.prototype)
+      , result   = Function.apply.call(Target, instance, args);
+    return isObject(result) ? result : instance;
+  }
+});
+},{"./_a-function":4,"./_an-object":8,"./_bind":16,"./_export":32,"./_fails":34,"./_is-object":49,"./_object-create":66}],200:[function(require,module,exports){
+// 26.1.3 Reflect.defineProperty(target, propertyKey, attributes)
+var dP          = require('./_object-dp')
+  , $export     = require('./_export')
+  , anObject    = require('./_an-object')
+  , toPrimitive = require('./_to-primitive');
+
+// MS Edge has broken Reflect.defineProperty - throwing instead of returning false
+$export($export.S + $export.F * require('./_fails')(function(){
+  Reflect.defineProperty(dP.f({}, 1, {value: 1}), 1, {value: 2});
+}), 'Reflect', {
+  defineProperty: function defineProperty(target, propertyKey, attributes){
+    anObject(target);
+    propertyKey = toPrimitive(propertyKey, true);
+    anObject(attributes);
+    try {
+      dP.f(target, propertyKey, attributes);
+      return true;
+    } catch(e){
+      return false;
+    }
+  }
+});
+},{"./_an-object":8,"./_export":32,"./_fails":34,"./_object-dp":67,"./_to-primitive":110}],201:[function(require,module,exports){
+// 26.1.4 Reflect.deleteProperty(target, propertyKey)
+var $export  = require('./_export')
+  , gOPD     = require('./_object-gopd').f
+  , anObject = require('./_an-object');
+
+$export($export.S, 'Reflect', {
+  deleteProperty: function deleteProperty(target, propertyKey){
+    var desc = gOPD(anObject(target), propertyKey);
+    return desc && !desc.configurable ? false : delete target[propertyKey];
+  }
+});
+},{"./_an-object":8,"./_export":32,"./_object-gopd":70}],202:[function(require,module,exports){
+'use strict';
+// 26.1.5 Reflect.enumerate(target)
+var $export  = require('./_export')
+  , anObject = require('./_an-object');
+var Enumerate = function(iterated){
+  this._t = anObject(iterated); // target
+  this._i = 0;                  // next index
+  var keys = this._k = []       // keys
+    , key;
+  for(key in iterated)keys.push(key);
+};
+require('./_iter-create')(Enumerate, 'Object', function(){
+  var that = this
+    , keys = that._k
+    , key;
+  do {
+    if(that._i >= keys.length)return {value: undefined, done: true};
+  } while(!((key = keys[that._i++]) in that._t));
+  return {value: key, done: false};
+});
+
+$export($export.S, 'Reflect', {
+  enumerate: function enumerate(target){
+    return new Enumerate(target);
+  }
+});
+},{"./_an-object":8,"./_export":32,"./_iter-create":52}],203:[function(require,module,exports){
+// 26.1.7 Reflect.getOwnPropertyDescriptor(target, propertyKey)
+var gOPD     = require('./_object-gopd')
+  , $export  = require('./_export')
+  , anObject = require('./_an-object');
+
+$export($export.S, 'Reflect', {
+  getOwnPropertyDescriptor: function getOwnPropertyDescriptor(target, propertyKey){
+    return gOPD.f(anObject(target), propertyKey);
+  }
+});
+},{"./_an-object":8,"./_export":32,"./_object-gopd":70}],204:[function(require,module,exports){
+// 26.1.8 Reflect.getPrototypeOf(target)
+var $export  = require('./_export')
+  , getProto = require('./_object-gpo')
+  , anObject = require('./_an-object');
+
+$export($export.S, 'Reflect', {
+  getPrototypeOf: function getPrototypeOf(target){
+    return getProto(anObject(target));
+  }
+});
+},{"./_an-object":8,"./_export":32,"./_object-gpo":74}],205:[function(require,module,exports){
+// 26.1.6 Reflect.get(target, propertyKey [, receiver])
+var gOPD           = require('./_object-gopd')
+  , getPrototypeOf = require('./_object-gpo')
+  , has            = require('./_has')
+  , $export        = require('./_export')
+  , isObject       = require('./_is-object')
+  , anObject       = require('./_an-object');
+
+function get(target, propertyKey/*, receiver*/){
+  var receiver = arguments.length < 3 ? target : arguments[2]
+    , desc, proto;
+  if(anObject(target) === receiver)return target[propertyKey];
+  if(desc = gOPD.f(target, propertyKey))return has(desc, 'value')
+    ? desc.value
+    : desc.get !== undefined
+      ? desc.get.call(receiver)
+      : undefined;
+  if(isObject(proto = getPrototypeOf(target)))return get(proto, propertyKey, receiver);
+}
+
+$export($export.S, 'Reflect', {get: get});
+},{"./_an-object":8,"./_export":32,"./_has":39,"./_is-object":49,"./_object-gopd":70,"./_object-gpo":74}],206:[function(require,module,exports){
+// 26.1.9 Reflect.has(target, propertyKey)
+var $export = require('./_export');
+
+$export($export.S, 'Reflect', {
+  has: function has(target, propertyKey){
+    return propertyKey in target;
+  }
+});
+},{"./_export":32}],207:[function(require,module,exports){
+// 26.1.10 Reflect.isExtensible(target)
+var $export       = require('./_export')
+  , anObject      = require('./_an-object')
+  , $isExtensible = Object.isExtensible;
+
+$export($export.S, 'Reflect', {
+  isExtensible: function isExtensible(target){
+    anObject(target);
+    return $isExtensible ? $isExtensible(target) : true;
+  }
+});
+},{"./_an-object":8,"./_export":32}],208:[function(require,module,exports){
+// 26.1.11 Reflect.ownKeys(target)
+var $export = require('./_export');
+
+$export($export.S, 'Reflect', {ownKeys: require('./_own-keys')});
+},{"./_export":32,"./_own-keys":80}],209:[function(require,module,exports){
+// 26.1.12 Reflect.preventExtensions(target)
+var $export            = require('./_export')
+  , anObject           = require('./_an-object')
+  , $preventExtensions = Object.preventExtensions;
+
+$export($export.S, 'Reflect', {
+  preventExtensions: function preventExtensions(target){
+    anObject(target);
+    try {
+      if($preventExtensions)$preventExtensions(target);
+      return true;
+    } catch(e){
+      return false;
+    }
+  }
+});
+},{"./_an-object":8,"./_export":32}],210:[function(require,module,exports){
+// 26.1.14 Reflect.setPrototypeOf(target, proto)
+var $export  = require('./_export')
+  , setProto = require('./_set-proto');
+
+if(setProto)$export($export.S, 'Reflect', {
+  setPrototypeOf: function setPrototypeOf(target, proto){
+    setProto.check(target, proto);
+    try {
+      setProto.set(target, proto);
+      return true;
+    } catch(e){
+      return false;
+    }
+  }
+});
+},{"./_export":32,"./_set-proto":90}],211:[function(require,module,exports){
+// 26.1.13 Reflect.set(target, propertyKey, V [, receiver])
+var dP             = require('./_object-dp')
+  , gOPD           = require('./_object-gopd')
+  , getPrototypeOf = require('./_object-gpo')
+  , has            = require('./_has')
+  , $export        = require('./_export')
+  , createDesc     = require('./_property-desc')
+  , anObject       = require('./_an-object')
+  , isObject       = require('./_is-object');
+
+function set(target, propertyKey, V/*, receiver*/){
+  var receiver = arguments.length < 4 ? target : arguments[3]
+    , ownDesc  = gOPD.f(anObject(target), propertyKey)
+    , existingDescriptor, proto;
+  if(!ownDesc){
+    if(isObject(proto = getPrototypeOf(target))){
+      return set(proto, propertyKey, V, receiver);
+    }
+    ownDesc = createDesc(0);
+  }
+  if(has(ownDesc, 'value')){
+    if(ownDesc.writable === false || !isObject(receiver))return false;
+    existingDescriptor = gOPD.f(receiver, propertyKey) || createDesc(0);
+    existingDescriptor.value = V;
+    dP.f(receiver, propertyKey, existingDescriptor);
+    return true;
+  }
+  return ownDesc.set === undefined ? false : (ownDesc.set.call(receiver, V), true);
+}
+
+$export($export.S, 'Reflect', {set: set});
+},{"./_an-object":8,"./_export":32,"./_has":39,"./_is-object":49,"./_object-dp":67,"./_object-gopd":70,"./_object-gpo":74,"./_property-desc":85}],212:[function(require,module,exports){
+var global            = require('./_global')
+  , inheritIfRequired = require('./_inherit-if-required')
+  , dP                = require('./_object-dp').f
+  , gOPN              = require('./_object-gopn').f
+  , isRegExp          = require('./_is-regexp')
+  , $flags            = require('./_flags')
+  , $RegExp           = global.RegExp
+  , Base              = $RegExp
+  , proto             = $RegExp.prototype
+  , re1               = /a/g
+  , re2               = /a/g
+  // "new" creates a new object, old webkit buggy here
+  , CORRECT_NEW       = new $RegExp(re1) !== re1;
+
+if(require('./_descriptors') && (!CORRECT_NEW || require('./_fails')(function(){
+  re2[require('./_wks')('match')] = false;
+  // RegExp constructor can alter flags and IsRegExp works correct with @@match
+  return $RegExp(re1) != re1 || $RegExp(re2) == re2 || $RegExp(re1, 'i') != '/a/i';
+}))){
+  $RegExp = function RegExp(p, f){
+    var tiRE = this instanceof $RegExp
+      , piRE = isRegExp(p)
+      , fiU  = f === undefined;
+    return !tiRE && piRE && p.constructor === $RegExp && fiU ? p
+      : inheritIfRequired(CORRECT_NEW
+        ? new Base(piRE && !fiU ? p.source : p, f)
+        : Base((piRE = p instanceof $RegExp) ? p.source : p, piRE && fiU ? $flags.call(p) : f)
+      , tiRE ? this : proto, $RegExp);
+  };
+  var proxy = function(key){
+    key in $RegExp || dP($RegExp, key, {
+      configurable: true,
+      get: function(){ return Base[key]; },
+      set: function(it){ Base[key] = it; }
+    });
+  };
+  for(var keys = gOPN(Base), i = 0; keys.length > i; )proxy(keys[i++]);
+  proto.constructor = $RegExp;
+  $RegExp.prototype = proto;
+  require('./_redefine')(global, 'RegExp', $RegExp);
+}
+
+require('./_set-species')('RegExp');
+},{"./_descriptors":28,"./_fails":34,"./_flags":36,"./_global":38,"./_inherit-if-required":43,"./_is-regexp":50,"./_object-dp":67,"./_object-gopn":72,"./_redefine":87,"./_set-species":91,"./_wks":115}],213:[function(require,module,exports){
+// 21.2.5.3 get RegExp.prototype.flags()
+if(require('./_descriptors') && /./g.flags != 'g')require('./_object-dp').f(RegExp.prototype, 'flags', {
+  configurable: true,
+  get: require('./_flags')
+});
+},{"./_descriptors":28,"./_flags":36,"./_object-dp":67}],214:[function(require,module,exports){
+// @@match logic
+require('./_fix-re-wks')('match', 1, function(defined, MATCH, $match){
+  // 21.1.3.11 String.prototype.match(regexp)
+  return [function match(regexp){
+    'use strict';
+    var O  = defined(this)
+      , fn = regexp == undefined ? undefined : regexp[MATCH];
+    return fn !== undefined ? fn.call(regexp, O) : new RegExp(regexp)[MATCH](String(O));
+  }, $match];
+});
+},{"./_fix-re-wks":35}],215:[function(require,module,exports){
+// @@replace logic
+require('./_fix-re-wks')('replace', 2, function(defined, REPLACE, $replace){
+  // 21.1.3.14 String.prototype.replace(searchValue, replaceValue)
+  return [function replace(searchValue, replaceValue){
+    'use strict';
+    var O  = defined(this)
+      , fn = searchValue == undefined ? undefined : searchValue[REPLACE];
+    return fn !== undefined
+      ? fn.call(searchValue, O, replaceValue)
+      : $replace.call(String(O), searchValue, replaceValue);
+  }, $replace];
+});
+},{"./_fix-re-wks":35}],216:[function(require,module,exports){
+// @@search logic
+require('./_fix-re-wks')('search', 1, function(defined, SEARCH, $search){
+  // 21.1.3.15 String.prototype.search(regexp)
+  return [function search(regexp){
+    'use strict';
+    var O  = defined(this)
+      , fn = regexp == undefined ? undefined : regexp[SEARCH];
+    return fn !== undefined ? fn.call(regexp, O) : new RegExp(regexp)[SEARCH](String(O));
+  }, $search];
+});
+},{"./_fix-re-wks":35}],217:[function(require,module,exports){
+// @@split logic
+require('./_fix-re-wks')('split', 2, function(defined, SPLIT, $split){
+  'use strict';
+  var isRegExp   = require('./_is-regexp')
+    , _split     = $split
+    , $push      = [].push
+    , $SPLIT     = 'split'
+    , LENGTH     = 'length'
+    , LAST_INDEX = 'lastIndex';
+  if(
+    'abbc'[$SPLIT](/(b)*/)[1] == 'c' ||
+    'test'[$SPLIT](/(?:)/, -1)[LENGTH] != 4 ||
+    'ab'[$SPLIT](/(?:ab)*/)[LENGTH] != 2 ||
+    '.'[$SPLIT](/(.?)(.?)/)[LENGTH] != 4 ||
+    '.'[$SPLIT](/()()/)[LENGTH] > 1 ||
+    ''[$SPLIT](/.?/)[LENGTH]
+  ){
+    var NPCG = /()??/.exec('')[1] === undefined; // nonparticipating capturing group
+    // based on es5-shim implementation, need to rework it
+    $split = function(separator, limit){
+      var string = String(this);
+      if(separator === undefined && limit === 0)return [];
+      // If `separator` is not a regex, use native split
+      if(!isRegExp(separator))return _split.call(string, separator, limit);
+      var output = [];
+      var flags = (separator.ignoreCase ? 'i' : '') +
+                  (separator.multiline ? 'm' : '') +
+                  (separator.unicode ? 'u' : '') +
+                  (separator.sticky ? 'y' : '');
+      var lastLastIndex = 0;
+      var splitLimit = limit === undefined ? 4294967295 : limit >>> 0;
+      // Make `global` and avoid `lastIndex` issues by working with a copy
+      var separatorCopy = new RegExp(separator.source, flags + 'g');
+      var separator2, match, lastIndex, lastLength, i;
+      // Doesn't need flags gy, but they don't hurt
+      if(!NPCG)separator2 = new RegExp('^' + separatorCopy.source + '$(?!\\s)', flags);
+      while(match = separatorCopy.exec(string)){
+        // `separatorCopy.lastIndex` is not reliable cross-browser
+        lastIndex = match.index + match[0][LENGTH];
+        if(lastIndex > lastLastIndex){
+          output.push(string.slice(lastLastIndex, match.index));
+          // Fix browsers whose `exec` methods don't consistently return `undefined` for NPCG
+          if(!NPCG && match[LENGTH] > 1)match[0].replace(separator2, function(){
+            for(i = 1; i < arguments[LENGTH] - 2; i++)if(arguments[i] === undefined)match[i] = undefined;
+          });
+          if(match[LENGTH] > 1 && match.index < string[LENGTH])$push.apply(output, match.slice(1));
+          lastLength = match[0][LENGTH];
+          lastLastIndex = lastIndex;
+          if(output[LENGTH] >= splitLimit)break;
+        }
+        if(separatorCopy[LAST_INDEX] === match.index)separatorCopy[LAST_INDEX]++; // Avoid an infinite loop
+      }
+      if(lastLastIndex === string[LENGTH]){
+        if(lastLength || !separatorCopy.test(''))output.push('');
+      } else output.push(string.slice(lastLastIndex));
+      return output[LENGTH] > splitLimit ? output.slice(0, splitLimit) : output;
+    };
+  // Chakra, V8
+  } else if('0'[$SPLIT](undefined, 0)[LENGTH]){
+    $split = function(separator, limit){
+      return separator === undefined && limit === 0 ? [] : _split.call(this, separator, limit);
+    };
+  }
+  // 21.1.3.17 String.prototype.split(separator, limit)
+  return [function split(separator, limit){
+    var O  = defined(this)
+      , fn = separator == undefined ? undefined : separator[SPLIT];
+    return fn !== undefined ? fn.call(separator, O, limit) : $split.call(String(O), separator, limit);
+  }, $split];
+});
+},{"./_fix-re-wks":35,"./_is-regexp":50}],218:[function(require,module,exports){
+'use strict';
+require('./es6.regexp.flags');
+var anObject    = require('./_an-object')
+  , $flags      = require('./_flags')
+  , DESCRIPTORS = require('./_descriptors')
+  , TO_STRING   = 'toString'
+  , $toString   = /./[TO_STRING];
+
+var define = function(fn){
+  require('./_redefine')(RegExp.prototype, TO_STRING, fn, true);
+};
+
+// 21.2.5.14 RegExp.prototype.toString()
+if(require('./_fails')(function(){ return $toString.call({source: 'a', flags: 'b'}) != '/a/b'; })){
+  define(function toString(){
+    var R = anObject(this);
+    return '/'.concat(R.source, '/',
+      'flags' in R ? R.flags : !DESCRIPTORS && R instanceof RegExp ? $flags.call(R) : undefined);
+  });
+// FF44- RegExp#toString has a wrong name
+} else if($toString.name != TO_STRING){
+  define(function toString(){
+    return $toString.call(this);
+  });
+}
+},{"./_an-object":8,"./_descriptors":28,"./_fails":34,"./_flags":36,"./_redefine":87,"./es6.regexp.flags":213}],219:[function(require,module,exports){
+'use strict';
+var strong = require('./_collection-strong');
+
+// 23.2 Set Objects
+module.exports = require('./_collection')('Set', function(get){
+  return function Set(){ return get(this, arguments.length > 0 ? arguments[0] : undefined); };
+}, {
+  // 23.2.3.1 Set.prototype.add(value)
+  add: function add(value){
+    return strong.def(this, value = value === 0 ? 0 : value, value);
+  }
+}, strong);
+},{"./_collection":22,"./_collection-strong":19}],220:[function(require,module,exports){
+'use strict';
+// B.2.3.2 String.prototype.anchor(name)
+require('./_string-html')('anchor', function(createHTML){
+  return function anchor(name){
+    return createHTML(this, 'a', 'name', name);
+  }
+});
+},{"./_string-html":99}],221:[function(require,module,exports){
+'use strict';
+// B.2.3.3 String.prototype.big()
+require('./_string-html')('big', function(createHTML){
+  return function big(){
+    return createHTML(this, 'big', '', '');
+  }
+});
+},{"./_string-html":99}],222:[function(require,module,exports){
+'use strict';
+// B.2.3.4 String.prototype.blink()
+require('./_string-html')('blink', function(createHTML){
+  return function blink(){
+    return createHTML(this, 'blink', '', '');
+  }
+});
+},{"./_string-html":99}],223:[function(require,module,exports){
+'use strict';
+// B.2.3.5 String.prototype.bold()
+require('./_string-html')('bold', function(createHTML){
+  return function bold(){
+    return createHTML(this, 'b', '', '');
+  }
+});
+},{"./_string-html":99}],224:[function(require,module,exports){
+'use strict';
+var $export = require('./_export')
+  , $at     = require('./_string-at')(false);
+$export($export.P, 'String', {
+  // 21.1.3.3 String.prototype.codePointAt(pos)
+  codePointAt: function codePointAt(pos){
+    return $at(this, pos);
+  }
+});
+},{"./_export":32,"./_string-at":97}],225:[function(require,module,exports){
+// 21.1.3.6 String.prototype.endsWith(searchString [, endPosition])
+'use strict';
+var $export   = require('./_export')
+  , toLength  = require('./_to-length')
+  , context   = require('./_string-context')
+  , ENDS_WITH = 'endsWith'
+  , $endsWith = ''[ENDS_WITH];
+
+$export($export.P + $export.F * require('./_fails-is-regexp')(ENDS_WITH), 'String', {
+  endsWith: function endsWith(searchString /*, endPosition = @length */){
+    var that = context(this, searchString, ENDS_WITH)
+      , endPosition = arguments.length > 1 ? arguments[1] : undefined
+      , len    = toLength(that.length)
+      , end    = endPosition === undefined ? len : Math.min(toLength(endPosition), len)
+      , search = String(searchString);
+    return $endsWith
+      ? $endsWith.call(that, search, end)
+      : that.slice(end - search.length, end) === search;
+  }
+});
+},{"./_export":32,"./_fails-is-regexp":33,"./_string-context":98,"./_to-length":108}],226:[function(require,module,exports){
+'use strict';
+// B.2.3.6 String.prototype.fixed()
+require('./_string-html')('fixed', function(createHTML){
+  return function fixed(){
+    return createHTML(this, 'tt', '', '');
+  }
+});
+},{"./_string-html":99}],227:[function(require,module,exports){
+'use strict';
+// B.2.3.7 String.prototype.fontcolor(color)
+require('./_string-html')('fontcolor', function(createHTML){
+  return function fontcolor(color){
+    return createHTML(this, 'font', 'color', color);
+  }
+});
+},{"./_string-html":99}],228:[function(require,module,exports){
+'use strict';
+// B.2.3.8 String.prototype.fontsize(size)
+require('./_string-html')('fontsize', function(createHTML){
+  return function fontsize(size){
+    return createHTML(this, 'font', 'size', size);
+  }
+});
+},{"./_string-html":99}],229:[function(require,module,exports){
+var $export        = require('./_export')
+  , toIndex        = require('./_to-index')
+  , fromCharCode   = String.fromCharCode
+  , $fromCodePoint = String.fromCodePoint;
+
+// length should be 1, old FF problem
+$export($export.S + $export.F * (!!$fromCodePoint && $fromCodePoint.length != 1), 'String', {
+  // 21.1.2.2 String.fromCodePoint(...codePoints)
+  fromCodePoint: function fromCodePoint(x){ // eslint-disable-line no-unused-vars
+    var res  = []
+      , aLen = arguments.length
+      , i    = 0
+      , code;
+    while(aLen > i){
+      code = +arguments[i++];
+      if(toIndex(code, 0x10ffff) !== code)throw RangeError(code + ' is not a valid code point');
+      res.push(code < 0x10000
+        ? fromCharCode(code)
+        : fromCharCode(((code -= 0x10000) >> 10) + 0xd800, code % 0x400 + 0xdc00)
+      );
+    } return res.join('');
+  }
+});
+},{"./_export":32,"./_to-index":105}],230:[function(require,module,exports){
+// 21.1.3.7 String.prototype.includes(searchString, position = 0)
+'use strict';
+var $export  = require('./_export')
+  , context  = require('./_string-context')
+  , INCLUDES = 'includes';
+
+$export($export.P + $export.F * require('./_fails-is-regexp')(INCLUDES), 'String', {
+  includes: function includes(searchString /*, position = 0 */){
+    return !!~context(this, searchString, INCLUDES)
+      .indexOf(searchString, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+},{"./_export":32,"./_fails-is-regexp":33,"./_string-context":98}],231:[function(require,module,exports){
+'use strict';
+// B.2.3.9 String.prototype.italics()
+require('./_string-html')('italics', function(createHTML){
+  return function italics(){
+    return createHTML(this, 'i', '', '');
+  }
+});
+},{"./_string-html":99}],232:[function(require,module,exports){
+'use strict';
+var $at  = require('./_string-at')(true);
+
+// 21.1.3.27 String.prototype[@@iterator]()
+require('./_iter-define')(String, 'String', function(iterated){
+  this._t = String(iterated); // target
+  this._i = 0;                // next index
+// 21.1.5.2.1 %StringIteratorPrototype%.next()
+}, function(){
+  var O     = this._t
+    , index = this._i
+    , point;
+  if(index >= O.length)return {value: undefined, done: true};
+  point = $at(O, index);
+  this._i += point.length;
+  return {value: point, done: false};
+});
+},{"./_iter-define":53,"./_string-at":97}],233:[function(require,module,exports){
+'use strict';
+// B.2.3.10 String.prototype.link(url)
+require('./_string-html')('link', function(createHTML){
+  return function link(url){
+    return createHTML(this, 'a', 'href', url);
+  }
+});
+},{"./_string-html":99}],234:[function(require,module,exports){
+var $export   = require('./_export')
+  , toIObject = require('./_to-iobject')
+  , toLength  = require('./_to-length');
+
+$export($export.S, 'String', {
+  // 21.1.2.4 String.raw(callSite, ...substitutions)
+  raw: function raw(callSite){
+    var tpl  = toIObject(callSite.raw)
+      , len  = toLength(tpl.length)
+      , aLen = arguments.length
+      , res  = []
+      , i    = 0;
+    while(len > i){
+      res.push(String(tpl[i++]));
+      if(i < aLen)res.push(String(arguments[i]));
+    } return res.join('');
+  }
+});
+},{"./_export":32,"./_to-iobject":107,"./_to-length":108}],235:[function(require,module,exports){
+var $export = require('./_export');
+
+$export($export.P, 'String', {
+  // 21.1.3.13 String.prototype.repeat(count)
+  repeat: require('./_string-repeat')
+});
+},{"./_export":32,"./_string-repeat":101}],236:[function(require,module,exports){
+'use strict';
+// B.2.3.11 String.prototype.small()
+require('./_string-html')('small', function(createHTML){
+  return function small(){
+    return createHTML(this, 'small', '', '');
+  }
+});
+},{"./_string-html":99}],237:[function(require,module,exports){
+// 21.1.3.18 String.prototype.startsWith(searchString [, position ])
+'use strict';
+var $export     = require('./_export')
+  , toLength    = require('./_to-length')
+  , context     = require('./_string-context')
+  , STARTS_WITH = 'startsWith'
+  , $startsWith = ''[STARTS_WITH];
+
+$export($export.P + $export.F * require('./_fails-is-regexp')(STARTS_WITH), 'String', {
+  startsWith: function startsWith(searchString /*, position = 0 */){
+    var that   = context(this, searchString, STARTS_WITH)
+      , index  = toLength(Math.min(arguments.length > 1 ? arguments[1] : undefined, that.length))
+      , search = String(searchString);
+    return $startsWith
+      ? $startsWith.call(that, search, index)
+      : that.slice(index, index + search.length) === search;
+  }
+});
+},{"./_export":32,"./_fails-is-regexp":33,"./_string-context":98,"./_to-length":108}],238:[function(require,module,exports){
+'use strict';
+// B.2.3.12 String.prototype.strike()
+require('./_string-html')('strike', function(createHTML){
+  return function strike(){
+    return createHTML(this, 'strike', '', '');
+  }
+});
+},{"./_string-html":99}],239:[function(require,module,exports){
+'use strict';
+// B.2.3.13 String.prototype.sub()
+require('./_string-html')('sub', function(createHTML){
+  return function sub(){
+    return createHTML(this, 'sub', '', '');
+  }
+});
+},{"./_string-html":99}],240:[function(require,module,exports){
+'use strict';
+// B.2.3.14 String.prototype.sup()
+require('./_string-html')('sup', function(createHTML){
+  return function sup(){
+    return createHTML(this, 'sup', '', '');
+  }
+});
+},{"./_string-html":99}],241:[function(require,module,exports){
+'use strict';
+// 21.1.3.25 String.prototype.trim()
+require('./_string-trim')('trim', function($trim){
+  return function trim(){
+    return $trim(this, 3);
+  };
+});
+},{"./_string-trim":102}],242:[function(require,module,exports){
+'use strict';
+// ECMAScript 6 symbols shim
+var global         = require('./_global')
+  , core           = require('./_core')
+  , has            = require('./_has')
+  , DESCRIPTORS    = require('./_descriptors')
+  , $export        = require('./_export')
+  , redefine       = require('./_redefine')
+  , META           = require('./_meta').KEY
+  , $fails         = require('./_fails')
+  , shared         = require('./_shared')
+  , setToStringTag = require('./_set-to-string-tag')
+  , uid            = require('./_uid')
+  , wks            = require('./_wks')
+  , keyOf          = require('./_keyof')
+  , enumKeys       = require('./_enum-keys')
+  , isArray        = require('./_is-array')
+  , anObject       = require('./_an-object')
+  , toIObject      = require('./_to-iobject')
+  , toPrimitive    = require('./_to-primitive')
+  , createDesc     = require('./_property-desc')
+  , _create        = require('./_object-create')
+  , gOPNExt        = require('./_object-gopn-ext')
+  , $GOPD          = require('./_object-gopd')
+  , $DP            = require('./_object-dp')
+  , gOPD           = $GOPD.f
+  , dP             = $DP.f
+  , gOPN           = gOPNExt.f
+  , $Symbol        = global.Symbol
+  , $JSON          = global.JSON
+  , _stringify     = $JSON && $JSON.stringify
+  , setter         = false
+  , PROTOTYPE      = 'prototype'
+  , HIDDEN         = wks('_hidden')
+  , TO_PRIMITIVE   = wks('toPrimitive')
+  , isEnum         = {}.propertyIsEnumerable
+  , SymbolRegistry = shared('symbol-registry')
+  , AllSymbols     = shared('symbols')
+  , ObjectProto    = Object[PROTOTYPE]
+  , USE_NATIVE     = typeof $Symbol == 'function'
+  , QObject        = global.QObject;
+
+// fallback for old Android, https://code.google.com/p/v8/issues/detail?id=687
+var setSymbolDesc = DESCRIPTORS && $fails(function(){
+  return _create(dP({}, 'a', {
+    get: function(){ return dP(this, 'a', {value: 7}).a; }
+  })).a != 7;
+}) ? function(it, key, D){
+  var protoDesc = gOPD(ObjectProto, key);
+  if(protoDesc)delete ObjectProto[key];
+  dP(it, key, D);
+  if(protoDesc && it !== ObjectProto)dP(ObjectProto, key, protoDesc);
+} : dP;
+
+var wrap = function(tag){
+  var sym = AllSymbols[tag] = _create($Symbol[PROTOTYPE]);
+  sym._k = tag;
+  DESCRIPTORS && setter && setSymbolDesc(ObjectProto, tag, {
+    configurable: true,
+    set: function(value){
+      if(has(this, HIDDEN) && has(this[HIDDEN], tag))this[HIDDEN][tag] = false;
+      setSymbolDesc(this, tag, createDesc(1, value));
+    }
+  });
+  return sym;
+};
+
+var isSymbol = USE_NATIVE && typeof $Symbol.iterator == 'symbol' ? function(it){
+  return typeof it == 'symbol';
+} : function(it){
+  return it instanceof $Symbol;
+};
+
+var $defineProperty = function defineProperty(it, key, D){
+  anObject(it);
+  key = toPrimitive(key, true);
+  anObject(D);
+  if(has(AllSymbols, key)){
+    if(!D.enumerable){
+      if(!has(it, HIDDEN))dP(it, HIDDEN, createDesc(1, {}));
+      it[HIDDEN][key] = true;
+    } else {
+      if(has(it, HIDDEN) && it[HIDDEN][key])it[HIDDEN][key] = false;
+      D = _create(D, {enumerable: createDesc(0, false)});
+    } return setSymbolDesc(it, key, D);
+  } return dP(it, key, D);
+};
+var $defineProperties = function defineProperties(it, P){
+  anObject(it);
+  var keys = enumKeys(P = toIObject(P))
+    , i    = 0
+    , l = keys.length
+    , key;
+  while(l > i)$defineProperty(it, key = keys[i++], P[key]);
+  return it;
+};
+var $create = function create(it, P){
+  return P === undefined ? _create(it) : $defineProperties(_create(it), P);
+};
+var $propertyIsEnumerable = function propertyIsEnumerable(key){
+  var E = isEnum.call(this, key = toPrimitive(key, true));
+  return E || !has(this, key) || !has(AllSymbols, key) || has(this, HIDDEN) && this[HIDDEN][key] ? E : true;
+};
+var $getOwnPropertyDescriptor = function getOwnPropertyDescriptor(it, key){
+  var D = gOPD(it = toIObject(it), key = toPrimitive(key, true));
+  if(D && has(AllSymbols, key) && !(has(it, HIDDEN) && it[HIDDEN][key]))D.enumerable = true;
+  return D;
+};
+var $getOwnPropertyNames = function getOwnPropertyNames(it){
+  var names  = gOPN(toIObject(it))
+    , result = []
+    , i      = 0
+    , key;
+  while(names.length > i)if(!has(AllSymbols, key = names[i++]) && key != HIDDEN && key != META)result.push(key);
+  return result;
+};
+var $getOwnPropertySymbols = function getOwnPropertySymbols(it){
+  var names  = gOPN(toIObject(it))
+    , result = []
+    , i      = 0
+    , key;
+  while(names.length > i)if(has(AllSymbols, key = names[i++]))result.push(AllSymbols[key]);
+  return result;
+};
+var $stringify = function stringify(it){
+  if(it === undefined || isSymbol(it))return; // IE8 returns string on undefined
+  var args = [it]
+    , i    = 1
+    , replacer, $replacer;
+  while(arguments.length > i)args.push(arguments[i++]);
+  replacer = args[1];
+  if(typeof replacer == 'function')$replacer = replacer;
+  if($replacer || !isArray(replacer))replacer = function(key, value){
+    if($replacer)value = $replacer.call(this, key, value);
+    if(!isSymbol(value))return value;
+  };
+  args[1] = replacer;
+  return _stringify.apply($JSON, args);
+};
+var BUGGY_JSON = $fails(function(){
+  var S = $Symbol();
+  // MS Edge converts symbol values to JSON as {}
+  // WebKit converts symbol values to JSON as null
+  // V8 throws on boxed symbols
+  return _stringify([S]) != '[null]' || _stringify({a: S}) != '{}' || _stringify(Object(S)) != '{}';
+});
+
+// 19.4.1.1 Symbol([description])
+if(!USE_NATIVE){
+  $Symbol = function Symbol(){
+    if(this instanceof $Symbol)throw TypeError('Symbol is not a constructor!');
+    return wrap(uid(arguments.length > 0 ? arguments[0] : undefined));
+  };
+  redefine($Symbol[PROTOTYPE], 'toString', function toString(){
+    return this._k;
+  });
+
+  $GOPD.f = $getOwnPropertyDescriptor;
+  $DP.f   = $defineProperty;
+  require('./_object-gopn').f = gOPNExt.f = $getOwnPropertyNames;
+  require('./_object-pie').f  = $propertyIsEnumerable
+  require('./_object-gops').f = $getOwnPropertySymbols;
+
+  if(DESCRIPTORS && !require('./_library')){
+    redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
+  }
+}
+
+$export($export.G + $export.W + $export.F * !USE_NATIVE, {Symbol: $Symbol});
+
+// 19.4.2.2 Symbol.hasInstance
+// 19.4.2.3 Symbol.isConcatSpreadable
+// 19.4.2.4 Symbol.iterator
+// 19.4.2.6 Symbol.match
+// 19.4.2.8 Symbol.replace
+// 19.4.2.9 Symbol.search
+// 19.4.2.10 Symbol.species
+// 19.4.2.11 Symbol.split
+// 19.4.2.12 Symbol.toPrimitive
+// 19.4.2.13 Symbol.toStringTag
+// 19.4.2.14 Symbol.unscopables
+for(var symbols = (
+  'hasInstance,isConcatSpreadable,iterator,match,replace,search,species,split,toPrimitive,toStringTag,unscopables'
+).split(','), i = 0; symbols.length > i; ){
+  var key     = symbols[i++]
+    , Wrapper = core.Symbol
+    , sym     = wks(key);
+  if(!(key in Wrapper))dP(Wrapper, key, {value: USE_NATIVE ? sym : wrap(sym)});
+};
+
+// Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
+if(!QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild)setter = true;
+
+$export($export.S + $export.F * !USE_NATIVE, 'Symbol', {
+  // 19.4.2.1 Symbol.for(key)
+  'for': function(key){
+    return has(SymbolRegistry, key += '')
+      ? SymbolRegistry[key]
+      : SymbolRegistry[key] = $Symbol(key);
+  },
+  // 19.4.2.5 Symbol.keyFor(sym)
+  keyFor: function keyFor(key){
+    if(isSymbol(key))return keyOf(SymbolRegistry, key);
+    throw TypeError(key + ' is not a symbol!');
+  },
+  useSetter: function(){ setter = true; },
+  useSimple: function(){ setter = false; }
+});
+
+$export($export.S + $export.F * !USE_NATIVE, 'Object', {
+  // 19.1.2.2 Object.create(O [, Properties])
+  create: $create,
+  // 19.1.2.4 Object.defineProperty(O, P, Attributes)
+  defineProperty: $defineProperty,
+  // 19.1.2.3 Object.defineProperties(O, Properties)
+  defineProperties: $defineProperties,
+  // 19.1.2.6 Object.getOwnPropertyDescriptor(O, P)
+  getOwnPropertyDescriptor: $getOwnPropertyDescriptor,
+  // 19.1.2.7 Object.getOwnPropertyNames(O)
+  getOwnPropertyNames: $getOwnPropertyNames,
+  // 19.1.2.8 Object.getOwnPropertySymbols(O)
+  getOwnPropertySymbols: $getOwnPropertySymbols
+});
+
+// 24.3.2 JSON.stringify(value [, replacer [, space]])
+$JSON && $export($export.S + $export.F * (!USE_NATIVE || BUGGY_JSON), 'JSON', {stringify: $stringify});
+
+// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
+$Symbol[PROTOTYPE][TO_PRIMITIVE] || require('./_hide')($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
+// 19.4.3.5 Symbol.prototype[@@toStringTag]
+setToStringTag($Symbol, 'Symbol');
+// 20.2.1.9 Math[@@toStringTag]
+setToStringTag(Math, 'Math', true);
+// 24.3.3 JSON[@@toStringTag]
+setToStringTag(global.JSON, 'JSON', true);
+},{"./_an-object":8,"./_core":23,"./_descriptors":28,"./_enum-keys":31,"./_export":32,"./_fails":34,"./_global":38,"./_has":39,"./_hide":40,"./_is-array":47,"./_keyof":57,"./_library":58,"./_meta":62,"./_object-create":66,"./_object-dp":67,"./_object-gopd":70,"./_object-gopn":72,"./_object-gopn-ext":71,"./_object-gops":73,"./_object-pie":77,"./_property-desc":85,"./_redefine":87,"./_set-to-string-tag":92,"./_shared":94,"./_to-iobject":107,"./_to-primitive":110,"./_uid":114,"./_wks":115}],243:[function(require,module,exports){
+'use strict';
+var $export      = require('./_export')
+  , $typed       = require('./_typed')
+  , buffer       = require('./_typed-buffer')
+  , anObject     = require('./_an-object')
+  , toIndex      = require('./_to-index')
+  , toLength     = require('./_to-length')
+  , isObject     = require('./_is-object')
+  , TYPED_ARRAY  = require('./_wks')('typed_array')
+  , ArrayBuffer  = require('./_global').ArrayBuffer
+  , speciesConstructor = require('./_species-constructor')
+  , $ArrayBuffer = buffer.ArrayBuffer
+  , $DataView    = buffer.DataView
+  , $isView      = $typed.ABV && ArrayBuffer.isView
+  , $slice       = $ArrayBuffer.prototype.slice
+  , VIEW         = $typed.VIEW
+  , ARRAY_BUFFER = 'ArrayBuffer';
+
+$export($export.G + $export.W + $export.F * (ArrayBuffer !== $ArrayBuffer), {ArrayBuffer: $ArrayBuffer});
+
+$export($export.S + $export.F * !$typed.CONSTR, ARRAY_BUFFER, {
+  // 24.1.3.1 ArrayBuffer.isView(arg)
+  isView: function isView(it){
+    return $isView && $isView(it) || isObject(it) && VIEW in it;
+  }
+});
+
+$export($export.P + $export.U + $export.F * require('./_fails')(function(){
+  return !new $ArrayBuffer(2).slice(1, undefined).byteLength;
+}), ARRAY_BUFFER, {
+  // 24.1.4.3 ArrayBuffer.prototype.slice(start, end)
+  slice: function slice(start, end){
+    if($slice !== undefined && end === undefined)return $slice.call(anObject(this), start); // FF fix
+    var len    = anObject(this).byteLength
+      , first  = toIndex(start, len)
+      , final  = toIndex(end === undefined ? len : end, len)
+      , result = new (speciesConstructor(this, $ArrayBuffer))(toLength(final - first))
+      , viewS  = new $DataView(this)
+      , viewT  = new $DataView(result)
+      , index  = 0;
+    while(first < final){
+      viewT.setUint8(index++, viewS.getUint8(first++));
+    } return result;
+  }
+});
+
+require('./_set-species')(ARRAY_BUFFER);
+},{"./_an-object":8,"./_export":32,"./_fails":34,"./_global":38,"./_is-object":49,"./_set-species":91,"./_species-constructor":95,"./_to-index":105,"./_to-length":108,"./_typed":113,"./_typed-buffer":112,"./_wks":115}],244:[function(require,module,exports){
+var $export = require('./_export');
+$export($export.G + $export.W + $export.F * !require('./_typed').ABV, {
+  DataView: require('./_typed-buffer').DataView
+});
+},{"./_export":32,"./_typed":113,"./_typed-buffer":112}],245:[function(require,module,exports){
+require('./_typed-array')('Float32', 4, function(init){
+  return function Float32Array(data, byteOffset, length){
+    return init(this, data, byteOffset, length);
+  };
+});
+},{"./_typed-array":111}],246:[function(require,module,exports){
+require('./_typed-array')('Float64', 8, function(init){
+  return function Float64Array(data, byteOffset, length){
+    return init(this, data, byteOffset, length);
+  };
+});
+},{"./_typed-array":111}],247:[function(require,module,exports){
+require('./_typed-array')('Int16', 2, function(init){
+  return function Int16Array(data, byteOffset, length){
+    return init(this, data, byteOffset, length);
+  };
+});
+},{"./_typed-array":111}],248:[function(require,module,exports){
+require('./_typed-array')('Int32', 4, function(init){
+  return function Int32Array(data, byteOffset, length){
+    return init(this, data, byteOffset, length);
+  };
+});
+},{"./_typed-array":111}],249:[function(require,module,exports){
+require('./_typed-array')('Int8', 1, function(init){
+  return function Int8Array(data, byteOffset, length){
+    return init(this, data, byteOffset, length);
+  };
+});
+},{"./_typed-array":111}],250:[function(require,module,exports){
+require('./_typed-array')('Uint16', 2, function(init){
+  return function Uint16Array(data, byteOffset, length){
+    return init(this, data, byteOffset, length);
+  };
+});
+},{"./_typed-array":111}],251:[function(require,module,exports){
+require('./_typed-array')('Uint32', 4, function(init){
+  return function Uint32Array(data, byteOffset, length){
+    return init(this, data, byteOffset, length);
+  };
+});
+},{"./_typed-array":111}],252:[function(require,module,exports){
+require('./_typed-array')('Uint8', 1, function(init){
+  return function Uint8Array(data, byteOffset, length){
+    return init(this, data, byteOffset, length);
+  };
+});
+},{"./_typed-array":111}],253:[function(require,module,exports){
+require('./_typed-array')('Uint8', 1, function(init){
+  return function Uint8ClampedArray(data, byteOffset, length){
+    return init(this, data, byteOffset, length);
+  };
+}, true);
+},{"./_typed-array":111}],254:[function(require,module,exports){
+'use strict';
+var each         = require('./_array-methods')(0)
+  , redefine     = require('./_redefine')
+  , meta         = require('./_meta')
+  , assign       = require('./_object-assign')
+  , weak         = require('./_collection-weak')
+  , isObject     = require('./_is-object')
+  , has          = require('./_has')
+  , getWeak      = meta.getWeak
+  , isExtensible = Object.isExtensible
+  , uncaughtFrozenStore = weak.ufstore
+  , tmp          = {}
+  , InternalMap;
+
+var wrapper = function(get){
+  return function WeakMap(){
+    return get(this, arguments.length > 0 ? arguments[0] : undefined);
+  };
+};
+
+var methods = {
+  // 23.3.3.3 WeakMap.prototype.get(key)
+  get: function get(key){
+    if(isObject(key)){
+      var data = getWeak(key);
+      if(data === true)return uncaughtFrozenStore(this).get(key);
+      return data ? data[this._i] : undefined;
+    }
+  },
+  // 23.3.3.5 WeakMap.prototype.set(key, value)
+  set: function set(key, value){
+    return weak.def(this, key, value);
+  }
+};
+
+// 23.3 WeakMap Objects
+var $WeakMap = module.exports = require('./_collection')('WeakMap', wrapper, methods, weak, true, true);
+
+// IE11 WeakMap frozen keys fix
+if(new $WeakMap().set((Object.freeze || Object)(tmp), 7).get(tmp) != 7){
+  InternalMap = weak.getConstructor(wrapper);
+  assign(InternalMap.prototype, methods);
+  meta.NEED = true;
+  each(['delete', 'has', 'get', 'set'], function(key){
+    var proto  = $WeakMap.prototype
+      , method = proto[key];
+    redefine(proto, key, function(a, b){
+      // store frozen objects on internal weakmap shim
+      if(isObject(a) && !isExtensible(a)){
+        if(!this._f)this._f = new InternalMap;
+        var result = this._f[key](a, b);
+        return key == 'set' ? this : result;
+      // store all the rest on native weakmap
+      } return method.call(this, a, b);
+    });
+  });
+}
+},{"./_array-methods":13,"./_collection":22,"./_collection-weak":21,"./_has":39,"./_is-object":49,"./_meta":62,"./_object-assign":65,"./_redefine":87}],255:[function(require,module,exports){
+'use strict';
+var weak = require('./_collection-weak');
+
+// 23.4 WeakSet Objects
+require('./_collection')('WeakSet', function(get){
+  return function WeakSet(){ return get(this, arguments.length > 0 ? arguments[0] : undefined); };
+}, {
+  // 23.4.3.1 WeakSet.prototype.add(value)
+  add: function add(value){
+    return weak.def(this, value, true);
+  }
+}, weak, false, true);
+},{"./_collection":22,"./_collection-weak":21}],256:[function(require,module,exports){
+'use strict';
+// https://github.com/tc39/Array.prototype.includes
+var $export   = require('./_export')
+  , $includes = require('./_array-includes')(true);
+
+$export($export.P, 'Array', {
+  includes: function includes(el /*, fromIndex = 0 */){
+    return $includes(this, el, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+
+require('./_add-to-unscopables')('includes');
+},{"./_add-to-unscopables":6,"./_array-includes":12,"./_export":32}],257:[function(require,module,exports){
+// https://github.com/ljharb/proposal-is-error
+var $export = require('./_export')
+  , cof     = require('./_cof');
+
+$export($export.S, 'Error', {
+  isError: function isError(it){
+    return cof(it) === 'Error';
+  }
+});
+},{"./_cof":18,"./_export":32}],258:[function(require,module,exports){
+// https://github.com/DavidBruant/Map-Set.prototype.toJSON
+var $export  = require('./_export');
+
+$export($export.P + $export.R, 'Map', {toJSON: require('./_collection-to-json')('Map')});
+},{"./_collection-to-json":20,"./_export":32}],259:[function(require,module,exports){
+// https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+var $export = require('./_export');
+
+$export($export.S, 'Math', {
+  iaddh: function iaddh(x0, x1, y0, y1){
+    var $x0 = x0 >>> 0
+      , $x1 = x1 >>> 0
+      , $y0 = y0 >>> 0;
+    return $x1 + (y1 >>> 0) + (($x0 & $y0 | ($x0 | $y0) & ~($x0 + $y0 >>> 0)) >>> 31) | 0;
+  }
+});
+},{"./_export":32}],260:[function(require,module,exports){
+// https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+var $export = require('./_export');
+
+$export($export.S, 'Math', {
+  imulh: function imulh(u, v){
+    var UINT16 = 0xffff
+      , $u = +u
+      , $v = +v
+      , u0 = $u & UINT16
+      , v0 = $v & UINT16
+      , u1 = $u >> 16
+      , v1 = $v >> 16
+      , t  = (u1 * v0 >>> 0) + (u0 * v0 >>> 16);
+    return u1 * v1 + (t >> 16) + ((u0 * v1 >>> 0) + (t & UINT16) >> 16);
+  }
+});
+},{"./_export":32}],261:[function(require,module,exports){
+// https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+var $export = require('./_export');
+
+$export($export.S, 'Math', {
+  isubh: function isubh(x0, x1, y0, y1){
+    var $x0 = x0 >>> 0
+      , $x1 = x1 >>> 0
+      , $y0 = y0 >>> 0;
+    return $x1 - (y1 >>> 0) - ((~$x0 & $y0 | ~($x0 ^ $y0) & $x0 - $y0 >>> 0) >>> 31) | 0;
+  }
+});
+},{"./_export":32}],262:[function(require,module,exports){
+// https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+var $export = require('./_export');
+
+$export($export.S, 'Math', {
+  umulh: function umulh(u, v){
+    var UINT16 = 0xffff
+      , $u = +u
+      , $v = +v
+      , u0 = $u & UINT16
+      , v0 = $v & UINT16
+      , u1 = $u >>> 16
+      , v1 = $v >>> 16
+      , t  = (u1 * v0 >>> 0) + (u0 * v0 >>> 16);
+    return u1 * v1 + (t >>> 16) + ((u0 * v1 >>> 0) + (t & UINT16) >>> 16);
+  }
+});
+},{"./_export":32}],263:[function(require,module,exports){
+'use strict';
+var $export         = require('./_export')
+  , toObject        = require('./_to-object')
+  , aFunction       = require('./_a-function')
+  , $defineProperty = require('./_object-dp');
+
+// B.2.2.2 Object.prototype.__defineGetter__(P, getter)
+require('./_descriptors') && $export($export.P + require('./_object-forced-pam'), 'Object', {
+  __defineGetter__: function __defineGetter__(P, getter){
+    $defineProperty.f(toObject(this), P, {get: aFunction(getter), enumerable: true, configurable: true});
+  }
+});
+},{"./_a-function":4,"./_descriptors":28,"./_export":32,"./_object-dp":67,"./_object-forced-pam":69,"./_to-object":109}],264:[function(require,module,exports){
+'use strict';
+var $export         = require('./_export')
+  , toObject        = require('./_to-object')
+  , aFunction       = require('./_a-function')
+  , $defineProperty = require('./_object-dp');
+
+// B.2.2.3 Object.prototype.__defineSetter__(P, setter)
+require('./_descriptors') && $export($export.P + require('./_object-forced-pam'), 'Object', {
+  __defineSetter__: function __defineSetter__(P, setter){
+    $defineProperty.f(toObject(this), P, {set: aFunction(setter), enumerable: true, configurable: true});
+  }
+});
+},{"./_a-function":4,"./_descriptors":28,"./_export":32,"./_object-dp":67,"./_object-forced-pam":69,"./_to-object":109}],265:[function(require,module,exports){
+// https://github.com/tc39/proposal-object-values-entries
+var $export  = require('./_export')
+  , $entries = require('./_object-to-array')(true);
+
+$export($export.S, 'Object', {
+  entries: function entries(it){
+    return $entries(it);
+  }
+});
+},{"./_export":32,"./_object-to-array":79}],266:[function(require,module,exports){
+// https://github.com/tc39/proposal-object-getownpropertydescriptors
+var $export        = require('./_export')
+  , ownKeys        = require('./_own-keys')
+  , toIObject      = require('./_to-iobject')
+  , gOPD           = require('./_object-gopd')
+  , createProperty = require('./_create-property');
+
+$export($export.S, 'Object', {
+  getOwnPropertyDescriptors: function getOwnPropertyDescriptors(object){
+    var O       = toIObject(object)
+      , getDesc = gOPD.f
+      , keys    = ownKeys(O)
+      , result  = {}
+      , i       = 0
+      , key, D;
+    while(keys.length > i)createProperty(result, key = keys[i++], getDesc(O, key));
+    return result;
+  }
+});
+},{"./_create-property":24,"./_export":32,"./_object-gopd":70,"./_own-keys":80,"./_to-iobject":107}],267:[function(require,module,exports){
+'use strict';
+var $export                  = require('./_export')
+  , toObject                 = require('./_to-object')
+  , toPrimitive              = require('./_to-primitive')
+  , getPrototypeOf           = require('./_object-gpo')
+  , getOwnPropertyDescriptor = require('./_object-gopd').f;
+
+// B.2.2.4 Object.prototype.__lookupGetter__(P)
+require('./_descriptors') && $export($export.P + require('./_object-forced-pam'), 'Object', {
+  __lookupGetter__: function __lookupGetter__(P){
+    var O = toObject(this)
+      , K = toPrimitive(P, true)
+      , D;
+    do {
+      if(D = getOwnPropertyDescriptor(O, K))return D.get;
+    } while(O = getPrototypeOf(O));
+  }
+});
+},{"./_descriptors":28,"./_export":32,"./_object-forced-pam":69,"./_object-gopd":70,"./_object-gpo":74,"./_to-object":109,"./_to-primitive":110}],268:[function(require,module,exports){
+'use strict';
+var $export                  = require('./_export')
+  , toObject                 = require('./_to-object')
+  , toPrimitive              = require('./_to-primitive')
+  , getPrototypeOf           = require('./_object-gpo')
+  , getOwnPropertyDescriptor = require('./_object-gopd').f;
+
+// B.2.2.5 Object.prototype.__lookupSetter__(P)
+require('./_descriptors') && $export($export.P + require('./_object-forced-pam'), 'Object', {
+  __lookupSetter__: function __lookupSetter__(P){
+    var O = toObject(this)
+      , K = toPrimitive(P, true)
+      , D;
+    do {
+      if(D = getOwnPropertyDescriptor(O, K))return D.set;
+    } while(O = getPrototypeOf(O));
+  }
+});
+},{"./_descriptors":28,"./_export":32,"./_object-forced-pam":69,"./_object-gopd":70,"./_object-gpo":74,"./_to-object":109,"./_to-primitive":110}],269:[function(require,module,exports){
+// https://github.com/tc39/proposal-object-values-entries
+var $export = require('./_export')
+  , $values = require('./_object-to-array')(false);
+
+$export($export.S, 'Object', {
+  values: function values(it){
+    return $values(it);
+  }
+});
+},{"./_export":32,"./_object-to-array":79}],270:[function(require,module,exports){
+var metadata                  = require('./_metadata')
+  , anObject                  = require('./_an-object')
+  , toMetaKey                 = metadata.key
+  , ordinaryDefineOwnMetadata = metadata.set;
+
+metadata.exp({defineMetadata: function defineMetadata(metadataKey, metadataValue, target, targetKey){
+  ordinaryDefineOwnMetadata(metadataKey, metadataValue, anObject(target), toMetaKey(targetKey));
+}});
+},{"./_an-object":8,"./_metadata":63}],271:[function(require,module,exports){
+var metadata               = require('./_metadata')
+  , anObject               = require('./_an-object')
+  , toMetaKey              = metadata.key
+  , getOrCreateMetadataMap = metadata.map
+  , store                  = metadata.store;
+
+metadata.exp({deleteMetadata: function deleteMetadata(metadataKey, target /*, targetKey */){
+  var targetKey   = arguments.length < 3 ? undefined : toMetaKey(arguments[2])
+    , metadataMap = getOrCreateMetadataMap(anObject(target), targetKey, false);
+  if(metadataMap === undefined || !metadataMap['delete'](metadataKey))return false;
+  if(metadataMap.size)return true;
+  var targetMetadata = store.get(target);
+  targetMetadata['delete'](targetKey);
+  return !!targetMetadata.size || store['delete'](target);
+}});
+},{"./_an-object":8,"./_metadata":63}],272:[function(require,module,exports){
+var Set                     = require('./es6.set')
+  , from                    = require('./_array-from-iterable')
+  , metadata                = require('./_metadata')
+  , anObject                = require('./_an-object')
+  , getPrototypeOf          = require('./_object-gpo')
+  , ordinaryOwnMetadataKeys = metadata.keys
+  , toMetaKey               = metadata.key;
+
+var ordinaryMetadataKeys = function(O, P){
+  var oKeys  = ordinaryOwnMetadataKeys(O, P)
+    , parent = getPrototypeOf(O);
+  if(parent === null)return oKeys;
+  var pKeys  = ordinaryMetadataKeys(parent, P);
+  return pKeys.length ? oKeys.length ? from(new Set(oKeys.concat(pKeys))) : pKeys : oKeys;
+};
+
+metadata.exp({getMetadataKeys: function getMetadataKeys(target /*, targetKey */){
+  return ordinaryMetadataKeys(anObject(target), arguments.length < 2 ? undefined : toMetaKey(arguments[1]));
+}});
+},{"./_an-object":8,"./_array-from-iterable":11,"./_metadata":63,"./_object-gpo":74,"./es6.set":219}],273:[function(require,module,exports){
+var metadata               = require('./_metadata')
+  , anObject               = require('./_an-object')
+  , getPrototypeOf         = require('./_object-gpo')
+  , ordinaryHasOwnMetadata = metadata.has
+  , ordinaryGetOwnMetadata = metadata.get
+  , toMetaKey              = metadata.key;
+
+var ordinaryGetMetadata = function(MetadataKey, O, P){
+  var hasOwn = ordinaryHasOwnMetadata(MetadataKey, O, P);
+  if(hasOwn)return ordinaryGetOwnMetadata(MetadataKey, O, P);
+  var parent = getPrototypeOf(O);
+  return parent !== null ? ordinaryGetMetadata(MetadataKey, parent, P) : undefined;
+};
+
+metadata.exp({getMetadata: function getMetadata(metadataKey, target /*, targetKey */){
+  return ordinaryGetMetadata(metadataKey, anObject(target), arguments.length < 3 ? undefined : toMetaKey(arguments[2]));
+}});
+},{"./_an-object":8,"./_metadata":63,"./_object-gpo":74}],274:[function(require,module,exports){
+var metadata                = require('./_metadata')
+  , anObject                = require('./_an-object')
+  , ordinaryOwnMetadataKeys = metadata.keys
+  , toMetaKey               = metadata.key;
+
+metadata.exp({getOwnMetadataKeys: function getOwnMetadataKeys(target /*, targetKey */){
+  return ordinaryOwnMetadataKeys(anObject(target), arguments.length < 2 ? undefined : toMetaKey(arguments[1]));
+}});
+},{"./_an-object":8,"./_metadata":63}],275:[function(require,module,exports){
+var metadata               = require('./_metadata')
+  , anObject               = require('./_an-object')
+  , ordinaryGetOwnMetadata = metadata.get
+  , toMetaKey              = metadata.key;
+
+metadata.exp({getOwnMetadata: function getOwnMetadata(metadataKey, target /*, targetKey */){
+  return ordinaryGetOwnMetadata(metadataKey, anObject(target)
+    , arguments.length < 3 ? undefined : toMetaKey(arguments[2]));
+}});
+},{"./_an-object":8,"./_metadata":63}],276:[function(require,module,exports){
+var metadata               = require('./_metadata')
+  , anObject               = require('./_an-object')
+  , getPrototypeOf         = require('./_object-gpo')
+  , ordinaryHasOwnMetadata = metadata.has
+  , toMetaKey              = metadata.key;
+
+var ordinaryHasMetadata = function(MetadataKey, O, P){
+  var hasOwn = ordinaryHasOwnMetadata(MetadataKey, O, P);
+  if(hasOwn)return true;
+  var parent = getPrototypeOf(O);
+  return parent !== null ? ordinaryHasMetadata(MetadataKey, parent, P) : false;
+};
+
+metadata.exp({hasMetadata: function hasMetadata(metadataKey, target /*, targetKey */){
+  return ordinaryHasMetadata(metadataKey, anObject(target), arguments.length < 3 ? undefined : toMetaKey(arguments[2]));
+}});
+},{"./_an-object":8,"./_metadata":63,"./_object-gpo":74}],277:[function(require,module,exports){
+var metadata               = require('./_metadata')
+  , anObject               = require('./_an-object')
+  , ordinaryHasOwnMetadata = metadata.has
+  , toMetaKey              = metadata.key;
+
+metadata.exp({hasOwnMetadata: function hasOwnMetadata(metadataKey, target /*, targetKey */){
+  return ordinaryHasOwnMetadata(metadataKey, anObject(target)
+    , arguments.length < 3 ? undefined : toMetaKey(arguments[2]));
+}});
+},{"./_an-object":8,"./_metadata":63}],278:[function(require,module,exports){
+var metadata                  = require('./_metadata')
+  , anObject                  = require('./_an-object')
+  , aFunction                 = require('./_a-function')
+  , toMetaKey                 = metadata.key
+  , ordinaryDefineOwnMetadata = metadata.set;
+
+metadata.exp({metadata: function metadata(metadataKey, metadataValue){
+  return function decorator(target, targetKey){
+    ordinaryDefineOwnMetadata(
+      metadataKey, metadataValue,
+      (targetKey !== undefined ? anObject : aFunction)(target),
+      toMetaKey(targetKey)
+    );
+  };
+}});
+},{"./_a-function":4,"./_an-object":8,"./_metadata":63}],279:[function(require,module,exports){
+// https://github.com/DavidBruant/Map-Set.prototype.toJSON
+var $export  = require('./_export');
+
+$export($export.P + $export.R, 'Set', {toJSON: require('./_collection-to-json')('Set')});
+},{"./_collection-to-json":20,"./_export":32}],280:[function(require,module,exports){
+'use strict';
+// https://github.com/mathiasbynens/String.prototype.at
+var $export = require('./_export')
+  , $at     = require('./_string-at')(true);
+
+$export($export.P, 'String', {
+  at: function at(pos){
+    return $at(this, pos);
+  }
+});
+},{"./_export":32,"./_string-at":97}],281:[function(require,module,exports){
+'use strict';
+// https://tc39.github.io/String.prototype.matchAll/
+var $export     = require('./_export')
+  , defined     = require('./_defined')
+  , toLength    = require('./_to-length')
+  , isRegExp    = require('./_is-regexp')
+  , getFlags    = require('./_flags')
+  , RegExpProto = RegExp.prototype;
+
+var $RegExpStringIterator = function(regexp, string){
+  this._r = regexp;
+  this._s = string;
+};
+
+require('./_iter-create')($RegExpStringIterator, 'RegExp String', function next(){
+  var match = this._r.exec(this._s);
+  return {value: match, done: match === null};
+});
+
+$export($export.P, 'String', {
+  matchAll: function matchAll(regexp){
+    defined(this);
+    if(!isRegExp(regexp))throw TypeError(regexp + ' is not a regexp!');
+    var S     = String(this)
+      , flags = 'flags' in RegExpProto ? String(regexp.flags) : getFlags.call(regexp)
+      , rx    = new RegExp(regexp.source, ~flags.indexOf('g') ? flags : 'g' + flags);
+    rx.lastIndex = toLength(regexp.lastIndex);
+    return new $RegExpStringIterator(rx, S);
+  }
+});
+},{"./_defined":27,"./_export":32,"./_flags":36,"./_is-regexp":50,"./_iter-create":52,"./_to-length":108}],282:[function(require,module,exports){
+'use strict';
+// https://github.com/tc39/proposal-string-pad-start-end
+var $export = require('./_export')
+  , $pad    = require('./_string-pad');
+
+$export($export.P, 'String', {
+  padEnd: function padEnd(maxLength /*, fillString = ' ' */){
+    return $pad(this, maxLength, arguments.length > 1 ? arguments[1] : undefined, false);
+  }
+});
+},{"./_export":32,"./_string-pad":100}],283:[function(require,module,exports){
+'use strict';
+// https://github.com/tc39/proposal-string-pad-start-end
+var $export = require('./_export')
+  , $pad    = require('./_string-pad');
+
+$export($export.P, 'String', {
+  padStart: function padStart(maxLength /*, fillString = ' ' */){
+    return $pad(this, maxLength, arguments.length > 1 ? arguments[1] : undefined, true);
+  }
+});
+},{"./_export":32,"./_string-pad":100}],284:[function(require,module,exports){
+'use strict';
+// https://github.com/sebmarkbage/ecmascript-string-left-right-trim
+require('./_string-trim')('trimLeft', function($trim){
+  return function trimLeft(){
+    return $trim(this, 1);
+  };
+}, 'trimStart');
+},{"./_string-trim":102}],285:[function(require,module,exports){
+'use strict';
+// https://github.com/sebmarkbage/ecmascript-string-left-right-trim
+require('./_string-trim')('trimRight', function($trim){
+  return function trimRight(){
+    return $trim(this, 2);
+  };
+}, 'trimEnd');
+},{"./_string-trim":102}],286:[function(require,module,exports){
+// https://github.com/ljharb/proposal-global
+var $export = require('./_export');
+
+$export($export.S, 'System', {global: require('./_global')});
+},{"./_export":32,"./_global":38}],287:[function(require,module,exports){
+var $iterators    = require('./es6.array.iterator')
+  , redefine      = require('./_redefine')
+  , global        = require('./_global')
+  , hide          = require('./_hide')
+  , Iterators     = require('./_iterators')
+  , wks           = require('./_wks')
+  , ITERATOR      = wks('iterator')
+  , TO_STRING_TAG = wks('toStringTag')
+  , ArrayValues   = Iterators.Array;
+
+for(var collections = ['NodeList', 'DOMTokenList', 'MediaList', 'StyleSheetList', 'CSSRuleList'], i = 0; i < 5; i++){
+  var NAME       = collections[i]
+    , Collection = global[NAME]
+    , proto      = Collection && Collection.prototype
+    , key;
+  if(proto){
+    if(!proto[ITERATOR])hide(proto, ITERATOR, ArrayValues);
+    if(!proto[TO_STRING_TAG])hide(proto, TO_STRING_TAG, NAME);
+    Iterators[NAME] = ArrayValues;
+    for(key in $iterators)if(!proto[key])redefine(proto, key, $iterators[key], true);
+  }
+}
+},{"./_global":38,"./_hide":40,"./_iterators":56,"./_redefine":87,"./_wks":115,"./es6.array.iterator":129}],288:[function(require,module,exports){
+var $export = require('./_export')
+  , $task   = require('./_task');
+$export($export.G + $export.B, {
+  setImmediate:   $task.set,
+  clearImmediate: $task.clear
+});
+},{"./_export":32,"./_task":104}],289:[function(require,module,exports){
+// ie9- setTimeout & setInterval additional parameters fix
+var global     = require('./_global')
+  , $export    = require('./_export')
+  , invoke     = require('./_invoke')
+  , partial    = require('./_partial')
+  , navigator  = global.navigator
+  , MSIE       = !!navigator && /MSIE .\./.test(navigator.userAgent); // <- dirty ie9- check
+var wrap = function(set){
+  return MSIE ? function(fn, time /*, ...args */){
+    return set(invoke(
+      partial,
+      [].slice.call(arguments, 2),
+      typeof fn == 'function' ? fn : Function(fn)
+    ), time);
+  } : set;
+};
+$export($export.G + $export.B + $export.F * MSIE, {
+  setTimeout:  wrap(global.setTimeout),
+  setInterval: wrap(global.setInterval)
+});
+},{"./_export":32,"./_global":38,"./_invoke":44,"./_partial":83}],290:[function(require,module,exports){
+require('./modules/es6.symbol');
+require('./modules/es6.object.create');
+require('./modules/es6.object.define-property');
+require('./modules/es6.object.define-properties');
+require('./modules/es6.object.get-own-property-descriptor');
+require('./modules/es6.object.get-prototype-of');
+require('./modules/es6.object.keys');
+require('./modules/es6.object.get-own-property-names');
+require('./modules/es6.object.freeze');
+require('./modules/es6.object.seal');
+require('./modules/es6.object.prevent-extensions');
+require('./modules/es6.object.is-frozen');
+require('./modules/es6.object.is-sealed');
+require('./modules/es6.object.is-extensible');
+require('./modules/es6.object.assign');
+require('./modules/es6.object.is');
+require('./modules/es6.object.set-prototype-of');
+require('./modules/es6.object.to-string');
+require('./modules/es6.function.bind');
+require('./modules/es6.function.name');
+require('./modules/es6.function.has-instance');
+require('./modules/es6.parse-int');
+require('./modules/es6.parse-float');
+require('./modules/es6.number.constructor');
+require('./modules/es6.number.to-fixed');
+require('./modules/es6.number.to-precision');
+require('./modules/es6.number.epsilon');
+require('./modules/es6.number.is-finite');
+require('./modules/es6.number.is-integer');
+require('./modules/es6.number.is-nan');
+require('./modules/es6.number.is-safe-integer');
+require('./modules/es6.number.max-safe-integer');
+require('./modules/es6.number.min-safe-integer');
+require('./modules/es6.number.parse-float');
+require('./modules/es6.number.parse-int');
+require('./modules/es6.math.acosh');
+require('./modules/es6.math.asinh');
+require('./modules/es6.math.atanh');
+require('./modules/es6.math.cbrt');
+require('./modules/es6.math.clz32');
+require('./modules/es6.math.cosh');
+require('./modules/es6.math.expm1');
+require('./modules/es6.math.fround');
+require('./modules/es6.math.hypot');
+require('./modules/es6.math.imul');
+require('./modules/es6.math.log10');
+require('./modules/es6.math.log1p');
+require('./modules/es6.math.log2');
+require('./modules/es6.math.sign');
+require('./modules/es6.math.sinh');
+require('./modules/es6.math.tanh');
+require('./modules/es6.math.trunc');
+require('./modules/es6.string.from-code-point');
+require('./modules/es6.string.raw');
+require('./modules/es6.string.trim');
+require('./modules/es6.string.iterator');
+require('./modules/es6.string.code-point-at');
+require('./modules/es6.string.ends-with');
+require('./modules/es6.string.includes');
+require('./modules/es6.string.repeat');
+require('./modules/es6.string.starts-with');
+require('./modules/es6.string.anchor');
+require('./modules/es6.string.big');
+require('./modules/es6.string.blink');
+require('./modules/es6.string.bold');
+require('./modules/es6.string.fixed');
+require('./modules/es6.string.fontcolor');
+require('./modules/es6.string.fontsize');
+require('./modules/es6.string.italics');
+require('./modules/es6.string.link');
+require('./modules/es6.string.small');
+require('./modules/es6.string.strike');
+require('./modules/es6.string.sub');
+require('./modules/es6.string.sup');
+require('./modules/es6.date.now');
+require('./modules/es6.date.to-json');
+require('./modules/es6.date.to-iso-string');
+require('./modules/es6.date.to-string');
+require('./modules/es6.date.to-primitive');
+require('./modules/es6.array.is-array');
+require('./modules/es6.array.from');
+require('./modules/es6.array.of');
+require('./modules/es6.array.join');
+require('./modules/es6.array.slice');
+require('./modules/es6.array.sort');
+require('./modules/es6.array.for-each');
+require('./modules/es6.array.map');
+require('./modules/es6.array.filter');
+require('./modules/es6.array.some');
+require('./modules/es6.array.every');
+require('./modules/es6.array.reduce');
+require('./modules/es6.array.reduce-right');
+require('./modules/es6.array.index-of');
+require('./modules/es6.array.last-index-of');
+require('./modules/es6.array.copy-within');
+require('./modules/es6.array.fill');
+require('./modules/es6.array.find');
+require('./modules/es6.array.find-index');
+require('./modules/es6.array.species');
+require('./modules/es6.array.iterator');
+require('./modules/es6.regexp.constructor');
+require('./modules/es6.regexp.to-string');
+require('./modules/es6.regexp.flags');
+require('./modules/es6.regexp.match');
+require('./modules/es6.regexp.replace');
+require('./modules/es6.regexp.search');
+require('./modules/es6.regexp.split');
+require('./modules/es6.promise');
+require('./modules/es6.map');
+require('./modules/es6.set');
+require('./modules/es6.weak-map');
+require('./modules/es6.weak-set');
+require('./modules/es6.typed.array-buffer');
+require('./modules/es6.typed.data-view');
+require('./modules/es6.typed.int8-array');
+require('./modules/es6.typed.uint8-array');
+require('./modules/es6.typed.uint8-clamped-array');
+require('./modules/es6.typed.int16-array');
+require('./modules/es6.typed.uint16-array');
+require('./modules/es6.typed.int32-array');
+require('./modules/es6.typed.uint32-array');
+require('./modules/es6.typed.float32-array');
+require('./modules/es6.typed.float64-array');
+require('./modules/es6.reflect.apply');
+require('./modules/es6.reflect.construct');
+require('./modules/es6.reflect.define-property');
+require('./modules/es6.reflect.delete-property');
+require('./modules/es6.reflect.enumerate');
+require('./modules/es6.reflect.get');
+require('./modules/es6.reflect.get-own-property-descriptor');
+require('./modules/es6.reflect.get-prototype-of');
+require('./modules/es6.reflect.has');
+require('./modules/es6.reflect.is-extensible');
+require('./modules/es6.reflect.own-keys');
+require('./modules/es6.reflect.prevent-extensions');
+require('./modules/es6.reflect.set');
+require('./modules/es6.reflect.set-prototype-of');
+require('./modules/es7.array.includes');
+require('./modules/es7.string.at');
+require('./modules/es7.string.pad-start');
+require('./modules/es7.string.pad-end');
+require('./modules/es7.string.trim-left');
+require('./modules/es7.string.trim-right');
+require('./modules/es7.string.match-all');
+require('./modules/es7.object.get-own-property-descriptors');
+require('./modules/es7.object.values');
+require('./modules/es7.object.entries');
+require('./modules/es7.object.define-getter');
+require('./modules/es7.object.define-setter');
+require('./modules/es7.object.lookup-getter');
+require('./modules/es7.object.lookup-setter');
+require('./modules/es7.map.to-json');
+require('./modules/es7.set.to-json');
+require('./modules/es7.system.global');
+require('./modules/es7.error.is-error');
+require('./modules/es7.math.iaddh');
+require('./modules/es7.math.isubh');
+require('./modules/es7.math.imulh');
+require('./modules/es7.math.umulh');
+require('./modules/es7.reflect.define-metadata');
+require('./modules/es7.reflect.delete-metadata');
+require('./modules/es7.reflect.get-metadata');
+require('./modules/es7.reflect.get-metadata-keys');
+require('./modules/es7.reflect.get-own-metadata');
+require('./modules/es7.reflect.get-own-metadata-keys');
+require('./modules/es7.reflect.has-metadata');
+require('./modules/es7.reflect.has-own-metadata');
+require('./modules/es7.reflect.metadata');
+require('./modules/web.timers');
+require('./modules/web.immediate');
+require('./modules/web.dom.iterable');
+module.exports = require('./modules/_core');
+},{"./modules/_core":23,"./modules/es6.array.copy-within":119,"./modules/es6.array.every":120,"./modules/es6.array.fill":121,"./modules/es6.array.filter":122,"./modules/es6.array.find":124,"./modules/es6.array.find-index":123,"./modules/es6.array.for-each":125,"./modules/es6.array.from":126,"./modules/es6.array.index-of":127,"./modules/es6.array.is-array":128,"./modules/es6.array.iterator":129,"./modules/es6.array.join":130,"./modules/es6.array.last-index-of":131,"./modules/es6.array.map":132,"./modules/es6.array.of":133,"./modules/es6.array.reduce":135,"./modules/es6.array.reduce-right":134,"./modules/es6.array.slice":136,"./modules/es6.array.some":137,"./modules/es6.array.sort":138,"./modules/es6.array.species":139,"./modules/es6.date.now":140,"./modules/es6.date.to-iso-string":141,"./modules/es6.date.to-json":142,"./modules/es6.date.to-primitive":143,"./modules/es6.date.to-string":144,"./modules/es6.function.bind":145,"./modules/es6.function.has-instance":146,"./modules/es6.function.name":147,"./modules/es6.map":148,"./modules/es6.math.acosh":149,"./modules/es6.math.asinh":150,"./modules/es6.math.atanh":151,"./modules/es6.math.cbrt":152,"./modules/es6.math.clz32":153,"./modules/es6.math.cosh":154,"./modules/es6.math.expm1":155,"./modules/es6.math.fround":156,"./modules/es6.math.hypot":157,"./modules/es6.math.imul":158,"./modules/es6.math.log10":159,"./modules/es6.math.log1p":160,"./modules/es6.math.log2":161,"./modules/es6.math.sign":162,"./modules/es6.math.sinh":163,"./modules/es6.math.tanh":164,"./modules/es6.math.trunc":165,"./modules/es6.number.constructor":166,"./modules/es6.number.epsilon":167,"./modules/es6.number.is-finite":168,"./modules/es6.number.is-integer":169,"./modules/es6.number.is-nan":170,"./modules/es6.number.is-safe-integer":171,"./modules/es6.number.max-safe-integer":172,"./modules/es6.number.min-safe-integer":173,"./modules/es6.number.parse-float":174,"./modules/es6.number.parse-int":175,"./modules/es6.number.to-fixed":176,"./modules/es6.number.to-precision":177,"./modules/es6.object.assign":178,"./modules/es6.object.create":179,"./modules/es6.object.define-properties":180,"./modules/es6.object.define-property":181,"./modules/es6.object.freeze":182,"./modules/es6.object.get-own-property-descriptor":183,"./modules/es6.object.get-own-property-names":184,"./modules/es6.object.get-prototype-of":185,"./modules/es6.object.is":189,"./modules/es6.object.is-extensible":186,"./modules/es6.object.is-frozen":187,"./modules/es6.object.is-sealed":188,"./modules/es6.object.keys":190,"./modules/es6.object.prevent-extensions":191,"./modules/es6.object.seal":192,"./modules/es6.object.set-prototype-of":193,"./modules/es6.object.to-string":194,"./modules/es6.parse-float":195,"./modules/es6.parse-int":196,"./modules/es6.promise":197,"./modules/es6.reflect.apply":198,"./modules/es6.reflect.construct":199,"./modules/es6.reflect.define-property":200,"./modules/es6.reflect.delete-property":201,"./modules/es6.reflect.enumerate":202,"./modules/es6.reflect.get":205,"./modules/es6.reflect.get-own-property-descriptor":203,"./modules/es6.reflect.get-prototype-of":204,"./modules/es6.reflect.has":206,"./modules/es6.reflect.is-extensible":207,"./modules/es6.reflect.own-keys":208,"./modules/es6.reflect.prevent-extensions":209,"./modules/es6.reflect.set":211,"./modules/es6.reflect.set-prototype-of":210,"./modules/es6.regexp.constructor":212,"./modules/es6.regexp.flags":213,"./modules/es6.regexp.match":214,"./modules/es6.regexp.replace":215,"./modules/es6.regexp.search":216,"./modules/es6.regexp.split":217,"./modules/es6.regexp.to-string":218,"./modules/es6.set":219,"./modules/es6.string.anchor":220,"./modules/es6.string.big":221,"./modules/es6.string.blink":222,"./modules/es6.string.bold":223,"./modules/es6.string.code-point-at":224,"./modules/es6.string.ends-with":225,"./modules/es6.string.fixed":226,"./modules/es6.string.fontcolor":227,"./modules/es6.string.fontsize":228,"./modules/es6.string.from-code-point":229,"./modules/es6.string.includes":230,"./modules/es6.string.italics":231,"./modules/es6.string.iterator":232,"./modules/es6.string.link":233,"./modules/es6.string.raw":234,"./modules/es6.string.repeat":235,"./modules/es6.string.small":236,"./modules/es6.string.starts-with":237,"./modules/es6.string.strike":238,"./modules/es6.string.sub":239,"./modules/es6.string.sup":240,"./modules/es6.string.trim":241,"./modules/es6.symbol":242,"./modules/es6.typed.array-buffer":243,"./modules/es6.typed.data-view":244,"./modules/es6.typed.float32-array":245,"./modules/es6.typed.float64-array":246,"./modules/es6.typed.int16-array":247,"./modules/es6.typed.int32-array":248,"./modules/es6.typed.int8-array":249,"./modules/es6.typed.uint16-array":250,"./modules/es6.typed.uint32-array":251,"./modules/es6.typed.uint8-array":252,"./modules/es6.typed.uint8-clamped-array":253,"./modules/es6.weak-map":254,"./modules/es6.weak-set":255,"./modules/es7.array.includes":256,"./modules/es7.error.is-error":257,"./modules/es7.map.to-json":258,"./modules/es7.math.iaddh":259,"./modules/es7.math.imulh":260,"./modules/es7.math.isubh":261,"./modules/es7.math.umulh":262,"./modules/es7.object.define-getter":263,"./modules/es7.object.define-setter":264,"./modules/es7.object.entries":265,"./modules/es7.object.get-own-property-descriptors":266,"./modules/es7.object.lookup-getter":267,"./modules/es7.object.lookup-setter":268,"./modules/es7.object.values":269,"./modules/es7.reflect.define-metadata":270,"./modules/es7.reflect.delete-metadata":271,"./modules/es7.reflect.get-metadata":273,"./modules/es7.reflect.get-metadata-keys":272,"./modules/es7.reflect.get-own-metadata":275,"./modules/es7.reflect.get-own-metadata-keys":274,"./modules/es7.reflect.has-metadata":276,"./modules/es7.reflect.has-own-metadata":277,"./modules/es7.reflect.metadata":278,"./modules/es7.set.to-json":279,"./modules/es7.string.at":280,"./modules/es7.string.match-all":281,"./modules/es7.string.pad-end":282,"./modules/es7.string.pad-start":283,"./modules/es7.string.trim-left":284,"./modules/es7.string.trim-right":285,"./modules/es7.system.global":286,"./modules/web.dom.iterable":287,"./modules/web.immediate":288,"./modules/web.timers":289}],291:[function(require,module,exports){
+(function (process,global){
+/**
+ * Copyright (c) 2014, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * https://raw.github.com/facebook/regenerator/master/LICENSE file. An
+ * additional grant of patent rights can be found in the PATENTS file in
+ * the same directory.
+ */
+
+!(function(global) {
+  "use strict";
+
+  var hasOwn = Object.prototype.hasOwnProperty;
+  var undefined; // More compressible than void 0.
+  var iteratorSymbol =
+    typeof Symbol === "function" && Symbol.iterator || "@@iterator";
+
+  var inModule = typeof module === "object";
+  var runtime = global.regeneratorRuntime;
+  if (runtime) {
+    if (inModule) {
+      // If regeneratorRuntime is defined globally and we're in a module,
+      // make the exports object identical to regeneratorRuntime.
+      module.exports = runtime;
+    }
+    // Don't bother evaluating the rest of this file if the runtime was
+    // already defined globally.
+    return;
+  }
+
+  // Define the runtime globally (as expected by generated code) as either
+  // module.exports (if we're in a module) or a new, empty object.
+  runtime = global.regeneratorRuntime = inModule ? module.exports : {};
+
+  function wrap(innerFn, outerFn, self, tryLocsList) {
+    // If outerFn provided, then outerFn.prototype instanceof Generator.
+    var generator = Object.create((outerFn || Generator).prototype);
+    var context = new Context(tryLocsList || []);
+
+    // The ._invoke method unifies the implementations of the .next,
+    // .throw, and .return methods.
+    generator._invoke = makeInvokeMethod(innerFn, self, context);
+
+    return generator;
+  }
+  runtime.wrap = wrap;
+
+  // Try/catch helper to minimize deoptimizations. Returns a completion
+  // record like context.tryEntries[i].completion. This interface could
+  // have been (and was previously) designed to take a closure to be
+  // invoked without arguments, but in all the cases we care about we
+  // already have an existing method we want to call, so there's no need
+  // to create a new function object. We can even get away with assuming
+  // the method takes exactly one argument, since that happens to be true
+  // in every case, so we don't have to touch the arguments object. The
+  // only additional allocation required is the completion record, which
+  // has a stable shape and so hopefully should be cheap to allocate.
+  function tryCatch(fn, obj, arg) {
+    try {
+      return { type: "normal", arg: fn.call(obj, arg) };
+    } catch (err) {
+      return { type: "throw", arg: err };
+    }
+  }
+
+  var GenStateSuspendedStart = "suspendedStart";
+  var GenStateSuspendedYield = "suspendedYield";
+  var GenStateExecuting = "executing";
+  var GenStateCompleted = "completed";
+
+  // Returning this object from the innerFn has the same effect as
+  // breaking out of the dispatch switch statement.
+  var ContinueSentinel = {};
+
+  // Dummy constructor functions that we use as the .constructor and
+  // .constructor.prototype properties for functions that return Generator
+  // objects. For full spec compliance, you may wish to configure your
+  // minifier not to mangle the names of these two functions.
+  function Generator() {}
+  function GeneratorFunction() {}
+  function GeneratorFunctionPrototype() {}
+
+  var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype;
+  GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
+  GeneratorFunctionPrototype.constructor = GeneratorFunction;
+  GeneratorFunction.displayName = "GeneratorFunction";
+
+  // Helper for defining the .next, .throw, and .return methods of the
+  // Iterator interface in terms of a single ._invoke method.
+  function defineIteratorMethods(prototype) {
+    ["next", "throw", "return"].forEach(function(method) {
+      prototype[method] = function(arg) {
+        return this._invoke(method, arg);
+      };
+    });
+  }
+
+  runtime.isGeneratorFunction = function(genFun) {
+    var ctor = typeof genFun === "function" && genFun.constructor;
+    return ctor
+      ? ctor === GeneratorFunction ||
+        // For the native GeneratorFunction constructor, the best we can
+        // do is to check its .name property.
+        (ctor.displayName || ctor.name) === "GeneratorFunction"
+      : false;
+  };
+
+  runtime.mark = function(genFun) {
+    if (Object.setPrototypeOf) {
+      Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
+    } else {
+      genFun.__proto__ = GeneratorFunctionPrototype;
+    }
+    genFun.prototype = Object.create(Gp);
+    return genFun;
+  };
+
+  // Within the body of any async function, `await x` is transformed to
+  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
+  // `value instanceof AwaitArgument` to determine if the yielded value is
+  // meant to be awaited. Some may consider the name of this method too
+  // cutesy, but they are curmudgeons.
+  runtime.awrap = function(arg) {
+    return new AwaitArgument(arg);
+  };
+
+  function AwaitArgument(arg) {
+    this.arg = arg;
+  }
+
+  function AsyncIterator(generator) {
+    // This invoke function is written in a style that assumes some
+    // calling function (or Promise) will handle exceptions.
+    function invoke(method, arg) {
+      var result = generator[method](arg);
+      var value = result.value;
+      return value instanceof AwaitArgument
+        ? Promise.resolve(value.arg).then(invokeNext, invokeThrow)
+        : Promise.resolve(value).then(function(unwrapped) {
+            // When a yielded Promise is resolved, its final value becomes
+            // the .value of the Promise<{value,done}> result for the
+            // current iteration. If the Promise is rejected, however, the
+            // result for this iteration will be rejected with the same
+            // reason. Note that rejections of yielded Promises are not
+            // thrown back into the generator function, as is the case
+            // when an awaited Promise is rejected. This difference in
+            // behavior between yield and await is important, because it
+            // allows the consumer to decide what to do with the yielded
+            // rejection (swallow it and continue, manually .throw it back
+            // into the generator, abandon iteration, whatever). With
+            // await, by contrast, there is no opportunity to examine the
+            // rejection reason outside the generator function, so the
+            // only option is to throw it from the await expression, and
+            // let the generator function handle the exception.
+            result.value = unwrapped;
+            return result;
+          });
+    }
+
+    if (typeof process === "object" && process.domain) {
+      invoke = process.domain.bind(invoke);
+    }
+
+    var invokeNext = invoke.bind(generator, "next");
+    var invokeThrow = invoke.bind(generator, "throw");
+    var invokeReturn = invoke.bind(generator, "return");
+    var previousPromise;
+
+    function enqueue(method, arg) {
+      function callInvokeWithMethodAndArg() {
+        return invoke(method, arg);
+      }
+
+      return previousPromise =
+        // If enqueue has been called before, then we want to wait until
+        // all previous Promises have been resolved before calling invoke,
+        // so that results are always delivered in the correct order. If
+        // enqueue has not been called before, then it is important to
+        // call invoke immediately, without waiting on a callback to fire,
+        // so that the async generator function has the opportunity to do
+        // any necessary setup in a predictable way. This predictability
+        // is why the Promise constructor synchronously invokes its
+        // executor callback, and why async functions synchronously
+        // execute code before the first await. Since we implement simple
+        // async functions in terms of async generators, it is especially
+        // important to get this right, even though it requires care.
+        previousPromise ? previousPromise.then(
+          callInvokeWithMethodAndArg,
+          // Avoid propagating failures to Promises returned by later
+          // invocations of the iterator.
+          callInvokeWithMethodAndArg
+        ) : new Promise(function (resolve) {
+          resolve(callInvokeWithMethodAndArg());
+        });
+    }
+
+    // Define the unified helper method that is used to implement .next,
+    // .throw, and .return (see defineIteratorMethods).
+    this._invoke = enqueue;
+  }
+
+  defineIteratorMethods(AsyncIterator.prototype);
+
+  // Note that simple async functions are implemented on top of
+  // AsyncIterator objects; they just return a Promise for the value of
+  // the final result produced by the iterator.
+  runtime.async = function(innerFn, outerFn, self, tryLocsList) {
+    var iter = new AsyncIterator(
+      wrap(innerFn, outerFn, self, tryLocsList)
+    );
+
+    return runtime.isGeneratorFunction(outerFn)
+      ? iter // If outerFn is a generator, return the full iterator.
+      : iter.next().then(function(result) {
+          return result.done ? result.value : iter.next();
+        });
+  };
+
+  function makeInvokeMethod(innerFn, self, context) {
+    var state = GenStateSuspendedStart;
+
+    return function invoke(method, arg) {
+      if (state === GenStateExecuting) {
+        throw new Error("Generator is already running");
+      }
+
+      if (state === GenStateCompleted) {
+        if (method === "throw") {
+          throw arg;
+        }
+
+        // Be forgiving, per 25.3.3.3.3 of the spec:
+        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
+        return doneResult();
+      }
+
+      while (true) {
+        var delegate = context.delegate;
+        if (delegate) {
+          if (method === "return" ||
+              (method === "throw" && delegate.iterator[method] === undefined)) {
+            // A return or throw (when the delegate iterator has no throw
+            // method) always terminates the yield* loop.
+            context.delegate = null;
+
+            // If the delegate iterator has a return method, give it a
+            // chance to clean up.
+            var returnMethod = delegate.iterator["return"];
+            if (returnMethod) {
+              var record = tryCatch(returnMethod, delegate.iterator, arg);
+              if (record.type === "throw") {
+                // If the return method threw an exception, let that
+                // exception prevail over the original return or throw.
+                method = "throw";
+                arg = record.arg;
+                continue;
+              }
+            }
+
+            if (method === "return") {
+              // Continue with the outer return, now that the delegate
+              // iterator has been terminated.
+              continue;
+            }
+          }
+
+          var record = tryCatch(
+            delegate.iterator[method],
+            delegate.iterator,
+            arg
+          );
+
+          if (record.type === "throw") {
+            context.delegate = null;
+
+            // Like returning generator.throw(uncaught), but without the
+            // overhead of an extra function call.
+            method = "throw";
+            arg = record.arg;
+            continue;
+          }
+
+          // Delegate generator ran and handled its own exceptions so
+          // regardless of what the method was, we continue as if it is
+          // "next" with an undefined arg.
+          method = "next";
+          arg = undefined;
+
+          var info = record.arg;
+          if (info.done) {
+            context[delegate.resultName] = info.value;
+            context.next = delegate.nextLoc;
+          } else {
+            state = GenStateSuspendedYield;
+            return info;
+          }
+
+          context.delegate = null;
+        }
+
+        if (method === "next") {
+          context._sent = arg;
+
+          if (state === GenStateSuspendedYield) {
+            context.sent = arg;
+          } else {
+            context.sent = undefined;
+          }
+        } else if (method === "throw") {
+          if (state === GenStateSuspendedStart) {
+            state = GenStateCompleted;
+            throw arg;
+          }
+
+          if (context.dispatchException(arg)) {
+            // If the dispatched exception was caught by a catch block,
+            // then let that catch block handle the exception normally.
+            method = "next";
+            arg = undefined;
+          }
+
+        } else if (method === "return") {
+          context.abrupt("return", arg);
+        }
+
+        state = GenStateExecuting;
+
+        var record = tryCatch(innerFn, self, context);
+        if (record.type === "normal") {
+          // If an exception is thrown from innerFn, we leave state ===
+          // GenStateExecuting and loop back for another invocation.
+          state = context.done
+            ? GenStateCompleted
+            : GenStateSuspendedYield;
+
+          var info = {
+            value: record.arg,
+            done: context.done
+          };
+
+          if (record.arg === ContinueSentinel) {
+            if (context.delegate && method === "next") {
+              // Deliberately forget the last sent value so that we don't
+              // accidentally pass it on to the delegate.
+              arg = undefined;
+            }
+          } else {
+            return info;
+          }
+
+        } else if (record.type === "throw") {
+          state = GenStateCompleted;
+          // Dispatch the exception by looping back around to the
+          // context.dispatchException(arg) call above.
+          method = "throw";
+          arg = record.arg;
+        }
+      }
+    };
+  }
+
+  // Define Generator.prototype.{next,throw,return} in terms of the
+  // unified ._invoke helper method.
+  defineIteratorMethods(Gp);
+
+  Gp[iteratorSymbol] = function() {
+    return this;
+  };
+
+  Gp.toString = function() {
+    return "[object Generator]";
+  };
+
+  function pushTryEntry(locs) {
+    var entry = { tryLoc: locs[0] };
+
+    if (1 in locs) {
+      entry.catchLoc = locs[1];
+    }
+
+    if (2 in locs) {
+      entry.finallyLoc = locs[2];
+      entry.afterLoc = locs[3];
+    }
+
+    this.tryEntries.push(entry);
+  }
+
+  function resetTryEntry(entry) {
+    var record = entry.completion || {};
+    record.type = "normal";
+    delete record.arg;
+    entry.completion = record;
+  }
+
+  function Context(tryLocsList) {
+    // The root entry object (effectively a try statement without a catch
+    // or a finally block) gives us a place to store values thrown from
+    // locations where there is no enclosing try statement.
+    this.tryEntries = [{ tryLoc: "root" }];
+    tryLocsList.forEach(pushTryEntry, this);
+    this.reset(true);
+  }
+
+  runtime.keys = function(object) {
+    var keys = [];
+    for (var key in object) {
+      keys.push(key);
+    }
+    keys.reverse();
+
+    // Rather than returning an object with a next method, we keep
+    // things simple and return the next function itself.
+    return function next() {
+      while (keys.length) {
+        var key = keys.pop();
+        if (key in object) {
+          next.value = key;
+          next.done = false;
+          return next;
+        }
+      }
+
+      // To avoid creating an additional object, we just hang the .value
+      // and .done properties off the next function object itself. This
+      // also ensures that the minifier will not anonymize the function.
+      next.done = true;
+      return next;
+    };
+  };
+
+  function values(iterable) {
+    if (iterable) {
+      var iteratorMethod = iterable[iteratorSymbol];
+      if (iteratorMethod) {
+        return iteratorMethod.call(iterable);
+      }
+
+      if (typeof iterable.next === "function") {
+        return iterable;
+      }
+
+      if (!isNaN(iterable.length)) {
+        var i = -1, next = function next() {
+          while (++i < iterable.length) {
+            if (hasOwn.call(iterable, i)) {
+              next.value = iterable[i];
+              next.done = false;
+              return next;
+            }
+          }
+
+          next.value = undefined;
+          next.done = true;
+
+          return next;
+        };
+
+        return next.next = next;
+      }
+    }
+
+    // Return an iterator with no values.
+    return { next: doneResult };
+  }
+  runtime.values = values;
+
+  function doneResult() {
+    return { value: undefined, done: true };
+  }
+
+  Context.prototype = {
+    constructor: Context,
+
+    reset: function(skipTempReset) {
+      this.prev = 0;
+      this.next = 0;
+      this.sent = undefined;
+      this.done = false;
+      this.delegate = null;
+
+      this.tryEntries.forEach(resetTryEntry);
+
+      if (!skipTempReset) {
+        for (var name in this) {
+          // Not sure about the optimal order of these conditions:
+          if (name.charAt(0) === "t" &&
+              hasOwn.call(this, name) &&
+              !isNaN(+name.slice(1))) {
+            this[name] = undefined;
+          }
+        }
+      }
+    },
+
+    stop: function() {
+      this.done = true;
+
+      var rootEntry = this.tryEntries[0];
+      var rootRecord = rootEntry.completion;
+      if (rootRecord.type === "throw") {
+        throw rootRecord.arg;
+      }
+
+      return this.rval;
+    },
+
+    dispatchException: function(exception) {
+      if (this.done) {
+        throw exception;
+      }
+
+      var context = this;
+      function handle(loc, caught) {
+        record.type = "throw";
+        record.arg = exception;
+        context.next = loc;
+        return !!caught;
+      }
+
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        var record = entry.completion;
+
+        if (entry.tryLoc === "root") {
+          // Exception thrown outside of any try block that could handle
+          // it, so set the completion value of the entire function to
+          // throw the exception.
+          return handle("end");
+        }
+
+        if (entry.tryLoc <= this.prev) {
+          var hasCatch = hasOwn.call(entry, "catchLoc");
+          var hasFinally = hasOwn.call(entry, "finallyLoc");
+
+          if (hasCatch && hasFinally) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            } else if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else if (hasCatch) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            }
+
+          } else if (hasFinally) {
+            if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else {
+            throw new Error("try statement without catch or finally");
+          }
+        }
+      }
+    },
+
+    abrupt: function(type, arg) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc <= this.prev &&
+            hasOwn.call(entry, "finallyLoc") &&
+            this.prev < entry.finallyLoc) {
+          var finallyEntry = entry;
+          break;
+        }
+      }
+
+      if (finallyEntry &&
+          (type === "break" ||
+           type === "continue") &&
+          finallyEntry.tryLoc <= arg &&
+          arg <= finallyEntry.finallyLoc) {
+        // Ignore the finally entry if control is not jumping to a
+        // location outside the try/catch block.
+        finallyEntry = null;
+      }
+
+      var record = finallyEntry ? finallyEntry.completion : {};
+      record.type = type;
+      record.arg = arg;
+
+      if (finallyEntry) {
+        this.next = finallyEntry.finallyLoc;
+      } else {
+        this.complete(record);
+      }
+
+      return ContinueSentinel;
+    },
+
+    complete: function(record, afterLoc) {
+      if (record.type === "throw") {
+        throw record.arg;
+      }
+
+      if (record.type === "break" ||
+          record.type === "continue") {
+        this.next = record.arg;
+      } else if (record.type === "return") {
+        this.rval = record.arg;
+        this.next = "end";
+      } else if (record.type === "normal" && afterLoc) {
+        this.next = afterLoc;
+      }
+    },
+
+    finish: function(finallyLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.finallyLoc === finallyLoc) {
+          this.complete(entry.completion, entry.afterLoc);
+          resetTryEntry(entry);
+          return ContinueSentinel;
+        }
+      }
+    },
+
+    "catch": function(tryLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc === tryLoc) {
+          var record = entry.completion;
+          if (record.type === "throw") {
+            var thrown = record.arg;
+            resetTryEntry(entry);
+          }
+          return thrown;
+        }
+      }
+
+      // The context.catch method must only be called with a location
+      // argument that corresponds to a known catch block.
+      throw new Error("illegal catch attempt");
+    },
+
+    delegateYield: function(iterable, resultName, nextLoc) {
+      this.delegate = {
+        iterator: values(iterable),
+        resultName: resultName,
+        nextLoc: nextLoc
+      };
+
+      return ContinueSentinel;
+    }
+  };
+})(
+  // Among the various tricks for obtaining a reference to the global
+  // object, this seems to be the most reliable technique that does not
+  // use indirect eval (which violates Content Security Policy).
+  typeof global === "object" ? global :
+  typeof window === "object" ? window :
+  typeof self === "object" ? self : this
+);
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"_process":1}],292:[function(require,module,exports){
 'use strict';
 /**
  A class to add a simple EventTarget (https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) API
@@ -215,7 +6793,7 @@ var Listen = {
 };
 
 module.exports = Listen;
-},{}],2:[function(require,module,exports){
+},{}],293:[function(require,module,exports){
 'use strict';
 
 var Listen = require('listen-js');
@@ -331,1707 +6909,7 @@ DeviceManager.prototype = {
 };
 
 module.exports = new DeviceManager();
-},{"listen-js":1}],3:[function(require,module,exports){
-'use strict';
-
-var Element = require('./element');
-var ImageElement = require('./image-element');
-
-var elementCount = 0, cache = {}, loaded;
-
-module.exports = (function () {
-
-    var ElementKit = function (options) {
-        this.initialize(options);
-    };
-    ElementKit.prototype = {
-        /**
-         * Does a little setup for element kit.
-         */
-        initialize: function () {
-
-            var self = this;
-            // can only define the element property once or an exception will be thrown
-            // must also check if element kit was loaded by some other module dependency
-            if (!loaded && !document.body.kit) {
-                // make element kit available on ALL DOM Elements when they are created
-                loaded = Object.defineProperty(window.Element.prototype, 'kit', {
-                    get: function () {
-                        return self.setup(this);
-                    }
-                });
-            }
-        },
-
-        /**
-         * Sets up the kit on an element.
-         * @param {HTMLElement} el - The element in which to load the kit onto
-         * @returns {Element|ImageElement} Returns the element instance
-         */
-        setup: function (el) {
-            var ElementClass;
-            // only add a new instance of the class if it hasnt already been added
-            if (!cache[el._kitId]) {
-                ElementClass = el instanceof window.HTMLImageElement ? ImageElement : Element;
-                elementCount++;
-                el._kitId = elementCount;
-                cache[el._kitId] = new ElementClass(el);
-            }
-            return cache[el._kitId];
-        },
-        /**
-         * Destroys element kit.
-         */
-        destroy: function () {}
-
-    };
-
-    return new ElementKit();
-
-})();
-},{"./element":4,"./image-element":5}],4:[function(require,module,exports){
-'use strict';
-
-var utils = require('./utils');
-var ElementKit = require('./element-kit');
-
-var Element = function (el) {
-    this.initialize(el);
-};
-
-/**
- * A class from which all Elements are based.
- * @description Bootstraps an element to allow for native JS methods (see https://developer.mozilla.org/en-US/docs/Web/API/Element)
- * @class Element
- * @param {Element} el - The element
- */
-Element.prototype = /** @lends Element */{
-
-    initialize: function (el) {
-        this.el = el;
-        this.classList = this._getClassList();
-        this._eventListenerMap = this._eventListenerMap || [];
-
-        Object.defineProperty(this, 'dataset', {
-            get: function () {
-                return this.getData();
-            }.bind(this)
-        });
-    },
-
-    /**
-     * Bubbles up each parent node of the element, triggering the callback on each element until traversal
-     * either runs out of parent nodes, reaches the document element, or if callback returns a falsy value
-     * @param {Function} callback - A callback that fires which gets passed the current element
-     * @param {HTMLElement} [startEl] - The element where traversal will begin (including the passed element), defaults to current el
-     * @private
-     */
-    _traverseEachParent: function (callback, startEl) {
-        var parentNode = startEl || this.el,
-            predicate;
-        // check if the node has classname property, if not, we know we're at the #document element
-        while (parentNode && typeof parentNode.className === 'string') {
-            predicate = callback(parentNode);
-            if (predicate !== undefined && !predicate) {
-                break;
-            }
-            parentNode = parentNode.parentNode;
-        }
-    },
-
-    /**
-     * Wrap a parent container element around the element.
-     * @param {string} html - The wrapper html
-     */
-    appendOuterHtml: function (html) {
-        var parent = this.el.parentNode,
-            container = utils.createHtmlElement(html);
-        if (parent) {
-            parent.replaceChild(container, this.el);
-        } else {
-            parent = document.createDocumentFragment();
-            parent.appendChild(container);
-        }
-        container.appendChild(this.el);
-        return container;
-    },
-
-    /**
-     * Retrieves the unique identifier of the element.
-     * @private
-     */
-    getUniqueId: function () {
-        return this.el._kitId;
-    },
-
-    /**
-     * Gets the closest ancestor element that has a css class.
-     * @param {string} className - The class name that the ancestor must have to match
-     */
-    getClosestAncestorElementByClassName: function (className) {
-        var result;
-        this._traverseEachParent(function (parent) {
-            if (parent.kit._hasClass(className)) {
-                result = parent;
-                return false;
-            }
-        }, this.el.parentNode);
-        return result;
-    },
-
-    /**
-     * Adds an event listener to the element.
-     * @param {string} event - The event to listen to
-     * @param {string|Function} listener - The name of the function (or the function itself) that should fire when the event happens
-     * @param {Object} [context] - The context in which the function should be called
-     * @param {Object} [options] - Object containing additional options
-     * @param {Object} [options.useCapture] - Whether to use capture (see Web.API.EventTarget.addEventListener)
-     */
-    addEventListener: function (event, listener, context, options) {
-        var _listener = listener;
-        options = options || {};
-
-        if (typeof _listener !== 'function') {
-            _listener = this._createEventListener(context[listener], context);
-        }
-
-        this.el.addEventListener(event, _listener, options.useCapture);
-
-        this._eventListenerMap.push({
-            event: event,
-            listener: _listener,
-            listenerId: listener,
-            context: context
-        });
-    },
-
-    /**
-     * Creates an event listener bounded to a context (useful for adding and removing events).
-     * @param {Function} listener - The listener function
-     * @param {Object} context - The context that should be used when the function is called
-     * @returns {Function} Returns an event listener function bounded to the context
-     * @private
-     */
-    _createEventListener: function (listener, context) {
-        return function (e) {
-            context = context || this;
-            listener.apply(context, arguments);
-        }
-    },
-
-    /**
-     * Removes an event listener from the element.
-     * @param {string} event - The event to remove
-     * @param {string|Function} listener - The event listener function or (name of it) to be removed
-     * @param {Object} [context] - The context of the listener that is being removed
-     */
-    removeEventListener: function (event, listener, context) {
-        var map = this._eventListenerMap || [],
-            i,
-            obj;
-
-        if (map.length) {
-            for (i = 0; i < map.length; i++) {
-                obj = map[i];
-                if (obj && obj.event === event && obj.listenerId === listener && obj.context === context) {
-                    this.el.removeEventListener(event, obj.listener);
-                    this._eventListenerMap[i] = null;
-                    break;
-                }
-            }
-        }
-    },
-
-    /**
-     * Builds a transition promise that waits to resolve until the el's CSS transition is completed.
-     * @param {Function} callback - The callback that is fired when the transition time is complete
-     * @returns {HTMLElement} Returns the html element
-     */
-    waitForTransition: function (callback) {
-        var duration = this.getTransitionDuration();
-        if (callback) {
-            if (duration > 0) {
-                setTimeout(callback.bind(this, this.el), duration);
-            } else {
-                callback(this.el);
-            }
-        }
-    },
-
-    /**
-     * Gets the time is takes for the element to transition to its show state.
-     * @returns {Number} Returns the total CSS transition time in milliseconds
-     */
-    getTransitionDuration: function () {
-        var delayProp = this.getCssComputedProperty('transition-delay') || '0ms',
-            durationProp = this.getCssComputedProperty('transition-duration') || '0ms',
-            times = Array.isArray(durationProp) ? durationProp : [durationProp],
-            delay = Array.isArray(delayProp) ? delayProp : [delayProp],
-            highest = 0,
-            map;
-
-        times.push.apply(times, delay); // account for delay
-
-        // calculate highest number of time
-        times.forEach(function (value) {
-            value.split(',').forEach(function (v) {
-                v = this._convertCssTimeValueToMilliseconds(v);
-                map = this._getCssPropUnitMap(v);
-                if (map.num > highest) {
-                    highest = map.num;
-                }
-            }.bind(this));
-        }.bind(this));
-
-        return highest;
-    },
-
-    /**
-     * Gets the computed property of the element.
-     * @param {string} prop - The name of the property to get
-     * @returns {string} Returns the value of the property
-     */
-    getCssComputedProperty: function (prop) {
-        var style = window.getComputedStyle(this.el);
-        return style.getPropertyValue(prop) || this.el.style[this._getJsPropName(prop)];
-    },
-
-    /**
-     * Takes a value and separates the number and unit into a key/value map.
-     * @param v - The value
-     * @returns {{num: Number, unit: string}} Returns the map
-     * @private
-     */
-    _getCssPropUnitMap: function (v) {
-        v.trim();
-        var num = v.match('[0-9\.]+'),
-            unit = 'ms';
-
-        num = num ? num[0] : '';
-        if (num) {
-            unit = v.split(num)[1];
-            num = Number(num);
-        }
-        return {
-            num: num,
-            unit: unit
-        };
-    },
-
-    /**
-     * Converts a css timing unit value into milliseconds.
-     * @param {string} val - The value string
-     * @returns {string} Returns the timing unit value in milliseconds
-     * @private
-     */
-    _convertCssTimeValueToMilliseconds: function (val) {
-        var number = this._getCssPropUnitMap(val).num,
-            unit = val.replace(number, '');
-        if (unit === 's') {
-            val = number * 1000;
-        } else {
-            val = number;
-        }
-        return val + 'ms';
-    },
-
-    /**
-     * Gets the class list of an element.
-     * @returns {Array} Returns an array of class names.
-     * @private
-     */
-    _getClassList: function () {
-        return {
-            add: this._addClass.bind(this),
-            remove: this._removeClass.bind(this),
-            contains: this._hasClass.bind(this),
-            toggle: this._toggleClass.bind(this)
-        };
-    },
-
-    /**
-     * Gets the class list of an element.
-     * @returns {Array} Returns an array of class names.
-     * @private
-     */
-    _getCssClasses: function () {
-        return this.el.className.split(' ');
-    },
-
-    /**
-     * Toggles (adds/removes) a css class on the element.
-     * @param {string} className - The css class value to add/remove
-     * @private
-     */
-    _toggleClass: function (className) {
-        if (!this._hasClass(className)) {
-            this._addClass(className);
-        } else {
-            this._removeClass(className);
-        }
-    },
-
-    /**
-     * Adds a CSS class to the element.
-     * @param {...string} arguments - The arguments containing css classes to add
-     * @private
-     */
-    _addClass: function  () {
-        if (('classList' in document.createElement('_'))) {
-            // browser supports classList!
-            this._each(arguments, function (className) {
-                this.el.classList.add(className);
-            }.bind(this));
-        } else {
-            this._each(arguments, function (className) {
-                if (!this._hasClass(className)) {
-                    this.el.className = this.el.className ? this.el.className + ' ' + className : className;
-                }
-            }.bind(this));
-        }
-    },
-
-    /**
-     * Triggers a callback function for a set of items.
-     * @param {Array} items - An array of items
-     * @param {Function} method - The function to execute for each item
-     * @private
-     */
-    _each: function (items, method) {
-        var count = items.length,
-            i;
-        for (i = 0; i < count; i++) {
-            method(items[i]);
-        }
-    },
-
-    /**
-     * Removes a CSS class from the element.
-     * @param {...string} arguments - The arguments containing css classes to remove
-     * @private
-     */
-    _removeClass: function () {
-        var re;
-        if ('classList' in document.createElement('_')) {
-            this._each(arguments, function (className) {
-                this.el.classList.remove(className);
-            }.bind(this));
-        } else {
-            this._each(arguments, function (className) {
-                if (this.el.className === className) {
-                    // if the only class that exists,  remove it and make empty string
-                    this.el.className = '';
-                } else {
-                    re = '[\\s]*' + className;
-                    re = new RegExp(re, 'i');
-                    this.el.className = this.el.className.replace(re, '');
-                }
-            }.bind(this));
-        }
-    },
-
-    /**
-     * Checks if the element has a class.
-     * @param {string} className - The css class value to check
-     * @private
-     */
-    _hasClass: function (className) {
-        var classes = this._getCssClasses();
-        return classes.indexOf(className) !== -1;
-    },
-
-    /**
-     * Takes a css property name and returns the javascript version of it.
-     * @param {string} cssProp - The css property
-     * @returns {string} Returns the javascript version
-     * @private
-     */
-    _getJsPropName: function (cssProp) {
-        // convert to camelCase
-        cssProp = cssProp.replace(/-([a-z])/g, function (letter) {
-            return letter[1].toUpperCase();
-        });
-        return cssProp;
-    },
-
-    /**
-     * Gets a simplified mapping of all attributes of an element.
-     * @returns {object} - Returns an object containing all attribute mappings
-     */
-    getAttributes: function () {
-        var attrs = this.el.attributes,
-            map = {};
-        if (attrs.length) {
-            for (var i = 0; i < attrs.length; i++) {
-                map[attrs[i].name] = attrs[i].value;
-            }
-        }
-        return map;
-    },
-
-    /**
-     * Gets the elements current data attributes that have been assigned in the DOM.
-     * @returns {{}}
-     * @private
-     */
-    _getDomData: function () {
-        var attrs = this.getAttributes(), data = {}, key, value;
-        for (key in attrs) {
-            if (attrs.hasOwnProperty(key)) {
-                value = attrs[key];
-                if (key.indexOf('data-') === 0) {
-                    // data attribute found!
-                    key = key.substr(5);
-                    data[key] = value;
-                }
-            }
-        }
-        return data;
-    },
-
-    /**
-     * Returns an object of the element's current data attributes.
-     * @returns {*|{}}
-     */
-    getData: function () {
-        var key;
-
-        this._data = utils.extend({}, this._data, this._getDomData());
-
-        // convert all current data properties to be "watchable".
-        for (key in this._data) {
-            if (this._data.hasOwnProperty(key)) {
-                var value = this._data[key];
-                // TODO: we should only convert it if it isnt already a "watchable" obj
-                Object.defineProperty(this._data, key, {
-                    writeable: true,
-                    get: function () {
-                        return value;
-                    }.bind(this),
-                    set: function (value) {
-                        this.setData.bind(this, key, value)
-                    }.bind(this)
-                });
-            }
-        }
-        return this._data;
-
-    },
-
-    /**
-     * When data is being set.
-     * @param {string} key - The key of which to be set
-     * @param {*} value - The value
-     */
-    setData: function (key, value) {
-        this.el.setAttribute('data-' + key, value);
-        this._data[key] = value;
-
-    },
-
-    /**
-     * Destroys the kit on the element.
-     */
-    destroy: function () {}
-};
-
-module.exports = Element;
-},{"./element-kit":3,"./utils":6}],5:[function(require,module,exports){
-'use strict';
-
-var utils = require('./utils');
-var Element = require('./element');
-
-/**
- * A class from which all image elements are based.
- * @class ImageElement
- * @param {Element} el - The element
- * @todo: find a more simple way to extend Element class along with its prototypes
- */
-var ImageElement = function (el) {
-    Element.prototype.initialize.call(this, el);
-};
-ImageElement.prototype = utils.extend({}, Element.prototype, {
-    /**
-     * Loads the image asset from a provided source url.
-     * @param {string} srcAttr - The attribute on the element which has the image source url or any url
-     * @param {Function} [callback] - The callback fired when the image has loaded
-     */
-    load: function (srcAttr, callback) {
-        var el = this.el,
-            src = el.getAttribute(srcAttr) || srcAttr;
-
-        if (!src) {
-            console.warn('ElementKit error: ImageElement has no "' + srcAttr + '" attribute to load');
-        }
-
-        if (src.indexOf(',') !== -1) {
-            // image is a srcset!
-            src = this._getImageSourceSetPath(src);
-        }
-        this._loadImage(src, callback);
-        return this;
-    },
-
-    /**
-     * Loads an image in a virtual DOM which will be cached in the browser and shown.
-     * @param {string} src - The image source url
-     * @param {Function} callback - Function that is called when image has loaded
-     * @private
-     */
-    _loadImage: function (src, callback) {
-        var img = this.el;
-        img.onload = function () {
-            callback ? callback(img) : null;
-        };
-        img.src = src;
-    },
-
-    /**
-     * Sniffs srcset attribute and detects the images viewport size to return the correct source image to display
-     * FYI: browsers do have this functionality natively but some of them have it turned by default (Firefox, IE, etc)
-     * @param {string} srcSet - The source set attribute
-     * @returns {string} Returns the source image path
-     * @private
-     */
-    _getImageSourceSetPath: function (srcSet) {
-        var viewportWidth = window.innerWidth,
-            viewportHeight = window.innerHeight,
-            src,
-            widthHeightMap,
-            width,
-            height,
-            found;
-        srcSet.split(',').forEach(function (str) {
-            widthHeightMap = this._buildSourceMapWidthHeight(str);
-            width = widthHeightMap.width || 0;
-            height = widthHeightMap.height || 0;
-            if (!found && viewportWidth >= width && viewportHeight >= height) {
-                src = str.split(' ')[0];
-                found = true;
-            }
-        }.bind(this));
-        return src;
-    },
-
-    /**
-     * Builds a mapping of width and height within a srcset attribute.
-     * @param {String} str - The srcset attribute string
-     * @param {Object} [map] - The object that width and height keys will be attached to
-     * @returns {*|{}}
-     * @private
-     */
-    _buildSourceMapWidthHeight: function (str, map) {
-        var frags = str.split(' '),
-            attrId,
-            getNumber = function (frag) {
-                return Number(frag.substr(0, frag.length - 1))
-            };
-
-        map = map || {};
-
-        frags.shift(); // remove first item since we know it is the filename
-
-        frags.forEach(function (frag) {
-            attrId = frag.charAt(frag.length - 1);
-            if (attrId === 'w') {
-                map.width = getNumber(frag);
-            } else if (attrId === 'h') {
-                map.height = getNumber(frag);
-            }
-        });
-        return map;
-    }
-
-});
-
-module.exports = ImageElement;
-},{"./element":4,"./utils":6}],6:[function(require,module,exports){
-module.exports = {
-    /**
-     * Creates an HTML Element from an html string.
-     * @param {string} html - String of html
-     * @returns {HTMLElement} - Returns and html element node
-     */
-    createHtmlElement: function (html) {
-        var tempParentEl,
-            el;
-        if (html) {
-            html = html.trim(html);
-            tempParentEl = document.createElement('div');
-            tempParentEl.innerHTML = html;
-            el = tempParentEl.childNodes[0];
-            return tempParentEl.removeChild(el);
-        }
-    },
-
-    /**
-     * Merges the contents of two or more objects.
-     * @param {object} obj - The target object
-     * @param {...object} - Additional objects who's properties will be merged in
-     */
-    extend: function (target) {
-        var merged = target,
-            source, i;
-        for (i = 1; i < arguments.length; i++) {
-            source = arguments[i];
-            for (var prop in source) {
-                if (source.hasOwnProperty(prop)) {
-                    merged[prop] = source[prop];
-                }
-            }
-        }
-        return merged;
-    }
-};
-},{}],7:[function(require,module,exports){
-'use strict';
-
-module.exports = require('./lib')
-
-},{"./lib":12}],8:[function(require,module,exports){
-'use strict';
-
-var asap = require('asap/raw');
-
-function noop() {}
-
-// States:
-//
-// 0 - pending
-// 1 - fulfilled with _value
-// 2 - rejected with _value
-// 3 - adopted the state of another promise, _value
-//
-// once the state is no longer pending (0) it is immutable
-
-// All `_` prefixed properties will be reduced to `_{random number}`
-// at build time to obfuscate them and discourage their use.
-// We don't use symbols or Object.defineProperty to fully hide them
-// because the performance isn't good enough.
-
-
-// to avoid using try/catch inside critical functions, we
-// extract them to here.
-var LAST_ERROR = null;
-var IS_ERROR = {};
-function getThen(obj) {
-  try {
-    return obj.then;
-  } catch (ex) {
-    LAST_ERROR = ex;
-    return IS_ERROR;
-  }
-}
-
-function tryCallOne(fn, a) {
-  try {
-    return fn(a);
-  } catch (ex) {
-    LAST_ERROR = ex;
-    return IS_ERROR;
-  }
-}
-function tryCallTwo(fn, a, b) {
-  try {
-    fn(a, b);
-  } catch (ex) {
-    LAST_ERROR = ex;
-    return IS_ERROR;
-  }
-}
-
-module.exports = Promise;
-
-function Promise(fn) {
-  if (typeof this !== 'object') {
-    throw new TypeError('Promises must be constructed via new');
-  }
-  if (typeof fn !== 'function') {
-    throw new TypeError('not a function');
-  }
-  this._37 = 0;
-  this._12 = null;
-  this._59 = [];
-  if (fn === noop) return;
-  doResolve(fn, this);
-}
-Promise._99 = noop;
-
-Promise.prototype.then = function(onFulfilled, onRejected) {
-  if (this.constructor !== Promise) {
-    return safeThen(this, onFulfilled, onRejected);
-  }
-  var res = new Promise(noop);
-  handle(this, new Handler(onFulfilled, onRejected, res));
-  return res;
-};
-
-function safeThen(self, onFulfilled, onRejected) {
-  return new self.constructor(function (resolve, reject) {
-    var res = new Promise(noop);
-    res.then(resolve, reject);
-    handle(self, new Handler(onFulfilled, onRejected, res));
-  });
-};
-function handle(self, deferred) {
-  while (self._37 === 3) {
-    self = self._12;
-  }
-  if (self._37 === 0) {
-    self._59.push(deferred);
-    return;
-  }
-  asap(function() {
-    var cb = self._37 === 1 ? deferred.onFulfilled : deferred.onRejected;
-    if (cb === null) {
-      if (self._37 === 1) {
-        resolve(deferred.promise, self._12);
-      } else {
-        reject(deferred.promise, self._12);
-      }
-      return;
-    }
-    var ret = tryCallOne(cb, self._12);
-    if (ret === IS_ERROR) {
-      reject(deferred.promise, LAST_ERROR);
-    } else {
-      resolve(deferred.promise, ret);
-    }
-  });
-}
-function resolve(self, newValue) {
-  // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
-  if (newValue === self) {
-    return reject(
-      self,
-      new TypeError('A promise cannot be resolved with itself.')
-    );
-  }
-  if (
-    newValue &&
-    (typeof newValue === 'object' || typeof newValue === 'function')
-  ) {
-    var then = getThen(newValue);
-    if (then === IS_ERROR) {
-      return reject(self, LAST_ERROR);
-    }
-    if (
-      then === self.then &&
-      newValue instanceof Promise
-    ) {
-      self._37 = 3;
-      self._12 = newValue;
-      finale(self);
-      return;
-    } else if (typeof then === 'function') {
-      doResolve(then.bind(newValue), self);
-      return;
-    }
-  }
-  self._37 = 1;
-  self._12 = newValue;
-  finale(self);
-}
-
-function reject(self, newValue) {
-  self._37 = 2;
-  self._12 = newValue;
-  finale(self);
-}
-function finale(self) {
-  for (var i = 0; i < self._59.length; i++) {
-    handle(self, self._59[i]);
-  }
-  self._59 = null;
-}
-
-function Handler(onFulfilled, onRejected, promise){
-  this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
-  this.onRejected = typeof onRejected === 'function' ? onRejected : null;
-  this.promise = promise;
-}
-
-/**
- * Take a potentially misbehaving resolver function and make sure
- * onFulfilled and onRejected are only called once.
- *
- * Makes no guarantees about asynchrony.
- */
-function doResolve(fn, promise) {
-  var done = false;
-  var res = tryCallTwo(fn, function (value) {
-    if (done) return;
-    done = true;
-    resolve(promise, value);
-  }, function (reason) {
-    if (done) return;
-    done = true;
-    reject(promise, reason);
-  })
-  if (!done && res === IS_ERROR) {
-    done = true;
-    reject(promise, LAST_ERROR);
-  }
-}
-
-},{"asap/raw":15}],9:[function(require,module,exports){
-'use strict';
-
-var Promise = require('./core.js');
-
-module.exports = Promise;
-Promise.prototype.done = function (onFulfilled, onRejected) {
-  var self = arguments.length ? this.then.apply(this, arguments) : this;
-  self.then(null, function (err) {
-    setTimeout(function () {
-      throw err;
-    }, 0);
-  });
-};
-
-},{"./core.js":8}],10:[function(require,module,exports){
-'use strict';
-
-//This file contains the ES6 extensions to the core Promises/A+ API
-
-var Promise = require('./core.js');
-
-module.exports = Promise;
-
-/* Static Functions */
-
-var TRUE = valuePromise(true);
-var FALSE = valuePromise(false);
-var NULL = valuePromise(null);
-var UNDEFINED = valuePromise(undefined);
-var ZERO = valuePromise(0);
-var EMPTYSTRING = valuePromise('');
-
-function valuePromise(value) {
-  var p = new Promise(Promise._99);
-  p._37 = 1;
-  p._12 = value;
-  return p;
-}
-Promise.resolve = function (value) {
-  if (value instanceof Promise) return value;
-
-  if (value === null) return NULL;
-  if (value === undefined) return UNDEFINED;
-  if (value === true) return TRUE;
-  if (value === false) return FALSE;
-  if (value === 0) return ZERO;
-  if (value === '') return EMPTYSTRING;
-
-  if (typeof value === 'object' || typeof value === 'function') {
-    try {
-      var then = value.then;
-      if (typeof then === 'function') {
-        return new Promise(then.bind(value));
-      }
-    } catch (ex) {
-      return new Promise(function (resolve, reject) {
-        reject(ex);
-      });
-    }
-  }
-  return valuePromise(value);
-};
-
-Promise.all = function (arr) {
-  var args = Array.prototype.slice.call(arr);
-
-  return new Promise(function (resolve, reject) {
-    if (args.length === 0) return resolve([]);
-    var remaining = args.length;
-    function res(i, val) {
-      if (val && (typeof val === 'object' || typeof val === 'function')) {
-        if (val instanceof Promise && val.then === Promise.prototype.then) {
-          while (val._37 === 3) {
-            val = val._12;
-          }
-          if (val._37 === 1) return res(i, val._12);
-          if (val._37 === 2) reject(val._12);
-          val.then(function (val) {
-            res(i, val);
-          }, reject);
-          return;
-        } else {
-          var then = val.then;
-          if (typeof then === 'function') {
-            var p = new Promise(then.bind(val));
-            p.then(function (val) {
-              res(i, val);
-            }, reject);
-            return;
-          }
-        }
-      }
-      args[i] = val;
-      if (--remaining === 0) {
-        resolve(args);
-      }
-    }
-    for (var i = 0; i < args.length; i++) {
-      res(i, args[i]);
-    }
-  });
-};
-
-Promise.reject = function (value) {
-  return new Promise(function (resolve, reject) {
-    reject(value);
-  });
-};
-
-Promise.race = function (values) {
-  return new Promise(function (resolve, reject) {
-    values.forEach(function(value){
-      Promise.resolve(value).then(resolve, reject);
-    });
-  });
-};
-
-/* Prototype Methods */
-
-Promise.prototype['catch'] = function (onRejected) {
-  return this.then(null, onRejected);
-};
-
-},{"./core.js":8}],11:[function(require,module,exports){
-'use strict';
-
-var Promise = require('./core.js');
-
-module.exports = Promise;
-Promise.prototype['finally'] = function (f) {
-  return this.then(function (value) {
-    return Promise.resolve(f()).then(function () {
-      return value;
-    });
-  }, function (err) {
-    return Promise.resolve(f()).then(function () {
-      throw err;
-    });
-  });
-};
-
-},{"./core.js":8}],12:[function(require,module,exports){
-'use strict';
-
-module.exports = require('./core.js');
-require('./done.js');
-require('./finally.js');
-require('./es6-extensions.js');
-require('./node-extensions.js');
-
-},{"./core.js":8,"./done.js":9,"./es6-extensions.js":10,"./finally.js":11,"./node-extensions.js":13}],13:[function(require,module,exports){
-'use strict';
-
-// This file contains then/promise specific extensions that are only useful
-// for node.js interop
-
-var Promise = require('./core.js');
-var asap = require('asap');
-
-module.exports = Promise;
-
-/* Static Functions */
-
-Promise.denodeify = function (fn, argumentCount) {
-  argumentCount = argumentCount || Infinity;
-  return function () {
-    var self = this;
-    var args = Array.prototype.slice.call(arguments, 0,
-        argumentCount > 0 ? argumentCount : 0);
-    return new Promise(function (resolve, reject) {
-      args.push(function (err, res) {
-        if (err) reject(err);
-        else resolve(res);
-      })
-      var res = fn.apply(self, args);
-      if (res &&
-        (
-          typeof res === 'object' ||
-          typeof res === 'function'
-        ) &&
-        typeof res.then === 'function'
-      ) {
-        resolve(res);
-      }
-    })
-  }
-}
-Promise.nodeify = function (fn) {
-  return function () {
-    var args = Array.prototype.slice.call(arguments);
-    var callback =
-      typeof args[args.length - 1] === 'function' ? args.pop() : null;
-    var ctx = this;
-    try {
-      return fn.apply(this, arguments).nodeify(callback, ctx);
-    } catch (ex) {
-      if (callback === null || typeof callback == 'undefined') {
-        return new Promise(function (resolve, reject) {
-          reject(ex);
-        });
-      } else {
-        asap(function () {
-          callback.call(ctx, ex);
-        })
-      }
-    }
-  }
-}
-
-Promise.prototype.nodeify = function (callback, ctx) {
-  if (typeof callback != 'function') return this;
-
-  this.then(function (value) {
-    asap(function () {
-      callback.call(ctx, null, value);
-    });
-  }, function (err) {
-    asap(function () {
-      callback.call(ctx, err);
-    });
-  });
-}
-
-},{"./core.js":8,"asap":14}],14:[function(require,module,exports){
-"use strict";
-
-// rawAsap provides everything we need except exception management.
-var rawAsap = require("./raw");
-// RawTasks are recycled to reduce GC churn.
-var freeTasks = [];
-// We queue errors to ensure they are thrown in right order (FIFO).
-// Array-as-queue is good enough here, since we are just dealing with exceptions.
-var pendingErrors = [];
-var requestErrorThrow = rawAsap.makeRequestCallFromTimer(throwFirstError);
-
-function throwFirstError() {
-    if (pendingErrors.length) {
-        throw pendingErrors.shift();
-    }
-}
-
-/**
- * Calls a task as soon as possible after returning, in its own event, with priority
- * over other events like animation, reflow, and repaint. An error thrown from an
- * event will not interrupt, nor even substantially slow down the processing of
- * other events, but will be rather postponed to a lower priority event.
- * @param {{call}} task A callable object, typically a function that takes no
- * arguments.
- */
-module.exports = asap;
-function asap(task) {
-    var rawTask;
-    if (freeTasks.length) {
-        rawTask = freeTasks.pop();
-    } else {
-        rawTask = new RawTask();
-    }
-    rawTask.task = task;
-    rawAsap(rawTask);
-}
-
-// We wrap tasks with recyclable task objects.  A task object implements
-// `call`, just like a function.
-function RawTask() {
-    this.task = null;
-}
-
-// The sole purpose of wrapping the task is to catch the exception and recycle
-// the task object after its single use.
-RawTask.prototype.call = function () {
-    try {
-        this.task.call();
-    } catch (error) {
-        if (asap.onerror) {
-            // This hook exists purely for testing purposes.
-            // Its name will be periodically randomized to break any code that
-            // depends on its existence.
-            asap.onerror(error);
-        } else {
-            // In a web browser, exceptions are not fatal. However, to avoid
-            // slowing down the queue of pending tasks, we rethrow the error in a
-            // lower priority turn.
-            pendingErrors.push(error);
-            requestErrorThrow();
-        }
-    } finally {
-        this.task = null;
-        freeTasks[freeTasks.length] = this;
-    }
-};
-
-},{"./raw":15}],15:[function(require,module,exports){
-(function (global){
-"use strict";
-
-// Use the fastest means possible to execute a task in its own turn, with
-// priority over other events including IO, animation, reflow, and redraw
-// events in browsers.
-//
-// An exception thrown by a task will permanently interrupt the processing of
-// subsequent tasks. The higher level `asap` function ensures that if an
-// exception is thrown by a task, that the task queue will continue flushing as
-// soon as possible, but if you use `rawAsap` directly, you are responsible to
-// either ensure that no exceptions are thrown from your task, or to manually
-// call `rawAsap.requestFlush` if an exception is thrown.
-module.exports = rawAsap;
-function rawAsap(task) {
-    if (!queue.length) {
-        requestFlush();
-        flushing = true;
-    }
-    // Equivalent to push, but avoids a function call.
-    queue[queue.length] = task;
-}
-
-var queue = [];
-// Once a flush has been requested, no further calls to `requestFlush` are
-// necessary until the next `flush` completes.
-var flushing = false;
-// `requestFlush` is an implementation-specific method that attempts to kick
-// off a `flush` event as quickly as possible. `flush` will attempt to exhaust
-// the event queue before yielding to the browser's own event loop.
-var requestFlush;
-// The position of the next task to execute in the task queue. This is
-// preserved between calls to `flush` so that it can be resumed if
-// a task throws an exception.
-var index = 0;
-// If a task schedules additional tasks recursively, the task queue can grow
-// unbounded. To prevent memory exhaustion, the task queue will periodically
-// truncate already-completed tasks.
-var capacity = 1024;
-
-// The flush function processes all tasks that have been scheduled with
-// `rawAsap` unless and until one of those tasks throws an exception.
-// If a task throws an exception, `flush` ensures that its state will remain
-// consistent and will resume where it left off when called again.
-// However, `flush` does not make any arrangements to be called again if an
-// exception is thrown.
-function flush() {
-    while (index < queue.length) {
-        var currentIndex = index;
-        // Advance the index before calling the task. This ensures that we will
-        // begin flushing on the next task the task throws an error.
-        index = index + 1;
-        queue[currentIndex].call();
-        // Prevent leaking memory for long chains of recursive calls to `asap`.
-        // If we call `asap` within tasks scheduled by `asap`, the queue will
-        // grow, but to avoid an O(n) walk for every task we execute, we don't
-        // shift tasks off the queue after they have been executed.
-        // Instead, we periodically shift 1024 tasks off the queue.
-        if (index > capacity) {
-            // Manually shift all values starting at the index back to the
-            // beginning of the queue.
-            for (var scan = 0, newLength = queue.length - index; scan < newLength; scan++) {
-                queue[scan] = queue[scan + index];
-            }
-            queue.length -= index;
-            index = 0;
-        }
-    }
-    queue.length = 0;
-    index = 0;
-    flushing = false;
-}
-
-// `requestFlush` is implemented using a strategy based on data collected from
-// every available SauceLabs Selenium web driver worker at time of writing.
-// https://docs.google.com/spreadsheets/d/1mG-5UYGup5qxGdEMWkhP6BWCz053NUb2E1QoUTU16uA/edit#gid=783724593
-
-// Safari 6 and 6.1 for desktop, iPad, and iPhone are the only browsers that
-// have WebKitMutationObserver but not un-prefixed MutationObserver.
-// Must use `global` instead of `window` to work in both frames and web
-// workers. `global` is a provision of Browserify, Mr, Mrs, or Mop.
-var BrowserMutationObserver = global.MutationObserver || global.WebKitMutationObserver;
-
-// MutationObservers are desirable because they have high priority and work
-// reliably everywhere they are implemented.
-// They are implemented in all modern browsers.
-//
-// - Android 4-4.3
-// - Chrome 26-34
-// - Firefox 14-29
-// - Internet Explorer 11
-// - iPad Safari 6-7.1
-// - iPhone Safari 7-7.1
-// - Safari 6-7
-if (typeof BrowserMutationObserver === "function") {
-    requestFlush = makeRequestCallFromMutationObserver(flush);
-
-// MessageChannels are desirable because they give direct access to the HTML
-// task queue, are implemented in Internet Explorer 10, Safari 5.0-1, and Opera
-// 11-12, and in web workers in many engines.
-// Although message channels yield to any queued rendering and IO tasks, they
-// would be better than imposing the 4ms delay of timers.
-// However, they do not work reliably in Internet Explorer or Safari.
-
-// Internet Explorer 10 is the only browser that has setImmediate but does
-// not have MutationObservers.
-// Although setImmediate yields to the browser's renderer, it would be
-// preferrable to falling back to setTimeout since it does not have
-// the minimum 4ms penalty.
-// Unfortunately there appears to be a bug in Internet Explorer 10 Mobile (and
-// Desktop to a lesser extent) that renders both setImmediate and
-// MessageChannel useless for the purposes of ASAP.
-// https://github.com/kriskowal/q/issues/396
-
-// Timers are implemented universally.
-// We fall back to timers in workers in most engines, and in foreground
-// contexts in the following browsers.
-// However, note that even this simple case requires nuances to operate in a
-// broad spectrum of browsers.
-//
-// - Firefox 3-13
-// - Internet Explorer 6-9
-// - iPad Safari 4.3
-// - Lynx 2.8.7
-} else {
-    requestFlush = makeRequestCallFromTimer(flush);
-}
-
-// `requestFlush` requests that the high priority event queue be flushed as
-// soon as possible.
-// This is useful to prevent an error thrown in a task from stalling the event
-// queue if the exception handled by Node.js’s
-// `process.on("uncaughtException")` or by a domain.
-rawAsap.requestFlush = requestFlush;
-
-// To request a high priority event, we induce a mutation observer by toggling
-// the text of a text node between "1" and "-1".
-function makeRequestCallFromMutationObserver(callback) {
-    var toggle = 1;
-    var observer = new BrowserMutationObserver(callback);
-    var node = document.createTextNode("");
-    observer.observe(node, {characterData: true});
-    return function requestCall() {
-        toggle = -toggle;
-        node.data = toggle;
-    };
-}
-
-// The message channel technique was discovered by Malte Ubl and was the
-// original foundation for this library.
-// http://www.nonblocking.io/2011/06/windownexttick.html
-
-// Safari 6.0.5 (at least) intermittently fails to create message ports on a
-// page's first load. Thankfully, this version of Safari supports
-// MutationObservers, so we don't need to fall back in that case.
-
-// function makeRequestCallFromMessageChannel(callback) {
-//     var channel = new MessageChannel();
-//     channel.port1.onmessage = callback;
-//     return function requestCall() {
-//         channel.port2.postMessage(0);
-//     };
-// }
-
-// For reasons explained above, we are also unable to use `setImmediate`
-// under any circumstances.
-// Even if we were, there is another bug in Internet Explorer 10.
-// It is not sufficient to assign `setImmediate` to `requestFlush` because
-// `setImmediate` must be called *by name* and therefore must be wrapped in a
-// closure.
-// Never forget.
-
-// function makeRequestCallFromSetImmediate(callback) {
-//     return function requestCall() {
-//         setImmediate(callback);
-//     };
-// }
-
-// Safari 6.0 has a problem where timers will get lost while the user is
-// scrolling. This problem does not impact ASAP because Safari 6.0 supports
-// mutation observers, so that implementation is used instead.
-// However, if we ever elect to use timers in Safari, the prevalent work-around
-// is to add a scroll event listener that calls for a flush.
-
-// `setTimeout` does not call the passed callback if the delay is less than
-// approximately 7 in web workers in Firefox 8 through 18, and sometimes not
-// even then.
-
-function makeRequestCallFromTimer(callback) {
-    return function requestCall() {
-        // We dispatch a timeout with a specified delay of 0 for engines that
-        // can reliably accommodate that request. This will usually be snapped
-        // to a 4 milisecond delay, but once we're flushing, there's no delay
-        // between events.
-        var timeoutHandle = setTimeout(handleTimer, 0);
-        // However, since this timer gets frequently dropped in Firefox
-        // workers, we enlist an interval handle that will try to fire
-        // an event 20 times per second until it succeeds.
-        var intervalHandle = setInterval(handleTimer, 50);
-
-        function handleTimer() {
-            // Whichever timer succeeds will cancel both timers and
-            // execute the callback.
-            clearTimeout(timeoutHandle);
-            clearInterval(intervalHandle);
-            callback();
-        }
-    };
-}
-
-// This is for `asap.js` only.
-// Its name will be periodically randomized to break any code that depends on
-// its existence.
-rawAsap.makeRequestCallFromTimer = makeRequestCallFromTimer;
-
-// ASAP was originally a nextTick shim included in Q. This was factored out
-// into this ASAP package. It was later adapted to RSVP which made further
-// amendments. These decisions, particularly to marginalize MessageChannel and
-// to capture the MutationObserver implementation in a closure, were integrated
-// back into ASAP proper.
-// https://github.com/tildeio/rsvp.js/blob/cddf7232546a9cf858524b75cde6f9edf72620a7/lib/rsvp/asap.js
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],16:[function(require,module,exports){
-'use strict';
-
-var Promise = require('promise');
-var _ = require('underscore');
-
-/**
- * @class Module
- * @description Base class that represents all modules of an App.
- */
-var Module = function (options) {
-    this.initialize(options);
-};
-
-/**
- * Extends a class and allows creation of subclasses.
- * @param protoProps
- * @param staticProps
- * @returns {*}
- */
-var extend = function(protoProps, staticProps) {
-    var parent = this;
-    var child;
-
-    // The constructor function for the new subclass is either defined by you
-    // (the "constructor" property in your `extend` definition), or defaulted
-    // by us to simply call the parent's constructor.
-    if (protoProps && _.has(protoProps, 'constructor')) {
-        child = protoProps.constructor;
-    } else {
-        child = function(){ return parent.apply(this, arguments); };
-    }
-
-    // Add static properties to the constructor function, if supplied.
-    _.extend(child, parent, staticProps);
-
-    // Set the prototype chain to inherit from `parent`, without calling
-    // `parent`'s constructor function.
-    var Surrogate = function(){ this.constructor = child; };
-    Surrogate.prototype = parent.prototype;
-    child.prototype = new Surrogate();
-
-    // Add prototype properties (instance properties) to the subclass,
-    // if supplied.
-    if (protoProps) {
-        _.extend(child.prototype, protoProps);
-    }
-
-    // Set a convenience property in case the parent's prototype is needed
-    // later.
-    child.__super__ = parent.prototype;
-
-    return child;
-};
-
-Module.extend = extend;
-
-Module.prototype = {
-
-    /**
-     * Initialization.
-     * @param {Object} [options] - An object of options
-     * @param {HTMLElement} [options.el] - The module element
-     * @param {string} [options.loadedClass] - The class that will be applied to the module element when it is loaded
-     * @param {string} [options.activeClass] - The class that will be applied to the module element when it is shown
-     * @param {string} [options.disabledClass] - The class that will be applied to the module element when disabled
-     * @param {string} [options.errorClass] - The class that will be applied to the module element when it has a load error
-     */
-    initialize: function (options) {
-
-        this.options = _.extend({}, {
-            el: null,
-            loadedClass: 'module-loaded',
-            activeClass: 'module-active',
-            disabledClass: 'module-disabled',
-            errorClass: 'module-error'
-        }, options);
-
-        this._handleElementInitialState();
-
-        this.subModules = {};
-        this.active = false;
-        this.loaded = false;
-    },
-
-    /**
-     * A function that fires when the module's load() method is called
-     * which can be overridden by subclass custom implementations.
-     * @abstract
-     * @return {*} May return a promise when done
-     * @param options
-     */
-    onLoad: function (options) {
-        return Promise.resolve();
-    },
-
-    /**
-     * A function that fires when the module's show() method is called
-     * which can be overridden by subclass custom implementations.
-     * @abstract
-     * @return {*} May return a promise when done
-     */
-    onShow: function () {
-        return Promise.resolve();
-    },
-
-    /**
-     * A function that fires when the module's hide() method is called
-     * which can be overridden by subclass custom implementations.
-     * @abstract
-     * @return {*} May return a promise when done
-     */
-    onHide: function () {
-        return Promise.resolve();
-    },
-
-    /**
-     * A function that fires when the module's enable() method is called
-     * which can be overridden by subclass custom implementations.
-     * @abstract
-     * @returns {*|Promise} Optionally return a promise when done
-     */
-    onEnable: function () {
-        return Promise.resolve();
-    },
-
-    /**
-     * A function that fires when the module's disable() method is called
-     * which can be overridden by subclass custom implementations.
-     * @abstract
-     * @returns {*|Promise} Optionally return a promise when done
-     */
-    onDisable: function () {
-        return Promise.resolve();
-    },
-
-    /**
-     * A function that fires when the error() method is called
-     * which can be overridden by subclass custom implementations.
-     * @param {Object} [e] - The error object that was triggered
-     * @abstract
-     * @returns {*} Optionally return a promise when done
-     */
-    onError: function (e) {
-        return Promise.resolve(e);
-    },
-
-    /**
-     * Loads.
-     * @param {Object} [options] - Options
-     * @param {HTMLElement} [options.el] - The modules element (used only if module element wasnt passed in initialize)
-     * @return {Promise}
-     */
-    load: function (options) {
-        var views = _.values(this.subModules);
-
-        // add element to options
-        if (options) {
-            this.options.el = this.options.el || options.el;
-        }
-
-        // load all subModules
-        if (!this.loaded) {
-            return Promise.all(_.invoke(views, 'load')).then(function () {
-                return this._ensurePromise(this.onLoad(options))
-                    .then(function () {
-                        this.loaded = true;
-                        if (this.options.el) {
-                            this.options.el.classList.add(this.options.loadedClass);
-                        }
-                    }.bind(this))
-                    .catch(function (e) {
-                        this.error(e);
-                        return e;
-                    }.bind(this));
-            }.bind(this));
-        } else {
-            return Promise.resolve();
-        }
-    },
-
-    /**
-     * Triggers a load error on the module.
-     * @param {Object} [err] - The error object to trigger
-     * @return {Promise} Returns a promise when erroring operation is complete
-     */
-    error: function (err) {
-        var el = this.options.el,
-            e = err || new Error(),
-            msg = e.message || '';
-
-        if (el) {
-            el.classList.add(this.options.errorClass);
-        }
-        this.error = true;
-        this.loaded = false;
-
-        console.warn('MODULE ERROR!' + ' ' + msg);
-
-        if (e.stack) {
-            console.log(e.stack);
-        }
-        return this._ensurePromise(this.onError(e))
-            .then(function (customErr) {
-                return customErr || e;
-            });
-    },
-
-    /**
-     * Enables the module.
-     * @return {Promise}
-     */
-    enable: function () {
-        var el = this.options.el;
-        if (el) {
-            el.classList.remove(this.options.disabledClass);
-        }
-        this.disabled = false;
-        return this._ensurePromise(this.onEnable());
-    },
-
-    /**
-     * Disables the module.
-     * @return {Promise}
-     */
-    disable: function () {
-        var el = this.options.el;
-        if (el) {
-            el.classList.add(this.options.disabledClass);
-        }
-        this.disabled = true;
-        return this._ensurePromise(this.onDisable());
-    },
-
-    /**
-     * Shows the page.
-     * @return {Promise}
-     */
-    show: function () {
-        var el = this.options.el;
-        if (el) {
-            el.classList.add(this.options.activeClass);
-        }
-        this.active = true;
-        return this._ensurePromise(this.onShow());
-    },
-
-    /**
-     * Hides the page.
-     * @return {Promise}
-     */
-    hide: function () {
-        var el = this.options.el;
-        if (el) {
-            el.classList.remove(this.options.activeClass);
-        }
-        this.active = false;
-        return this._ensurePromise(this.onHide());
-    },
-
-    /**
-     * Sets up element internally by evaluating its initial state.
-     * @private
-     */
-    _handleElementInitialState: function () {
-        var el = this.options.el;
-        if (!el) {
-            return;
-        }
-        if (el.classList.contains(this.options.disabledClass)) {
-            this._origDisabled = true;
-            this.disable();
-        }
-
-        if (el.classList.contains(this.options.errorClass)) {
-            this._origError = true;
-            this.error(new Error());
-        }
-    },
-
-    /**
-     * Restores the elements classes back to the way they were before instantiation.
-     * @private
-     */
-    _resetElementInitialState: function () {
-        var options = this.options,
-            el = options.el,
-            disabledClass = options.disabledClass,
-            errorClass = options.errorClass;
-
-        if (!el) {
-            return;
-        }
-        if (this._origDisabled) {
-            el.classList.add(disabledClass);
-        } else {
-            el.classList.remove(disabledClass);
-        }
-
-        if (!this._origError) {
-            el.classList.remove(errorClass);
-        } else {
-            el.classList.add(errorClass);
-        }
-    },
-
-    /**
-     * Wraps a promise around a function if doesnt already have one.
-     * @param func
-     * @private
-     */
-    _ensurePromise: function (func) {
-        if (!func || !func.then) {
-            func = Promise.resolve();
-        }
-        return func;
-    },
-
-    /**
-     * Destroys all nested views and cleans up.
-     */
-    destroy: function () {
-        var subModules = this.subModules;
-
-        for (var key in subModules) {
-            if (subModules.hasOwnProperty(key) && subModules[key]) {
-                subModules[key].destroy();
-            }
-        }
-        this.subModules = {};
-        this.active = false;
-        this.loaded = false;
-
-        this._resetElementInitialState();
-    }
-
-};
-
-
-module.exports = Module;
-},{"promise":7,"underscore":18}],17:[function(require,module,exports){
+},{"listen-js":292}],294:[function(require,module,exports){
 (function (global){
 /*
  * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
@@ -3746,7 +8624,7 @@ module.exports = Module;
 })(typeof global !== 'undefined' && global && typeof module !== 'undefined' && module ? global : this || window);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],18:[function(require,module,exports){
+},{}],295:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -5296,12 +10174,28 @@ module.exports = Module;
   }
 }.call(this));
 
-},{}],19:[function(require,module,exports){
+},{}],296:[function(require,module,exports){
 'use strict';
 
-var _ = require('underscore');
-var FormElement = require('./form-element');
-require('element-kit');
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
+var _formElement = require('./form-element');
+
+var _formElement2 = _interopRequireDefault(_formElement);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 /**
  * A callback function that fires when the checkbox is checked
@@ -5320,11 +10214,21 @@ require('element-kit');
  */
 
 /**
+ * A callback function that fires when the checkbox is un-checked
+ * @callback Checkbox~onChange
+ * @param {boolean} value - True if checked, false if not
+ * @param {HTMLInputElement} input - The checkbox input element
+ * @param {HTMLElement} UIElement - The checkbox element's container
+ */
+
+/**
  * Adds JS functionality to an input checkbox.
  * @class Checkbox
  * @extends FormElement
  */
-var Checkbox = FormElement.extend({
+
+var Checkbox = function (_FormElement) {
+    _inherits(Checkbox, _FormElement);
 
     /**
      * Initialization.
@@ -5332,15 +10236,18 @@ var Checkbox = FormElement.extend({
      * @param {HTMLInputElement} options.el - The input element checkbox
      * @param {Checkbox~onChecked} [options.onChecked] - A callback function that fires when the checkbox is checked
      * @param {Checkbox~onUnchecked} [options.onUnchecked] - A callback function that fires when the checkbox is un-checked
+     * @param {Checkbox~onChange} [options.onChange] - A callback function that fires when the checkbox value changes
      * @param {string} [options.containerClass] - The css class that will be applied to the UI-version of the checkbox
      * @param {string} [options.inputClass] - The css class that will be applied to the form version of the checkbox
      * @param {string} [options.checkedClass] - The css class that will be applied to the checkbox (UI-version) when it is checked
      * @param {string} [options.disabledClass] - The css class that will be applied to the checkbox (UI-version) when it is disabled
      * @param {boolean} [options.value] - The initial checked value to set
      */
-    initialize: function initialize(options) {
 
-        this.options = _.extend({
+    function Checkbox(options) {
+        _classCallCheck(this, Checkbox);
+
+        options = _underscore2.default.extend({
             el: null,
             onChecked: null,
             onUnchecked: null,
@@ -5351,197 +10258,440 @@ var Checkbox = FormElement.extend({
             value: null
         }, options);
 
-        this.el = this.options.el;
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Checkbox).call(this, options));
 
-        if (this.el.tagName.toLowerCase() !== 'input') {
+        if (options.el.tagName.toLowerCase() !== 'input') {
             console.warn('checkbox error: element passed in instantiation was not an input element');
         }
 
-        FormElement.prototype.initialize.call(this, this.options);
+        _this.el = options.el;
+        _this.options = options;
 
-        this.setup();
-    },
+        _this.setup();
+
+        return _this;
+    }
 
     /**
      * Sets up html.
      */
-    setup: function setup() {
-        var input = this.getFormElement();
 
-        input.kit.classList.add(this.options.inputClass);
 
-        this._container = this._buildUIElement(this.el);
+    _createClass(Checkbox, [{
+        key: 'setup',
+        value: function setup() {
+            var input = this.getFormElement();
 
-        // if input element is already checked initially, check it!
-        this.isInitChecked = this.options.value || input.checked;
+            input.classList.add(this.options.inputClass);
 
-        if (this.isInitChecked) {
-            this.check();
-        }
+            this._container = this._buildUIElement(this.el);
 
-        this.isInitDisabled = input.disabled;
-        if (this.isInitDisabled) {
-            this._container.kit.classList.add(this.options.disabledClass);
-        }
+            // if input element is already checked initially, check it!
+            this.isInitChecked = this.options.value || input.checked;
 
-        // setup events
-        this.getUIElement().kit.addEventListener('click', '_onClick', this);
-    },
-
-    /**
-     * When the checkbox element is clicked.
-     * @private
-     */
-    _onClick: function _onClick() {
-        var input = this.getFormElement();
-        if (!input.disabled) {
-            if (!this.getUIElement().kit.classList.contains(this.options.checkedClass)) {
+            if (this.isInitChecked) {
                 this.check();
-            } else {
-                this.uncheck();
+            }
+
+            this.isInitDisabled = input.disabled;
+            if (this.isInitDisabled) {
+                this._container.classList.add(this.options.disabledClass);
+            }
+
+            // setup events
+            this.addEventListener(this.getUIElement(), 'click', '_onUIElementClick', this, true);
+            this.addEventListener(input, 'click', '_onFormElementClick', this);
+        }
+
+        /**
+         * When the checkbox input element is clicked.
+         * @param {Event} e
+         * @private
+         */
+
+    }, {
+        key: '_onFormElementClick',
+        value: function _onFormElementClick(e) {
+            if (e.target === e.currentTarget && !e.target.disabled) {
+                if (!this.getUIElement().classList.contains(this.options.checkedClass)) {
+                    this.check();
+                } else {
+                    this.uncheck();
+                }
             }
         }
-    },
 
-    /**
-     * Builds the checkbox UI-friendly version.
-     * @param {HTMLInputElement} inputEl - The input element
-     * @returns {HTMLElement} Returns the input element wrapped in a new container
-     * @private
-     */
-    _buildUIElement: function _buildUIElement(inputEl) {
-        return inputEl.kit.appendOuterHtml('<div class="' + this.options.containerClass + '"></div>');
-    },
+        /**
+         * When the checkbox UI element is clicked.
+         * @param {Event} e
+         * @private
+         */
 
-    /**
-     * Checks the checkbox.
-     */
-    check: function check() {
-        var input = this.getFormElement(),
-            container = this.getUIElement();
-        if (!input.checked) {
-            input.checked = true;
+    }, {
+        key: '_onUIElementClick',
+        value: function _onUIElementClick(e) {
+            var input = this.getFormElement();
+            // respond to clicks made to the UI element ONLY
+            if (!input.disabled && e.target === e.currentTarget && e.target.classList.contains(this.options.containerClass)) {
+                // we are preventing default here to ensure default
+                // checkbox is not going to be checked since
+                // we're updating the checked boolean manually below
+                e.preventDefault();
+                if (!this.getUIElement().classList.contains(this.options.checkedClass)) {
+                    this.check();
+                } else {
+                    this.uncheck();
+                }
+            }
         }
-        container.kit.classList.add(this.options.checkedClass);
-        if (this.options.onChecked) {
-            this.options.onChecked(input.value, input, container);
+
+        /**
+         * Wraps the checkbox in a UI-friendly container div.
+         * @param {HTMLInputElement} inputEl - The input element
+         * @returns {HTMLElement} Returns the input element wrapped in a new container
+         * @private
+         */
+
+    }, {
+        key: '_buildUIElement',
+        value: function _buildUIElement(inputEl) {
+            var parent = inputEl.parentNode;
+            var outerEl = document.createElement('div');
+            outerEl.classList.add(this.options.containerClass);
+            parent.replaceChild(outerEl, inputEl);
+            outerEl.appendChild(inputEl);
+            return outerEl;
         }
-    },
 
-    /**
-     * Un-checks the checkbox.
-     */
-    uncheck: function uncheck() {
-        var input = this.getFormElement(),
-            container = this.getUIElement();
-        if (input.checked) {
-            input.checked = false;
+        /**
+         * Checks the checkbox.
+         */
+
+    }, {
+        key: 'check',
+        value: function check() {
+            var input = this.getFormElement(),
+                container = this.getUIElement();
+            if (!input.checked) {
+                input.checked = true;
+            }
+            container.classList.add(this.options.checkedClass);
+            var value = this.getValue();
+            if (this.options.onChecked) {
+                this.options.onChecked(value, input, container);
+            }
+            if (this.options.onChange) {
+                this.options.onChange(true, input, container);
+            }
         }
-        container.kit.classList.remove(this.options.checkedClass);
-        if (this.options.onUnchecked) {
-            this.options.onUnchecked(input.value, input, container);
+
+        /**
+         * Un-checks the checkbox.
+         */
+
+    }, {
+        key: 'uncheck',
+        value: function uncheck() {
+            var input = this.getFormElement(),
+                container = this.getUIElement();
+            if (input.checked) {
+                input.checked = false;
+            }
+            container.classList.remove(this.options.checkedClass);
+            if (this.options.onUnchecked) {
+                this.options.onUnchecked('', input, container);
+            }
+            if (this.options.onChange) {
+                this.options.onChange(false, input, container);
+            }
         }
-    },
 
-    /**
-     * Enables the checkbox.
-     */
-    enable: function enable() {
-        this.getFormElement().disabled = false;
-        this.getUIElement().kit.classList.remove(this.options.disabledClass);
-    },
+        /**
+         * Enables the checkbox.
+         */
 
-    /**
-     * Disables the checkbox.
-     */
-    disable: function disable() {
-        this.getFormElement().disabled = true;
-        this.getUIElement().kit.classList.add(this.options.disabledClass);
-    },
-
-    /**
-     * Gets the checkbox input element.
-     * @returns {HTMLInputElement} Returns the checkbox input element
-     */
-    getFormElement: function getFormElement() {
-        return this.el;
-    },
-
-    /**
-     * Gets the checkbox div element.
-     * @returns {HTMLElement} Returns the checkbox div element.
-     */
-    getUIElement: function getUIElement() {
-        return this._container;
-    },
-
-    /**
-     * Gets the unique identifier for checkboxes.
-     * @returns {string}
-     */
-    getElementKey: function getElementKey() {
-        return 'checkbox';
-    },
-
-    /**
-     * Unselects the checkbox if its selected.
-     */
-    clear: function clear() {
-        this.uncheck();
-    },
-
-    /**
-     * Returns whether the checkbox is checked or not
-     * @returns {boolean} Returns a truthy value if checkbox is checked, falsy if not
-     */
-    getValue: function getValue() {
-        return this.getFormElement().checked;
-    },
-
-    /**
-     * Checks the checkbox if a truthy value is passed.
-     * @param {string|boolean} value
-     */
-    setValue: function setValue(value) {
-        // check it if the value is truthy
-        value = value ? true : false;
-        this.getFormElement().checked = value;
-    },
-
-    /**
-     * Destruction of this class.
-     */
-    destroy: function destroy() {
-        var container = this.getUIElement(),
-            input = this.getFormElement();
-
-        // remove event listener
-        container.kit.removeEventListener('click', '_onClick', this);
-
-        // remove stray html
-        container.parentNode.replaceChild(input, container);
-
-        if (this.isInitChecked) {
-            input.checked = true;
+    }, {
+        key: 'enable',
+        value: function enable() {
+            this.getFormElement().disabled = false;
+            this.getUIElement().classList.remove(this.options.disabledClass);
         }
-        if (this.isInitDisabled) {
-            input.disabled = true;
-        }
-        FormElement.prototype.destroy.call(this);
-    }
 
-});
+        /**
+         * Disables the checkbox.
+         */
+
+    }, {
+        key: 'disable',
+        value: function disable() {
+            this.getFormElement().disabled = true;
+            this.getUIElement().classList.add(this.options.disabledClass);
+        }
+
+        /**
+         * Gets the checkbox input element.
+         * @returns {HTMLInputElement} Returns the checkbox input element
+         */
+
+    }, {
+        key: 'getFormElement',
+        value: function getFormElement() {
+            return this.el;
+        }
+
+        /**
+         * Gets the checkbox div element.
+         * @returns {HTMLElement} Returns the checkbox div element.
+         */
+
+    }, {
+        key: 'getUIElement',
+        value: function getUIElement() {
+            return this._container;
+        }
+
+        /**
+         * Gets the unique identifier for checkboxes.
+         * @returns {string}
+         */
+
+    }, {
+        key: 'getElementKey',
+        value: function getElementKey() {
+            return 'checkbox';
+        }
+
+        /**
+         * Unselects the checkbox if its selected.
+         */
+
+    }, {
+        key: 'clear',
+        value: function clear() {
+            this.uncheck();
+        }
+
+        /**
+         * Returns whether the checkbox is checked or not
+         * @returns {string} Returns the checkbox value attribute
+         */
+
+    }, {
+        key: 'getValue',
+        value: function getValue() {
+            var formEl = this.getFormElement();
+            if (formEl.checked) {
+                return formEl.value;
+            } else {
+                return '';
+            }
+        }
+
+        /**
+         * Sets the checkbox value attribute.
+         * @param {string} value
+         */
+
+    }, {
+        key: 'setValue',
+        value: function setValue(value) {
+            this.getFormElement().value = value;
+        }
+
+        /**
+         * Destruction of this class.
+         */
+
+    }, {
+        key: 'destroy',
+        value: function destroy() {
+            var container = this.getUIElement(),
+                input = this.getFormElement();
+
+            this.removeEventListener(container, 'click', '_onUIElementClick', this, true);
+            this.removeEventListener(input, 'click', '_onFormElementClick', this);
+
+            // remove stray html
+            container.parentNode.replaceChild(input, container);
+
+            if (this.isInitChecked) {
+                input.checked = true;
+            }
+            if (this.isInitDisabled) {
+                input.disabled = true;
+            }
+            _get(Object.getPrototypeOf(Checkbox.prototype), 'destroy', this).call(this);
+        }
+    }]);
+
+    return Checkbox;
+}(_formElement2.default);
 
 module.exports = Checkbox;
 
-},{"./form-element":22,"element-kit":3,"underscore":18}],20:[function(require,module,exports){
+},{"./form-element":300,"underscore":295}],297:[function(require,module,exports){
 'use strict';
 
-var _ = require('underscore');
-var FormElement = require('./form-element');
-var DeviceManager = require('device-manager');
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-require('element-kit');
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
+var _formElementGroup = require('./form-element-group');
+
+var _formElementGroup2 = _interopRequireDefault(_formElementGroup);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/**
+ * A callback function that fires when one of the checkbox elements are selected
+ * @callback Checkboxes~onChange
+ * @param {string} value - The value of the input element that was changed
+ * @param {HTMLInputElement} input - The input element that was changed
+ * @param {HTMLElement} UIElement - The container of the input element that was changed
+ */
+
+/**
+ * Groups input checkbox elements.
+ * @class Checkboxes
+ * @extends FormElement
+ */
+
+var Checkboxes = function (_FormElementGroup) {
+    _inherits(Checkboxes, _FormElementGroup);
+
+    /**
+     * Initialization.
+     * @param {object} options - Options passed into instance
+     * @param {Array|HTMLInputElement} options.checkboxes - The collection of checkbox input elements
+     * @param {Checkboxes~onChange} [options.onChange] - A callback function that fires when one of the checkbox elements are selected
+     * @param {string} [options.containerClass] - The css class that will be applied to each checkbox item's container
+     * @param {string} [options.inputClass] - The css class that will be applied to each checkbox item (input element)
+     * @param {string} [options.selectedClass] - The css class that will be applied to a checkbox item (UI-version) when it is selected
+     * @param {string} [options.disabledClass] - The css class that will be applied to a checkbox item (UI-version) when it is disabled
+     * @param {string|Array} [options.value] - The string matching the name attribute of the checkbox button to have selected initially (or an array of such strings)
+     */
+
+    function Checkboxes(options) {
+        _classCallCheck(this, Checkboxes);
+
+        options = _underscore2.default.extend({
+            inputs: [],
+            onChange: null,
+            containerClass: 'ui-checkbox',
+            inputClass: 'ui-checkbox-input',
+            selectedClass: 'ui-checkbox-selected',
+            disabledClass: 'ui-checkbox-disabled',
+            value: null
+        }, options);
+
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Checkboxes).call(this, options));
+
+        _this.options = options;
+        return _this;
+    }
+
+    _createClass(Checkboxes, [{
+        key: '_onFormElementClick',
+        value: function _onFormElementClick(formElement, UIElement) {
+            if (!UIElement.classList.contains(this.options.selectedClass)) {
+                UIElement.classList.add(this.options.selectedClass);
+                formElement.checked = true;
+            } else {
+                UIElement.classList.remove(this.options.selectedClass);
+                formElement.checked = false;
+            }
+            this.triggerChange(formElement, UIElement);
+        }
+
+        /**
+         * When a checkbox UI element is clicked.
+         * @param {HTMLCheckboxElement} formElement - The checkbox element that was clicked
+         * @param {HTMLElement} UIElement - The checkbox UI element that was clicked
+         * @private
+         */
+
+    }, {
+        key: '_onUIElementClick',
+        value: function _onUIElementClick(formElement, UIElement) {
+            if (!UIElement.classList.contains(this.options.selectedClass)) {
+                formElement.checked = true;
+                UIElement.classList.add(this.options.selectedClass);
+            } else {
+                formElement.checked = false;
+                UIElement.classList.remove(this.options.selectedClass);
+            }
+            this.triggerChange(formElement, UIElement);
+        }
+
+        /**
+         * Selects the checkbox item.
+         * @param {Number} index - The index of the checkbox item
+         */
+
+    }, {
+        key: 'select',
+        value: function select(index) {
+            var input = this.getFormElement(index),
+                checkbox = this.getUIElement(index);
+            if (!input.checked) {
+                input.checked = true;
+                checkbox.classList.add(this.options.selectedClass);
+                this.triggerChange(input, checkbox);
+            }
+        }
+
+        /**
+         * Gets the unique identifier for checkboxes.
+         * @returns {string}
+         */
+
+    }, {
+        key: 'getElementKey',
+        value: function getElementKey() {
+            return 'checkboxes';
+        }
+    }]);
+
+    return Checkboxes;
+}(_formElementGroup2.default);
+
+module.exports = Checkboxes;
+
+},{"./form-element-group":299,"underscore":295}],298:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
+var _formElement = require('./form-element');
+
+var _formElement2 = _interopRequireDefault(_formElement);
+
+var _deviceManager = require('device-manager');
+
+var _deviceManager2 = _interopRequireDefault(_deviceManager);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 /**
  * The function that is triggered the selected dropdown value changes
  * @callback Dropdown~onChange
@@ -5567,7 +10717,9 @@ require('element-kit');
  * Falls back to native dropdowns on mobile devices.
  * @constructor Dropdown
  */
-var Dropdown = FormElement.extend({
+
+var Dropdown = function (_FormElement) {
+    _inherits(Dropdown, _FormElement);
 
     /**
      * When instantiated.
@@ -5586,9 +10738,11 @@ var Dropdown = FormElement.extend({
      * @param {string} [options.selectedValueContainerClass] - The css class to use for the selected value container of the dropdown
      * @param {string} [options.selectedValueContainerActiveClass] - The css class that will be applied to the selected value container when it should be visible to the user
      */
-    initialize: function initialize(options) {
 
-        this.options = _.extend({
+    function Dropdown(options) {
+        _classCallCheck(this, Dropdown);
+
+        options = _underscore2.default.extend({
             el: null,
             onChange: null,
             autoSetup: true,
@@ -5606,670 +10760,835 @@ var Dropdown = FormElement.extend({
             disabledClass: 'dropdown-disabled'
         }, options);
 
-        FormElement.prototype.initialize.call(this, this.options);
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Dropdown).call(this, options));
 
-        this._keyMap = {
+        _this.options = options;
+
+        _this._keyMap = {
             38: 'up',
             40: 'down',
             27: 'esc',
             32: 'space'
         };
 
-        if (this.options.autoSetup) {
-            this.setup();
+        if (_this.options.autoSetup) {
+            _this.setup();
         }
-    },
+        return _this;
+    }
 
     /**
      * Sets up events for dropdown.
      * @memberOf Dropdown
      */
-    setup: function setup() {
-        var el = this.options.el,
-            selectedOption = el.querySelectorAll('option[selected]')[0];
 
-        el.kit.addEventListener('change', '_onSelectChange', this);
 
-        this._wrapperEl = el.kit.appendOuterHtml('<div class="' + this.options.customWrapperClass + '">');
-        this._uiEl = this._buildUIElement();
-        this._wrapperEl.appendChild(this._uiEl);
+    _createClass(Dropdown, [{
+        key: 'setup',
+        value: function setup() {
+            var el = this.options.el,
+                selectedOption = el.querySelectorAll('option[selected]')[0];
 
-        this._bindUIElementEvents();
+            this.addEventListener(el, 'change', '_onSelectChange', this);
 
-        if (selectedOption) {
-            this._setUISelectedValue(selectedOption.value);
+            this._wrapperEl = this._buildWrapperEl(el);
+            this._uiEl = this._buildUIElement();
+            this._wrapperEl.appendChild(this._uiEl);
+
+            this._bindUIElementEvents();
+
+            if (selectedOption) {
+                this._setUISelectedValue(selectedOption.value);
+            }
+
+            if (this.getFormElement().disabled) {
+                this.disable();
+            }
         }
 
-        if (this.getFormElement().disabled) {
-            this.disable();
-        }
-    },
+        /**
+         * Wraps the passed element inside of a custom container element.
+         * @param {HTMLElement} el - The element to be wrapped inside of the container
+         * @returns {Element} Returns the container element that contains the passed el
+         * @private
+         */
 
-    /**
-     * Builds the UI element.
-     * @returns {Element}
-     * @private
-     */
-    _buildUIElement: function _buildUIElement() {
-        var options = this.options,
-            formEl = options.el,
-            uiEl = document.createElement('div');
-
-        this._origTabIndex = formEl.tabIndex;
-
-        uiEl.classList.add(this.options.containerClass);
-        uiEl.innerHTML = this._buildSelectedValueHtml() + this._buildOptionsHtml();
-
-        // only switch tab index to ui element when not on a mobile device
-        // since we're using native there
-        if (!DeviceManager.isMobile()) {
-            uiEl.tabIndex = this._origTabIndex || 0;
-            // remove form element from being focused since we now have the UI element
-            formEl.tabIndex = -1;
+    }, {
+        key: '_buildWrapperEl',
+        value: function _buildWrapperEl(el) {
+            var parent = el.parentNode;
+            var outerEl = document.createElement('div');
+            outerEl.classList.add(this.options.customWrapperClass);
+            parent.replaceChild(outerEl, el);
+            outerEl.appendChild(el);
+            return outerEl;
         }
 
-        return uiEl;
-    },
+        /**
+         * Builds the UI element.
+         * @returns {Element}
+         * @private
+         */
 
-    /**
-     * Sets the UI representation of the select dropdown to a new value.
-     * @param {string} dataValue - The new data value
-     * @private
-     * @memberOf Dropdown
-     */
-    _setUISelectedValue: function _setUISelectedValue(dataValue) {
-        var optionsContainerEl = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
-            prevSelectedOption = optionsContainerEl.getElementsByClassName(this.options.optionsSelectedClass)[0],
-            newSelectedOptionEl = optionsContainerEl.querySelectorAll('.' + this.options.optionsClass + '[data-value="' + dataValue + '"]')[0],
-            selectedClass = this.options.optionsSelectedClass,
-            selectedValueContainerEl = this.getUIElement().getElementsByClassName(this.options.selectedValueContainerClass)[0],
-            displayValue = newSelectedOptionEl ? newSelectedOptionEl.textContent : '';
+    }, {
+        key: '_buildUIElement',
+        value: function _buildUIElement() {
+            var options = this.options,
+                formEl = options.el,
+                uiEl = document.createElement('div');
 
-        selectedValueContainerEl.setAttribute('data-value', dataValue);
-        selectedValueContainerEl.innerHTML = displayValue;
+            this._origTabIndex = formEl.tabIndex;
 
-        // remove selected class from previously selected option
-        if (prevSelectedOption) {
-            prevSelectedOption.kit.classList.remove(selectedClass);
+            uiEl.classList.add(this.options.containerClass);
+            uiEl.innerHTML = this._buildSelectedValueHtml() + this._buildOptionsHtml();
+
+            // only switch tab index to ui element when not on a mobile device
+            // since we're using native there
+            if (!_deviceManager2.default.isMobile()) {
+                uiEl.tabIndex = this._origTabIndex || 0;
+                // remove form element from being focused since we now have the UI element
+                formEl.tabIndex = -1;
+            }
+
+            return uiEl;
         }
-        // add selected class to new option
-        if (newSelectedOptionEl) {
-            newSelectedOptionEl.kit.classList.add(selectedClass);
+
+        /**
+         * Sets the UI representation of the select dropdown to a new value.
+         * @param {string} dataValue - The new data value
+         * @private
+         * @memberOf Dropdown
+         */
+
+    }, {
+        key: '_setUISelectedValue',
+        value: function _setUISelectedValue(dataValue) {
+            var optionsContainerEl = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+                prevSelectedOption = optionsContainerEl.getElementsByClassName(this.options.optionsSelectedClass)[0],
+                newSelectedOptionEl = optionsContainerEl.querySelectorAll('.' + this.options.optionsClass + '[data-value="' + dataValue + '"]')[0],
+                selectedClass = this.options.optionsSelectedClass,
+                selectedValueContainerEl = this.getUIElement().getElementsByClassName(this.options.selectedValueContainerClass)[0],
+                displayValue = newSelectedOptionEl ? newSelectedOptionEl.textContent : '';
+
+            selectedValueContainerEl.setAttribute('data-value', dataValue);
+            selectedValueContainerEl.innerHTML = displayValue;
+
+            // remove selected class from previously selected option
+            if (prevSelectedOption) {
+                prevSelectedOption.classList.remove(selectedClass);
+            }
+            // add selected class to new option
+            if (newSelectedOptionEl) {
+                newSelectedOptionEl.classList.add(selectedClass);
+            }
         }
-    },
 
-    /**
-     * When a key press event is registered when focused on the UI Element.
-     * @param {KeyboardEvent} e - The key up event
-     */
-    onKeyStrokeUIElement: function onKeyStrokeUIElement(e) {
-        var options = this.options,
-            highlightClass = this.options.optionsHighlightedClass,
-            uiEl = this.getUIElement(),
-            uiContainer = uiEl.getElementsByClassName(options.optionsContainerClass)[0],
-            selectedUIOptionEl = uiContainer.getElementsByClassName(options.optionsSelectedClass)[0],
-            highlightedOptionEl = uiContainer.getElementsByClassName(highlightClass)[0] || selectedUIOptionEl,
-            key = this._keyMap[e.keyCode];
+        /**
+         * When a key press event is registered when focused on the UI Element.
+         * @param {KeyboardEvent} e - The key up event
+         */
 
-        if (!key) {
-            return false;
-        } else if ((key === 'up' || key === 'down') && !this.isOptionsContainerActive()) {
-            this.showOptionsContainer();
-        } else if (key === 'up') {
-            this._onKeyStrokeUp(highlightedOptionEl);
-        } else if (key === 'down') {
-            this._onKeyStrokeDown(highlightedOptionEl);
-        } else if (!this.isOptionsContainerActive()) {
-            return false;
-        } else if (key === 'esc') {
-            this.hideOptionsContainer();
-        } else if (key === 'space') {
-            this.setValue(highlightedOptionEl.dataset.value);
-            this.hideOptionsContainer();
+    }, {
+        key: 'onKeyStrokeUIElement',
+        value: function onKeyStrokeUIElement(e) {
+            var options = this.options,
+                highlightClass = this.options.optionsHighlightedClass,
+                uiEl = this.getUIElement(),
+                uiContainer = uiEl.getElementsByClassName(options.optionsContainerClass)[0],
+                selectedUIOptionEl = uiContainer.getElementsByClassName(options.optionsSelectedClass)[0],
+                highlightedOptionEl = uiContainer.getElementsByClassName(highlightClass)[0] || selectedUIOptionEl,
+                key = this._keyMap[e.keyCode];
+
+            if (!key) {
+                return false;
+            } else if ((key === 'up' || key === 'down') && !this.isOptionsContainerActive()) {
+                this.showOptionsContainer();
+            } else if (key === 'up') {
+                this._onKeyStrokeUp(highlightedOptionEl);
+            } else if (key === 'down') {
+                this._onKeyStrokeDown(highlightedOptionEl);
+            } else if (!this.isOptionsContainerActive()) {
+                return false;
+            } else if (key === 'esc') {
+                this.hideOptionsContainer();
+            } else if (key === 'space') {
+                this.setValue(highlightedOptionEl.dataset.value);
+                this.hideOptionsContainer();
+            }
         }
-    },
 
-    /**
-     * When the up arrow is triggered.
-     * @param {HTMLElement} highlightedOptionEl - The currently highlighted UI option element
-     * @private
-     */
-    _onKeyStrokeUp: function _onKeyStrokeUp(highlightedOptionEl) {
-        var highlightClass = this.options.optionsHighlightedClass,
-            prevSibling = highlightedOptionEl.previousSibling;
+        /**
+         * When the up arrow is triggered.
+         * @param {HTMLElement} highlightedOptionEl - The currently highlighted UI option element
+         * @private
+         */
 
-        highlightedOptionEl.classList.remove(highlightClass);
+    }, {
+        key: '_onKeyStrokeUp',
+        value: function _onKeyStrokeUp(highlightedOptionEl) {
+            var highlightClass = this.options.optionsHighlightedClass,
+                prevSibling = highlightedOptionEl.previousSibling;
 
-        // go to bottom option if at the beginning
-        if (!prevSibling) {
-            prevSibling = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0].lastChild;
+            highlightedOptionEl.classList.remove(highlightClass);
+
+            // go to bottom option if at the beginning
+            if (!prevSibling) {
+                prevSibling = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0].lastChild;
+            }
+            prevSibling.classList.add(highlightClass);
         }
-        prevSibling.classList.add(highlightClass);
-    },
 
-    /**
-     * When the down arrow is triggered.
-     * @param {HTMLElement} highlightedOptionEl - The currently highlighted UI option element
-     * @private
-     */
-    _onKeyStrokeDown: function _onKeyStrokeDown(highlightedOptionEl) {
-        var highlightClass = this.options.optionsHighlightedClass,
-            nextSibling = highlightedOptionEl.nextSibling;
+        /**
+         * When the down arrow is triggered.
+         * @param {HTMLElement} highlightedOptionEl - The currently highlighted UI option element
+         * @private
+         */
 
-        highlightedOptionEl.classList.remove(highlightClass);
+    }, {
+        key: '_onKeyStrokeDown',
+        value: function _onKeyStrokeDown(highlightedOptionEl) {
+            var highlightClass = this.options.optionsHighlightedClass,
+                nextSibling = highlightedOptionEl.nextSibling;
 
-        if (!nextSibling) {
-            // get top option element if at end
-            nextSibling = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0].firstChild;
+            highlightedOptionEl.classList.remove(highlightClass);
+
+            if (!nextSibling) {
+                // get top option element if at end
+                nextSibling = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0].firstChild;
+            }
+            nextSibling.classList.add(highlightClass);
         }
-        nextSibling.classList.add(highlightClass);
-    },
 
-    /**
-     * When the select element is focused.
-     * @private
-     * @param e
-     */
-    _onFocusFormElement: function _onFocusFormElement(e) {
-        if (this.options.onFocus) {
-            this.options.onFocus(e);
+        /**
+         * When the select element is focused.
+         * @private
+         * @param e
+         */
+
+    }, {
+        key: '_onFocusFormElement',
+        value: function _onFocusFormElement(e) {
+            if (this.options.onFocus) {
+                this.options.onFocus(e);
+            }
         }
-    },
 
-    /**
-     * When the select element loses focused.
-     * @private
-     * @param e
-     */
-    _onBlurFormElement: function _onBlurFormElement(e) {
-        if (this.options.onBlur) {
-            this.options.onBlur(e);
+        /**
+         * When the select element loses focused.
+         * @private
+         * @param e
+         */
+
+    }, {
+        key: '_onBlurFormElement',
+        value: function _onBlurFormElement(e) {
+            if (this.options.onBlur) {
+                this.options.onBlur(e);
+            }
         }
-    },
 
-    /**
-     * When the UI Element is in focus.
-     * @private
-     * @param e
-     */
-    _onFocusUIElement: function _onFocusUIElement(e) {
-        var self = this;
-        this._windowKeyEventListener = function (e) {
+        /**
+         * When the UI Element is in focus.
+         * @private
+         * @param e
+         */
+
+    }, {
+        key: '_onFocusUIElement',
+        value: function _onFocusUIElement(e) {
+            if (!_deviceManager2.default.isMobile()) {
+                // prevent default window actions on key strokes
+                this.addEventListener(window, 'keydown', '_onWindowKeyup', this, false);
+                this.addEventListener(window, 'keyup', '_onWindowKeyup', this, false);
+                // add key stroke event listeners
+                this.addEventListener(this.getUIElement(), 'keyup', 'onKeyStrokeUIElement', this);
+            }
+
+            if (this.options.onFocus) {
+                this.options.onFocus(e);
+            }
+        }
+
+        /**
+         * When the user taps a keyboard key.
+         * @param {Event} e - The event object
+         * @private
+         */
+
+    }, {
+        key: '_onWindowKeyup',
+        value: function _onWindowKeyup(e) {
             // if any keys we're listening to internally, prevent default window behavior
-            if (self._keyMap[e.keyCode]) {
+            if (this._keyMap[e.keyCode]) {
                 e.preventDefault();
             }
-        };
-
-        if (!DeviceManager.isMobile()) {
-            // prevent default window actions on key strokes
-            window.addEventListener('keydown', this._windowKeyEventListener, false);
-            window.addEventListener('keyup', this._windowKeyEventListener, false);
-            // add key stroke event listeners
-            this.getUIElement().kit.addEventListener('keyup', 'onKeyStrokeUIElement', this);
         }
 
-        if (this.options.onFocus) {
-            this.options.onFocus(e);
-        }
-    },
+        /**
+         * When the UI Element loses focus
+         * @private
+         * @param e
+         */
 
-    /**
-     * When the UI Element loses focus
-     * @private
-     * @param e
-     */
-    _onBlurUIElement: function _onBlurUIElement(e) {
-        if (!DeviceManager.isMobile()) {
-            this.getUIElement().kit.removeEventListener('keyup', 'onKeyStrokeUIElement', this);
-            window.removeEventListener('keydown', this._windowKeyEventListener, false);
-            window.removeEventListener('keyup', this._windowKeyEventListener, false);
-        }
-        if (this.options.onBlur) {
-            this.options.onBlur(e);
-        }
-    },
-
-    /**
-     * When an option element inside of the UI element is hovered over
-     * @param {MouseEvent} e - The mouse event
-     * @private
-     */
-    _onMouseEnterUIElement: function _onMouseEnterUIElement(e) {
-        e.currentTarget.classList.add(this.options.optionsHighlightedClass);
-    },
-
-    /**
-     * When hovering over an option element inside of the UI element stops.
-     * @param {MouseEvent} e - The mouse event
-     * @private
-     */
-    _onMouseLeaveUIElement: function _onMouseLeaveUIElement(e) {
-        e.currentTarget.classList.remove(this.options.optionsHighlightedClass);
-    },
-
-    /**
-     * Sets up click events on the ui element and its children.
-     * @private
-     * @memberOf Dropdown
-     */
-    _bindUIElementEvents: function _bindUIElementEvents() {
-        var uiEl = this.getUIElement(),
-            uiValueContainer = uiEl.getElementsByClassName(this.options.selectedValueContainerClass)[0],
-            formEl = this.getFormElement();
-
-        uiEl.kit.addEventListener('focus', '_onFocusUIElement', this);
-        uiEl.kit.addEventListener('blur', '_onBlurUIElement', this);
-        formEl.kit.addEventListener('focus', '_onFocusFormElement', this);
-        formEl.kit.addEventListener('blur', '_onBlurFormElement', this);
-
-        // add click events on container
-        uiValueContainer.kit.addEventListener('click', '_onClickUIValueContainer', this);
-    },
-
-    /**
-     * Removes all ui element event listeners.
-     * @private
-     */
-    _unbindUIElementEvents: function _unbindUIElementEvents() {
-        var uiEl = this.getUIElement(),
-            uiValueContainer = uiEl.getElementsByClassName(this.options.selectedValueContainerClass)[0],
-            formEl = this.getFormElement();
-
-        uiEl.kit.removeEventListener('focus', '_onFocusUIElement', this);
-        uiEl.kit.removeEventListener('blur', '_onBlurUIElement', this);
-        formEl.kit.removeEventListener('focus', '_onFocusFormElement', this);
-        formEl.kit.removeEventListener('blur', '_onBlurFormElement', this);
-
-        // add click events on container
-        uiValueContainer.kit.removeEventListener('click', '_onClickUIValueContainer', this);
-    },
-
-    /**
-     * Adds click events on all option elements of the UI-version of dropdown.
-     */
-    bindUIOptionEvents: function bindUIOptionEvents() {
-        var optionEls = this.getUIElement().getElementsByClassName(this.options.optionsClass),
-            i,
-            count = optionEls.length;
-        for (i = 0; i < count; i++) {
-            optionEls[i].kit.addEventListener('click', '_onClickUIOption', this);
-            optionEls[i].kit.addEventListener('mouseenter', '_onMouseEnterUIElement', this);
-            optionEls[i].kit.addEventListener('mouseleave', '_onMouseLeaveUIElement', this);
-        }
-    },
-
-    /**
-     * Removes click events from all options elements of the UI-version of dropdown.
-     */
-    unbindUIOptionEvents: function unbindUIOptionEvents() {
-        var optionEls = this.getUIElement().getElementsByClassName(this.options.optionsClass),
-            i,
-            count = optionEls.length;
-        for (i = 0; i < count; i++) {
-            optionEls[i].kit.removeEventListener('click', '_onClickUIOption', this);
-            optionEls[i].kit.removeEventListener('mouseenter', '_onMouseEnterUIElement', this);
-            optionEls[i].kit.removeEventListener('mouseleave', '_onMouseLeaveUIElement', this);
-        }
-    },
-
-    /**
-     * When clicking on the div that represents the select value.
-     * @private
-     * @memberOf Dropdown
-     */
-    _onClickUIValueContainer: function _onClickUIValueContainer() {
-        if (this.getFormElement().disabled) {
-            return false;
-        } else if (this.isOptionsContainerActive()) {
-            this.hideOptionsContainer();
-        } else {
-            this.showOptionsContainer();
-        }
-    },
-
-    /**
-     * Shows the UI options container element.
-     */
-    showOptionsContainer: function showOptionsContainer() {
-        var uiEl = this.getUIElement(),
-            options = this.options,
-            selectedUIOption = this.getUIOptionByDataValue(this.getValue()) || uiEl.getElementsByClassName(options.optionsClass)[0];
-        uiEl.kit.classList.add(options.optionsContainerActiveClass);
-        this.bindUIOptionEvents();
-        // set selected class on selected value for instances where it is not present
-        // like upon showing the container for the first time
-        if (selectedUIOption) {
-            selectedUIOption.classList.add(this.options.optionsSelectedClass);
-        }
-        document.body.kit.addEventListener('click', 'onClickDocument', this);
-    },
-
-    /**
-     * Hides the UI options container element.
-     */
-    hideOptionsContainer: function hideOptionsContainer() {
-        // Redraw of options container needed for iPad and Safari.
-        if (DeviceManager.isBrowser('safari')) {
-            this.redrawOptionsContainer();
-        }
-        this.getUIElement().kit.classList.remove(this.options.optionsContainerActiveClass);
-        this.unbindUIOptionEvents();
-        document.body.kit.removeEventListener('click', 'onClickDocument', this);
-    },
-
-    /**
-     * Forces a redraw of the options container element.
-     * @note If dropdown options are hidden on default,
-     * this will force the styles to be updated when active class is removed.
-     */
-    redrawOptionsContainer: function redrawOptionsContainer() {
-        var optionsContainerEl = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
-            currentOverflowAttr = optionsContainerEl.style.overflow;
-
-        // update overflow property to force the redraw.
-        optionsContainerEl.style.overflow = 'hidden';
-        optionsContainerEl.offsetHeight;
-        // if there was an original overflow property, reset it
-        // or remove the property
-        if (currentOverflowAttr) {
-            optionsContainerEl.style.overflow = currentOverflowAttr;
-        } else {
-            optionsContainerEl.style.removeProperty('overflow');
-        }
-    },
-
-    /**
-     * Whether the UI options container element is open.
-     * @returns {boolean} Returns true if container is open
-     */
-    isOptionsContainerActive: function isOptionsContainerActive() {
-        return this.getUIElement().kit.classList.contains(this.options.optionsContainerActiveClass);
-    },
-
-    /**
-     * When document is clicked.
-     * @param {Event} e
-     */
-    onClickDocument: function onClickDocument(e) {
-        var closestUIContainer = e.target.kit.getClosestAncestorElementByClassName(this.options.containerClass);
-        if (!closestUIContainer || closestUIContainer !== this.getUIElement()) {
-            // clicked outside of ui element!
-            this.hideOptionsContainer();
-        }
-    },
-
-    /**
-     * When one of the ui divs (representing the options elements) is clicked.
-     * @param {Event} e
-     * @private
-     * @memberOf Dropdown
-     */
-    _onClickUIOption: function _onClickUIOption(e) {
-        var selectedOption = e.currentTarget,
-            newDataValue = selectedOption.kit.dataset.value;
-
-        if (this.getValue() !== newDataValue) {
-            // set the current value of the REAL dropdown
-            this.setValue(newDataValue);
-            // set value of ui dropdown
-            this._setUISelectedValue(newDataValue);
-        }
-        this.hideOptionsContainer();
-    },
-
-    /**
-     * Builds the html for the dropdown value.
-     * @returns {string}
-     * @private
-     * @memberOf Dropdown
-     */
-    _buildSelectedValueHtml: function _buildSelectedValueHtml() {
-        return '<div class="' + this.options.selectedValueContainerClass + '" data-value=""></div>';
-    },
-
-    /**
-     * Builds a representative version of the option elements of the original select.
-     * @returns {string} Returns the html of the options container along with its nested children
-     * @private
-     * @memberOf Dropdown
-     */
-    _buildOptionsHtml: function _buildOptionsHtml() {
-        var options = this.options,
-            uiOptionsContainer = document.createElement('div'),
-            html = '<div class="' + options.optionsContainerClass + '">',
-            optionEls = options.el.getElementsByTagName('option'),
-            count = optionEls.length,
-            i,
-            option,
-            selectedClass = '';
-
-        uiOptionsContainer.kit.classList.add(options.optionsContainerClass);
-
-        for (i = 0; i < count; i++) {
-            option = optionEls[i];
-            selectedClass = option.hasAttribute('selected') ? options.optionsSelectedClass : '';
-            html += '<div class="' + options.optionsClass + ' ' + selectedClass + '" data-value="' + option.value + '">' + option.textContent + '</div>';
-        }
-
-        html += '</div>'; // close container tag
-
-        return html;
-    },
-
-    /**
-     * When the select value changes.
-     * @param e
-     * @private
-     * @memberOf Dropdown
-     */
-    _onSelectChange: function _onSelectChange(e) {
-        var value = this.getValue();
-        this._setUISelectedValue(value);
-        if (this.options.onChange) {
-            this.options.onChange(value, this.getFormElement(), this.getUIElement(), e);
-        }
-    },
-
-    /**
-     * Returns the element that represents the div-version of the dropdown.
-     * @returns {HTMLElement|*}
-     */
-    getUIElement: function getUIElement() {
-        return this._uiEl;
-    },
-
-    /**
-     * Gets an option element by its value attribute.
-     * @param {string} dataValue - The value attribute of the option desired
-     * @returns {*}
-     * @memberOf Dropdown
-     */
-    getOptionByDataValue: function getOptionByDataValue(dataValue) {
-        return this.options.el.querySelectorAll('option[value="' + dataValue + '"]')[0];
-    },
-
-    /**
-     * Gets an UI option element by its data value.
-     * @param dataValue
-     * @returns {*}
-     */
-    getUIOptionByDataValue: function getUIOptionByDataValue(dataValue) {
-        return this.getUIElement().querySelectorAll('.' + this.options.optionsClass + '[data-value="' + dataValue + '"]')[0];
-    },
-
-    /**
-     * Gets an option element by its text content.
-     * @param {string} displayValue - The text content that the eleemnt should have in order to be returned
-     * @returns {*|HTMLOptionElement}
-     * @memberOf Dropdown
-     */
-    getOptionByDisplayValue: function getOptionByDisplayValue(displayValue) {
-        var optionEls = this.options.el.querySelectorAll('option'),
-            i,
-            count = optionEls.length,
-            option;
-        for (i = 0; i < count; i++) {
-            option = optionEls[i];
-            if (option.textContent === displayValue) {
-                break;
+    }, {
+        key: '_onBlurUIElement',
+        value: function _onBlurUIElement(e) {
+            if (!_deviceManager2.default.isMobile()) {
+                this.removeEventListener(this.getUIElement(), 'keyup', 'onKeyStrokeUIElement', this);
+                this.removeEventListener(window, 'keydown', '_onWindowKeyup', this, false);
+                this.removeEventListener(window, 'keyup', '_onWindowKeyup', this, false);
+            }
+            if (this.options.onBlur) {
+                this.options.onBlur(e);
             }
         }
-        return option;
-    },
 
-    /**
-     * Sets the dropdown to a specified value (if there is an option
-     * element with a value attribute that contains the value supplied)
-     * @param {string} dataValue - The value to set the dropdown menu to
-     * @memberOf Dropdown
-     */
-    setValue: function setValue(dataValue) {
-        var origOptionEl = this.getOptionByDataValue(this.getValue()),
-            newOptionEl = this.getOptionByDataValue(dataValue),
-            e = document.createEvent('HTMLEvents'),
-            formEl = this.getFormElement();
+        /**
+         * When an option element inside of the UI element is hovered over
+         * @param {MouseEvent} e - The mouse event
+         * @private
+         */
 
-        e.initEvent('change', false, true);
-
-        // switch selected value because browser doesnt do it for us
-        if (origOptionEl) {
-            origOptionEl.removeAttribute('selected');
-        }
-        if (newOptionEl) {
-            newOptionEl.setAttribute('selected', 'selected');
-            // in most cases, setting attribute (above) also updates the dropdown's value
-            // but for some browsers (like phantomjs), we need to manually set it
-            formEl.value = dataValue;
-            // trigger change event on dropdown
-            formEl.dispatchEvent(e);
-        } else {
-            console.warn('Form Dropdown Error: Cannot call setValue(), dropdown has no option element with a ' + 'value attribute of ' + dataValue + '.');
+    }, {
+        key: '_onMouseEnterUIElement',
+        value: function _onMouseEnterUIElement(e) {
+            e.currentTarget.classList.add(this.options.optionsHighlightedClass);
         }
 
-        this._setUISelectedValue(dataValue);
-    },
+        /**
+         * When hovering over an option element inside of the UI element stops.
+         * @param {MouseEvent} e - The mouse event
+         * @private
+         */
 
-    /**
-     * Updates markup to show new dropdown option values.
-     * @param {Array} optionsData - An array of objects that maps the new data values to display values desired
-     * @param {Object} [options] - Update options
-     * @param {Boolean} [options.replace] - If true, the new options will replace all current options, if false, new options will be merged with current ones
-     */
-    updateOptions: function updateOptions(optionsData, options) {
-        var uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
-            frag = document.createDocumentFragment(),
-            optionEl;
-
-        options = options || {};
-
-        if (options.replace) {
-            this.clearOptions();
+    }, {
+        key: '_onMouseLeaveUIElement',
+        value: function _onMouseLeaveUIElement(e) {
+            e.currentTarget.classList.remove(this.options.optionsHighlightedClass);
         }
-        this._updateFormOptionElements(optionsData);
 
-        optionsData.forEach(function (obj) {
-            optionEl = document.createElement('div');
-            optionEl.setAttribute('data-value', obj.dataValue);
-            optionEl.classList.add(this.options.optionsClass);
-            optionEl.innerHTML = obj.displayValue;
-            frag.appendChild(optionEl);
-        }.bind(this));
-        uiOptionsContainer.appendChild(frag);
-    },
+        /**
+         * Sets up click events on the ui element and its children.
+         * @private
+         * @memberOf Dropdown
+         */
 
-    /**
-     * Clears all options in the dropdown.
-     */
-    clearOptions: function clearOptions() {
-        var uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
-            formEl = this.getFormElement();
-        formEl.innerHTML = '';
-        uiOptionsContainer.innerHTML = '';
-    },
+    }, {
+        key: '_bindUIElementEvents',
+        value: function _bindUIElementEvents() {
+            var uiEl = this.getUIElement(),
+                uiValueContainer = uiEl.getElementsByClassName(this.options.selectedValueContainerClass)[0],
+                formEl = this.getFormElement();
+            this.addEventListener(uiEl, 'focus', '_onFocusUIElement', this);
+            this.addEventListener(uiEl, 'blur', '_onBlurUIElement', this);
+            this.addEventListener(formEl, 'focus', '_onFocusFormElement', this);
+            this.addEventListener(formEl, 'blur', '_onBlurFormElement', this);
+            // add click events on container
+            this.addEventListener(uiValueContainer, 'click', '_onClickUIValueContainer', this);
+        }
 
-    /**
-     * Updates markup to show new form elements.
-     * @param {Array} optionsData - An array of objects that maps the new data values to display values desired
-     * @param {boolean} reset - Whether to replace current options, or merge with them
-     * @private
-     */
-    _updateFormOptionElements: function _updateFormOptionElements(optionsData, reset) {
-        var formEl = this.getFormElement(),
-            frag = document.createDocumentFragment(),
-            optionEl;
-        optionsData.forEach(function (obj) {
-            optionEl = document.createElement('option');
-            optionEl.setAttribute('value', obj.dataValue);
-            optionEl.innerHTML = obj.displayValue;
-            frag.appendChild(optionEl);
-        });
-        if (reset) {
+        /**
+         * Removes all ui element event listeners.
+         * @private
+         */
+
+    }, {
+        key: '_unbindUIElementEvents',
+        value: function _unbindUIElementEvents() {
+            var uiEl = this.getUIElement(),
+                uiValueContainer = uiEl.getElementsByClassName(this.options.selectedValueContainerClass)[0],
+                formEl = this.getFormElement();
+            this.removeEventListener(uiEl, 'focus', '_onFocusUIElement', this);
+            this.removeEventListener(uiEl, 'blur', '_onBlurUIElement', this);
+            this.removeEventListener(formEl, 'focus', '_onFocusFormElement', this);
+            this.removeEventListener(formEl, 'blur', '_onBlurFormElement', this);
+            // add click events on container
+            this.removeEventListener(uiValueContainer, 'click', '_onClickUIValueContainer', this);
+        }
+
+        /**
+         * Adds click events on all option elements of the UI-version of dropdown.
+         */
+
+    }, {
+        key: 'bindUIOptionEvents',
+        value: function bindUIOptionEvents() {
+            var optionEls = this.getUIElement().getElementsByClassName(this.options.optionsClass),
+                i,
+                count = optionEls.length;
+
+            for (i = 0; i < count; i++) {
+                var el = optionEls[i];
+                this.addEventListener(el, 'click', '_onClickUIOption', this);
+                this.addEventListener(el, 'mouseenter', '_onMouseEnterUIElement', this);
+                this.addEventListener(el, 'mouseleave', '_onMouseLeaveUIElement', this);
+            }
+        }
+
+        /**
+         * Removes click events from all options elements of the UI-version of dropdown.
+         */
+
+    }, {
+        key: 'unbindUIOptionEvents',
+        value: function unbindUIOptionEvents() {
+            var optionEls = this.getUIElement().getElementsByClassName(this.options.optionsClass),
+                i,
+                count = optionEls.length;
+            for (i = 0; i < count; i++) {
+                var el = optionEls[i];
+                this.removeEventListener(el, 'click', '_onClickUIOption', this);
+                this.removeEventListener(el, 'mouseenter', '_onMouseEnterUIElement', this);
+                this.removeEventListener(el, 'mouseleave', '_onMouseLeaveUIElement', this);
+            }
+        }
+
+        /**
+         * When clicking on the div that represents the select value.
+         * @private
+         * @memberOf Dropdown
+         */
+
+    }, {
+        key: '_onClickUIValueContainer',
+        value: function _onClickUIValueContainer() {
+            if (this.getFormElement().disabled) {
+                return false;
+            } else if (this.isOptionsContainerActive()) {
+                this.hideOptionsContainer();
+            } else {
+                this.showOptionsContainer();
+            }
+        }
+
+        /**
+         * Shows the UI options container element.
+         */
+
+    }, {
+        key: 'showOptionsContainer',
+        value: function showOptionsContainer() {
+            var uiEl = this.getUIElement(),
+                options = this.options,
+                selectedUIOption = this.getUIOptionByDataValue(this.getValue()) || uiEl.getElementsByClassName(options.optionsClass)[0];
+            uiEl.classList.add(options.optionsContainerActiveClass);
+            this.bindUIOptionEvents();
+            // set selected class on selected value for instances where it is not present
+            // like upon showing the container for the first time
+            if (selectedUIOption) {
+                selectedUIOption.classList.add(this.options.optionsSelectedClass);
+            }
+            this.addEventListener(document.body, 'click', 'onClickDocument', this);
+        }
+
+        /**
+         * Hides the UI options container element.
+         */
+
+    }, {
+        key: 'hideOptionsContainer',
+        value: function hideOptionsContainer() {
+            // Redraw of options container needed for iPad and Safari.
+            if (_deviceManager2.default.isBrowser('safari')) {
+                this.redrawOptionsContainer();
+            }
+            this.getUIElement().classList.remove(this.options.optionsContainerActiveClass);
+            this.unbindUIOptionEvents();
+            this.removeEventListener(document.body, 'click', 'onClickDocument', this);
+        }
+
+        /**
+         * Forces a redraw of the options container element.
+         * @note If dropdown options are hidden on default,
+         * this will force the styles to be updated when active class is removed.
+         */
+
+    }, {
+        key: 'redrawOptionsContainer',
+        value: function redrawOptionsContainer() {
+            var optionsContainerEl = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+                currentOverflowAttr = optionsContainerEl.style.overflow;
+
+            // update overflow property to force the redraw.
+            optionsContainerEl.style.overflow = 'hidden';
+            optionsContainerEl.offsetHeight;
+            // if there was an original overflow property, reset it
+            // or remove the property
+            if (currentOverflowAttr) {
+                optionsContainerEl.style.overflow = currentOverflowAttr;
+            } else {
+                optionsContainerEl.style.removeProperty('overflow');
+            }
+        }
+
+        /**
+         * Whether the UI options container element is open.
+         * @returns {boolean} Returns true if container is open
+         */
+
+    }, {
+        key: 'isOptionsContainerActive',
+        value: function isOptionsContainerActive() {
+            return this.getUIElement().classList.contains(this.options.optionsContainerActiveClass);
+        }
+
+        /**
+         * When document is clicked.
+         * @param {Event} e
+         */
+
+    }, {
+        key: 'onClickDocument',
+        value: function onClickDocument(e) {
+            var closestUIContainer = this.getClosestAncestorElementByClassName(e.target, this.options.containerClass);
+            if (!closestUIContainer || closestUIContainer !== this.getUIElement()) {
+                // clicked outside of ui element!
+                this.hideOptionsContainer();
+            }
+        }
+
+        /**
+         * When one of the ui divs (representing the options elements) is clicked.
+         * @param {Event} e
+         * @private
+         * @memberOf Dropdown
+         */
+
+    }, {
+        key: '_onClickUIOption',
+        value: function _onClickUIOption(e) {
+            var selectedOption = e.currentTarget,
+                newDataValue = selectedOption.dataset.value;
+
+            if (this.getValue() !== newDataValue) {
+                // set the current value of the REAL dropdown
+                this.setValue(newDataValue);
+                // set value of ui dropdown
+                this._setUISelectedValue(newDataValue);
+            }
+            this.hideOptionsContainer();
+        }
+
+        /**
+         * Builds the html for the dropdown value.
+         * @returns {string}
+         * @private
+         * @memberOf Dropdown
+         */
+
+    }, {
+        key: '_buildSelectedValueHtml',
+        value: function _buildSelectedValueHtml() {
+            return '<div class="' + this.options.selectedValueContainerClass + '" data-value=""></div>';
+        }
+
+        /**
+         * Builds a representative version of the option elements of the original select.
+         * @returns {string} Returns the html of the options container along with its nested children
+         * @private
+         * @memberOf Dropdown
+         */
+
+    }, {
+        key: '_buildOptionsHtml',
+        value: function _buildOptionsHtml() {
+            var options = this.options,
+                uiOptionsContainer = document.createElement('div'),
+                html = '<div class="' + options.optionsContainerClass + '">',
+                optionEls = options.el.getElementsByTagName('option'),
+                count = optionEls.length,
+                i,
+                option,
+                selectedClass = '';
+
+            uiOptionsContainer.classList.add(options.optionsContainerClass);
+
+            for (i = 0; i < count; i++) {
+                option = optionEls[i];
+                selectedClass = option.hasAttribute('selected') ? options.optionsSelectedClass : '';
+                html += '<div class="' + options.optionsClass + ' ' + selectedClass + '" data-value="' + option.value + '">' + option.textContent + '</div>';
+            }
+
+            html += '</div>'; // close container tag
+
+            return html;
+        }
+
+        /**
+         * When the select value changes.
+         * @param e
+         * @private
+         * @memberOf Dropdown
+         */
+
+    }, {
+        key: '_onSelectChange',
+        value: function _onSelectChange(e) {
+            var value = this.getValue();
+            this._setUISelectedValue(value);
+            if (this.options.onChange) {
+                this.options.onChange(value, this.getFormElement(), this.getUIElement(), e);
+            }
+        }
+
+        /**
+         * Returns the element that represents the div-version of the dropdown.
+         * @returns {HTMLElement|*}
+         */
+
+    }, {
+        key: 'getUIElement',
+        value: function getUIElement() {
+            return this._uiEl;
+        }
+
+        /**
+         * Gets an option element by its value attribute.
+         * @param {string} dataValue - The value attribute of the option desired
+         * @returns {*}
+         * @memberOf Dropdown
+         */
+
+    }, {
+        key: 'getOptionByDataValue',
+        value: function getOptionByDataValue(dataValue) {
+            return this.options.el.querySelectorAll('option[value="' + dataValue + '"]')[0];
+        }
+
+        /**
+         * Gets an UI option element by its data value.
+         * @param dataValue
+         * @returns {*}
+         */
+
+    }, {
+        key: 'getUIOptionByDataValue',
+        value: function getUIOptionByDataValue(dataValue) {
+            return this.getUIElement().querySelectorAll('.' + this.options.optionsClass + '[data-value="' + dataValue + '"]')[0];
+        }
+
+        /**
+         * Gets an option element by its text content.
+         * @param {string} displayValue - The text content that the eleemnt should have in order to be returned
+         * @returns {*|HTMLOptionElement}
+         * @memberOf Dropdown
+         */
+
+    }, {
+        key: 'getOptionByDisplayValue',
+        value: function getOptionByDisplayValue(displayValue) {
+            var optionEls = this.options.el.querySelectorAll('option'),
+                i,
+                count = optionEls.length,
+                option;
+            for (i = 0; i < count; i++) {
+                option = optionEls[i];
+                if (option.textContent === displayValue) {
+                    break;
+                }
+            }
+            return option;
+        }
+
+        /**
+         * Sets the dropdown to a specified value (if there is an option
+         * element with a value attribute that contains the value supplied)
+         * @param {string} dataValue - The value to set the dropdown menu to
+         * @memberOf Dropdown
+         */
+
+    }, {
+        key: 'setValue',
+        value: function setValue(dataValue) {
+            var origOptionEl = this.getOptionByDataValue(this.getValue()),
+                newOptionEl = this.getOptionByDataValue(dataValue),
+                e = document.createEvent('HTMLEvents'),
+                formEl = this.getFormElement();
+
+            e.initEvent('change', false, true);
+
+            // switch selected value because browser doesnt do it for us
+            if (origOptionEl) {
+                origOptionEl.removeAttribute('selected');
+            }
+            if (newOptionEl) {
+                newOptionEl.setAttribute('selected', 'selected');
+                // in most cases, setting attribute (above) also updates the dropdown's value
+                // but for some browsers (like phantomjs), we need to manually set it
+                formEl.value = dataValue;
+                // trigger change event on dropdown
+                formEl.dispatchEvent(e);
+            } else {
+                console.warn('Form Dropdown Error: Cannot call setValue(), dropdown has no option element with a ' + 'value attribute of ' + dataValue + '.');
+            }
+
+            this._setUISelectedValue(dataValue);
+        }
+
+        /**
+         * Updates markup to show new dropdown option values.
+         * @param {Array} optionsData - An array of objects that maps the new data values to display values desired
+         * @param {Object} [options] - Update options
+         * @param {Boolean} [options.replace] - If true, the new options will replace all current options, if false, new options will be merged with current ones
+         */
+
+    }, {
+        key: 'updateOptions',
+        value: function updateOptions(optionsData, options) {
+            var uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+                frag = document.createDocumentFragment(),
+                optionEl;
+
+            options = options || {};
+
+            if (options.replace) {
+                this.clearOptions();
+            }
+            this._updateFormOptionElements(optionsData);
+
+            optionsData.forEach(function (obj) {
+                optionEl = document.createElement('div');
+                optionEl.setAttribute('data-value', obj.dataValue);
+                optionEl.classList.add(this.options.optionsClass);
+                optionEl.innerHTML = obj.displayValue;
+                frag.appendChild(optionEl);
+            }.bind(this));
+            uiOptionsContainer.appendChild(frag);
+        }
+
+        /**
+         * Clears all options in the dropdown.
+         */
+
+    }, {
+        key: 'clearOptions',
+        value: function clearOptions() {
+            var uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+                formEl = this.getFormElement();
             formEl.innerHTML = '';
-        } else {}
-        formEl.appendChild(frag);
-    },
-
-    /**
-     * Disables the dropdown.
-     */
-    disable: function disable() {
-        this.getUIElement().kit.classList.add(this.options.disabledClass);
-        this.getFormElement().disabled = true;
-    },
-
-    /**
-     * Enables the dropdown.
-     */
-    enable: function enable() {
-        this.getUIElement().kit.classList.remove(this.options.disabledClass);
-        this.getFormElement().disabled = false;
-    },
-
-    /**
-     * Clears all options in the dropdown
-     */
-    clear: function clear() {
-        var optionEl = this.getOptionByDataValue('');
-        if (optionEl) {
-            this.setValue('');
+            uiOptionsContainer.innerHTML = '';
         }
-    },
 
-    /**
-     * Returns the text inside the option element that is currently selected.
-     * @returns {*}
-     * @memberOf Dropdown
-     */
-    getDisplayValue: function getDisplayValue() {
-        return this.getOptionByDataValue(this.getValue()).textContent;
-    },
+        /**
+         * Updates markup to show new form elements.
+         * @param {Array} optionsData - An array of objects that maps the new data values to display values desired
+         * @param {boolean} reset - Whether to replace current options, or merge with them
+         * @private
+         */
 
-    /**
-     * Destruction of this class.
-     * @memberOf Dropdown
-     */
-    destroy: function destroy() {
-        var el = this.options.el;
-        this.unbindUIOptionEvents();
-        this._unbindUIElementEvents();
-        el.kit.removeEventListener('change', '_onSelectChange', this);
-        el.style.display = this._origDisplayValue; // put original display back
-        el.tabIndex = this._origTabIndex;
-        // restore html
-        this._wrapperEl.parentNode.replaceChild(el, this._wrapperEl);
-    }
+    }, {
+        key: '_updateFormOptionElements',
+        value: function _updateFormOptionElements(optionsData, reset) {
+            var formEl = this.getFormElement(),
+                frag = document.createDocumentFragment(),
+                optionEl;
+            optionsData.forEach(function (obj) {
+                optionEl = document.createElement('option');
+                optionEl.setAttribute('value', obj.dataValue);
+                optionEl.innerHTML = obj.displayValue;
+                frag.appendChild(optionEl);
+            });
+            if (reset) {
+                formEl.innerHTML = '';
+            } else {}
+            formEl.appendChild(frag);
+        }
 
-});
+        /**
+         * Disables the dropdown.
+         */
+
+    }, {
+        key: 'disable',
+        value: function disable() {
+            this.getUIElement().classList.add(this.options.disabledClass);
+            this.getFormElement().disabled = true;
+        }
+
+        /**
+         * Enables the dropdown.
+         */
+
+    }, {
+        key: 'enable',
+        value: function enable() {
+            this.getUIElement().classList.remove(this.options.disabledClass);
+            this.getFormElement().disabled = false;
+        }
+
+        /**
+         * Clears all options in the dropdown
+         */
+
+    }, {
+        key: 'clear',
+        value: function clear() {
+            var optionEl = this.getOptionByDataValue('');
+            if (optionEl) {
+                this.setValue('');
+            }
+        }
+
+        /**
+         * Returns the text inside the option element that is currently selected.
+         * @returns {*}
+         * @memberOf Dropdown
+         */
+
+    }, {
+        key: 'getDisplayValue',
+        value: function getDisplayValue() {
+            return this.getOptionByDataValue(this.getValue()).textContent;
+        }
+
+        /**
+         * Destruction of this class.
+         * @memberOf Dropdown
+         */
+
+    }, {
+        key: 'destroy',
+        value: function destroy() {
+            var el = this.options.el;
+            this.unbindUIOptionEvents();
+            this._unbindUIElementEvents();
+            this.removeEventListener(el, 'change', '_onSelectChange', this);
+            el.style.display = this._origDisplayValue; // put original display back
+            el.tabIndex = this._origTabIndex;
+            // restore html
+            this._wrapperEl.parentNode.replaceChild(el, this._wrapperEl);
+            _get(Object.getPrototypeOf(Dropdown.prototype), 'destroy', this).call(this);
+        }
+    }]);
+
+    return Dropdown;
+}(_formElement2.default);
 
 module.exports = Dropdown;
 
-},{"./form-element":22,"device-manager":2,"element-kit":3,"underscore":18}],21:[function(require,module,exports){
+},{"./form-element":300,"device-manager":293,"underscore":295}],299:[function(require,module,exports){
 'use strict';
 
-var _ = require('underscore');
-var FormElement = require('./form-element');
-require('element-kit');
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
+var _formElement = require('./form-element');
+
+var _formElement2 = _interopRequireDefault(_formElement);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 /**
  * A callback function that fires when one of the form elements are selected
  * @callback FormElementGroup~onChange
@@ -6279,27 +11598,13 @@ require('element-kit');
  */
 
 /**
- * A callback function that fires when one of the form elements are selected
- * @callback FormElementGroup~onSelect
- * @param {string} value - The value of the input element that was selected
- * @param {HTMLInputElement} input - The input element that was selected
- * @param {HTMLElement} UIElement - The container of the input element that was selected
- */
-
-/**
- * A callback function that fires when one of the form elements are de-selected
- * @callback FormElementGroup~onDeselect
- * @param {string} value - The value of the input element that was de-selected
- * @param {HTMLInputElement} input - The input element that was de-selected
- * @param {HTMLElement} UIElement - The container of the input element that was de-selected
- */
-
-/**
  * Base class to handle grouped form elements.
  * @class FormElementGroup
  * @extends FormElement
  */
-var FormElementGroup = FormElement.extend({
+
+var FormElementGroup = function (_FormElement) {
+    _inherits(FormElementGroup, _FormElement);
 
     /**
      * Initialization.
@@ -6308,15 +11613,15 @@ var FormElementGroup = FormElement.extend({
      * @param {FormElementGroup~onChange} [options.onChange] - A callback function that fires when one of the form elements are selected
      * @param {string} [options.containerClass] - The css class that will be applied to each form element's container
      * @param {string} [options.inputClass] - The css class that will be applied to each form element item (input element)
-     * @param {FormElementGroup~onSelect} [options.onSelect] - A callback function that fires when a form element is selected
-     * @param {FormElementGroup~onDeselect} [options.onDeselect] - A callback function that fires when a form element is deselected
      * @param {string} [options.selectedClass] - The css class that will be applied to a form element item (UI-version) when it is selected
      * @param {string} [options.disabledClass] - The css class that will be applied to a form element item (UI-version) when it is disabled
      * @param {string|Array} [options.value] - The string matching the name attribute of the form element button to have selected initially (or an array of such strings)
      */
-    initialize: function initialize(options) {
 
-        this.options = _.extend({
+    function FormElementGroup(options) {
+        _classCallCheck(this, FormElementGroup);
+
+        options = _underscore2.default.extend({
             inputs: [],
             onChange: null,
             containerClass: 'ui-form-element',
@@ -6326,422 +11631,741 @@ var FormElementGroup = FormElement.extend({
             value: null
         }, options);
 
-        FormElement.prototype.initialize.call(this, this.options);
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(FormElementGroup).call(this, options));
 
-        this._container = this.options.container;
+        _this._container = _this.options.container;
 
-        if (!this.options.inputs.length && this._container) {
-            this.options.inputs = this._container.querySelectorAll('input');
+        if (!_this.options.inputs.length && _this._container) {
+            _this.options.inputs = _this._container.querySelectorAll('input');
         }
 
-        if (!this.options.inputs.length) {
-            console.error('could not build ' + this.getElementKey() + ': no form element input elements were passed');
+        if (!_this.options.inputs.length) {
+            console.error('could not build ' + _this.getElementKey() + ': no form element input elements were passed');
         } else {
-            this.setup();
+            _this.setup();
         }
-    },
+        return _this;
+    }
 
     /**
      * Sets up the form elements.
      */
-    setup: function setup() {
-        this._formElements = this._setupFormElements(this.options.inputs);
-        this._UIElements = this._buildUIElements(this._formElements);
-        this._setupEvents();
-    },
 
-    /**
-     * Sets up form elements.
-     * @param {HTMLCollection|Array} elements - The array of form elements
-     * @returns {Array} Returns the form elements after they've been setup
-     */
-    _setupFormElements: function _setupFormElements(elements) {
-        var value = this.options.value,
-            values = [];
 
-        // convert to real array if HTMLCollection
-        elements = Array.prototype.slice.call(elements);
-
-        if (typeof value === 'string') {
-            values.push(value);
-        } else if (value && value.length) {
-            // assume its an array
-            values = Array.prototype.slice.call(value); //ensure array
+    _createClass(FormElementGroup, [{
+        key: 'setup',
+        value: function setup() {
+            this._formElements = this._setupFormElements(this.options.inputs);
+            this._UIElements = this._buildUIElements(this._formElements);
+            this._setupEvents();
         }
 
-        // perform work on all form element elements, checking them if necessary
-        elements.forEach(function (formElement) {
-            if (values.indexOf(formElement.value) !== -1) {
-                // value exists
-                formElement.checked = true;
+        /**
+         * Sets up form elements.
+         * @param {HTMLCollection|Array} elements - The array of form elements
+         * @returns {Array} Returns the form elements after they've been setup
+         */
+
+    }, {
+        key: '_setupFormElements',
+        value: function _setupFormElements(elements) {
+            var value = this.options.value,
+                values = [];
+
+            // convert to real array if HTMLCollection
+            elements = Array.prototype.slice.call(elements);
+
+            if (typeof value === 'string') {
+                values.push(value);
+            } else if (value && value.length) {
+                // assume its an array
+                values = Array.prototype.slice.call(value); //ensure array
             }
-            // add initial class
-            formElement.kit.classList.add(this.options.inputClass);
-        }.bind(this));
 
-        return elements;
-    },
+            // perform work on all form element elements, checking them if necessary
+            elements.forEach(function (formElement) {
+                if (values.indexOf(formElement.value) !== -1) {
+                    // value exists
+                    formElement.checked = true;
+                }
+                // add initial class
+                formElement.classList.add(this.options.inputClass);
+            }.bind(this));
 
-    /**
-     * Sets up events.
-     * @private
-     */
-    _setupEvents: function _setupEvents() {
-        this.triggerAll(function (formElement) {
-            formElement.kit.addEventListener('click', '_onFormElementClick', this);
-        }.bind(this));
-    },
-
-    /**
-     * Gets all the current input form elements.
-     * @returns {Array|*}
-     */
-    getFormElementGroup: function getFormElementGroup() {
-        return this._formElements || [];
-    },
-
-    /**
-     * Gets all current ui-versions of input form elements.
-     * @returns {Array|*}
-     */
-    getUIElements: function getUIElements() {
-        return this._UIElements || [];
-    },
-
-    /**
-     * Delegator that triggers a callback on each of the current form element elements.
-     * Useful for performing an operation across all elements
-     * @param {Function} callback - The function that should be executed for each input item
-     */
-    triggerAll: function triggerAll(callback) {
-        var i,
-            FormElementGroup = this.getFormElementGroup(),
-            UIElements = this.getUIElements();
-        for (i = 0; i < FormElementGroup.length; i++) {
-            callback(FormElementGroup[i], UIElements[i], i);
+            return elements;
         }
-    },
 
-    /**
-     * When the input field is clicked.
-     * @param {Event} e
-     * @private
-     */
-    _onFormElementClick: function _onFormElementClick(e) {
-        var formEl = e.currentTarget.getElementsByClassName(this.options.inputClass)[0],
-            UIElement = e.currentTarget.getElementsByClassName(this.options.containerClass)[0];
+        /**
+         * Sets up events.
+         * @private
+         */
 
-        // this function will fire multiple times do to events bubbling up
-        // we only care when the event bubbles up to the input field
-        if (e.currentTarget === e.target) {
-            formEl = e.target;
-            UIElement = e.target.parentElement;
-            this._processClick(formEl, UIElement);
+    }, {
+        key: '_setupEvents',
+        value: function _setupEvents() {
+            this.triggerAll(function (formElement, UIElement) {
+                this.addEventListener(formElement, 'click', '_onFormElementClickEventListener', this);
+                this.addEventListener(UIElement, 'click', '_onUIElementClickEventListener', this, true);
+            }.bind(this));
         }
-    },
 
-    /**
-     * A function that should be overridden to process a click on any form element.
-     * @param {HTMLInputElement} formElement
-     * @param {HTMLElement} UIElement
-     * @abstract
-     * @private
-     */
-    _processClick: function _processClick(formElement, UIElement) {},
+        /**
+         * Gets all the current input form elements.
+         * @returns {Array|*}
+         */
 
-    /**
-     * Builds the UI-friendly version of the form elements and wraps them in their appropriate containers.
-     * @param {Array} elements - The input elements
-     * @returns {Array} Returns an array of the ui-versions of the elements
-     * @private
-     */
-    _buildUIElements: function _buildUIElements(elements) {
-        var count = elements.length,
-            arr = [],
-            i,
-            formElement,
-            UIElement;
-        for (i = 0; i < count; i++) {
-            formElement = elements[i];
-            UIElement = formElement.kit.appendOuterHtml('<div class="' + this.options.containerClass + '"></div>');
-            // add selected class if selected initially
-            if (formElement.checked) {
-                UIElement.kit.classList.add(this.options.selectedClass);
+    }, {
+        key: 'getFormElementGroup',
+        value: function getFormElementGroup() {
+            return this._formElements || [];
+        }
+
+        /**
+         * Gets all current ui-versions of input form elements.
+         * @returns {Array|*}
+         */
+
+    }, {
+        key: 'getUIElements',
+        value: function getUIElements() {
+            return this._UIElements || [];
+        }
+
+        /**
+         * Delegator that triggers a callback on each of the current form element elements.
+         * Useful for performing an operation across all elements
+         * @param {Function} callback - The function that should be executed for each input item
+         */
+
+    }, {
+        key: 'triggerAll',
+        value: function triggerAll(callback) {
+            var i,
+                FormElementGroup = this.getFormElementGroup(),
+                UIElements = this.getUIElements();
+            for (i = 0; i < FormElementGroup.length; i++) {
+                callback(FormElementGroup[i], UIElements[i], i);
             }
-            if (formElement.disabled) {
-                UIElement.kit.classList.add(this.options.disabledClass);
+        }
+
+        /**
+         * When one of the UI elements (or its parent <label>) is clicked.
+         * @param {Event} e
+         * @private
+         */
+
+    }, {
+        key: '_onFormElementClickEventListener',
+        value: function _onFormElementClickEventListener(e) {
+            var formElement = e.target;
+            var UIElement = formElement.parentElement;
+            if (e.target === e.currentTarget) {
+                this._onFormElementClick(formElement, UIElement);
             }
-            arr.push(UIElement);
         }
-        return arr;
-    },
 
-    /**
-     * Triggers a change on the form element.
-     * @param {HTMLInputElement} formElement - The input element
-     * @param {HTMLElement} UIElement - The ui element
-     */
-    triggerChange: function triggerChange(formElement, UIElement) {
-        if (this.options.onChange) {
-            this.options.onChange(formElement.value, formElement, UIElement);
-        }
-    },
+        /**
+         * An abstract method to handle clicks to any given form element
+         * @param {HTMLInputElement} formElement - The form element that was clicked
+         * @param {HTMLElement} UIElement - The UI version of the form element that was clicked
+         * @private
+         * @abstract
+         */
 
-    /**
-     * Selects the form element item.
-     * @param {Number} index - The index of the form element item
-     */
-    select: function select(index) {
-        var input = this.getFormElement(index),
-            uiEl = this.getUIElement(index);
-        if (!input.checked) {
-            input.checked = true;
-            uiEl.kit.classList.add(this.options.selectedClass);
-            this.triggerChange(input, uiEl);
-        }
-    },
+    }, {
+        key: '_onFormElementClick',
+        value: function _onFormElementClick(formElement, UIElement) {}
 
-    /**
-     * De-selects the form element item.
-     * @param {Number} index - The index of the form element item
-     */
-    deselect: function deselect(index) {
-        var input = this.getFormElement(index),
-            uiEl = this.getUIElement(index);
-        uiEl.kit.classList.remove(this.options.selectedClass);
-        if (input.checked) {
-            input.checked = false;
-            this.triggerChange(input, uiEl);
-        }
-    },
+        /**
+         * When one of the UI elements (or its parent <label>) is clicked.
+         * @param {Event} e
+         * @private
+         */
 
-    /**
-     * Gets the selected value of the form element.
-     * @returns {Array} Returns the value of the currently selected form elements
-     */
-    getValue: function getValue() {
-        var values = [];
-        this.getFormElementGroup().forEach(function (el) {
-            if (el.checked) {
-                values.push(el.value);
+    }, {
+        key: '_onUIElementClickEventListener',
+        value: function _onUIElementClickEventListener(e) {
+            var formElement;
+            var UIElement;
+            // respond to clicks made to the UI element ONLY
+            if (e.target === e.currentTarget && e.target.classList.contains(this.options.containerClass)) {
+                // we are preventing default here to ensure default
+                // checkbox is not going to be checked since
+                // we're updating the checked boolean manually later
+                e.preventDefault();
+                UIElement = e.target;
+                formElement = e.target.getElementsByClassName(this.options.inputClass)[0];
+                this._onUIElementClick(formElement, UIElement);
             }
-        }, this);
-        return values;
-    },
+        }
 
-    /**
-     * Selects the form element that matches the supplied value.
-     * @param {string|Array} value - The value of the form element that should be selected
-     */
-    setValue: function setValue(value) {
-        this.getFormElementGroup().forEach(function (el, idx) {
-            if (el.value === value || value.indexOf(el.value) !== -1) {
-                this.select(idx);
-            } else {
+        /**
+         * An abstract method to handle clicks to any given UI element
+         * @param {HTMLInputElement} formElement - The form element nested under the UI element that was clicked
+         * @param {HTMLElement} UIElement - The UI version of the form element that was clicked
+         * @private
+         * @abstract
+         */
+
+    }, {
+        key: '_onUIElementClick',
+        value: function _onUIElementClick(formElement, UIElement) {}
+
+        /**
+         * Builds the UI-friendly version of the form elements and wraps them in their appropriate containers.
+         * @param {Array} elements - The input elements
+         * @returns {Array} Returns an array of the ui-versions of the elements
+         * @private
+         */
+
+    }, {
+        key: '_buildUIElements',
+        value: function _buildUIElements(elements) {
+            var count = elements.length,
+                arr = [],
+                i,
+                formElement,
+                UIElement;
+            for (i = 0; i < count; i++) {
+                formElement = elements[i];
+                UIElement = this._buildContainerEl(formElement);
+                // add selected class if selected initially
+                if (formElement.checked) {
+                    UIElement.classList.add(this.options.selectedClass);
+                }
+                if (formElement.disabled) {
+                    UIElement.classList.add(this.options.disabledClass);
+                }
+                arr.push(UIElement);
+            }
+            return arr;
+        }
+
+        /**
+         * Wraps the passed element inside of a custom container element.
+         * @param {HTMLElement} el - The element to be wrapped inside of the container
+         * @returns {Element} Returns the container element that contains the passed el
+         * @private
+         */
+
+    }, {
+        key: '_buildContainerEl',
+        value: function _buildContainerEl(el) {
+            var parent = el.parentNode;
+            var outerEl = document.createElement('div');
+            outerEl.classList.add(this.options.containerClass);
+            parent.replaceChild(outerEl, el);
+            outerEl.appendChild(el);
+            return outerEl;
+        }
+
+        /**
+         * Triggers a change on the form element.
+         * @param {HTMLInputElement} formElement - The input element
+         * @param {HTMLElement} UIElement - The ui element
+         */
+
+    }, {
+        key: 'triggerChange',
+        value: function triggerChange(formElement, UIElement) {
+            if (this.options.onChange) {
+                this.options.onChange(formElement.value, formElement, UIElement);
+            }
+        }
+
+        /**
+         * Selects the form element item.
+         * @param {Number} index - The index of the form element item
+         */
+
+    }, {
+        key: 'select',
+        value: function select(index) {
+            var input = this.getFormElement(index),
+                uiEl = this.getUIElement(index);
+            if (!input.checked) {
+                input.checked = true;
+                uiEl.classList.add(this.options.selectedClass);
+                this.triggerChange(input, uiEl);
+            }
+        }
+
+        /**
+         * De-selects the form element item.
+         * @param {Number} index - The index of the form element item
+         */
+
+    }, {
+        key: 'deselect',
+        value: function deselect(index) {
+            var input = this.getFormElement(index),
+                uiEl = this.getUIElement(index);
+            uiEl.classList.remove(this.options.selectedClass);
+            if (input.checked) {
+                input.checked = false;
+                this.triggerChange(input, uiEl);
+            }
+        }
+
+        /**
+         * Gets the selected value of the form element.
+         * @returns {Array} Returns the value of the currently selected form elements
+         */
+
+    }, {
+        key: 'getValue',
+        value: function getValue() {
+            var values = [];
+            this.getFormElementGroup().forEach(function (el) {
+                if (el.checked) {
+                    values.push(el.value);
+                }
+            }, this);
+            return values;
+        }
+
+        /**
+         * Selects the form element that matches the supplied value.
+         * @param {string|Array} value - The value of the form element that should be selected
+         */
+
+    }, {
+        key: 'setValue',
+        value: function setValue(value) {
+            this.getFormElementGroup().forEach(function (el, idx) {
+                if (el.value === value || value.indexOf(el.value) !== -1) {
+                    this.select(idx);
+                } else {
+                    this.deselect(idx);
+                }
+            }, this);
+        }
+
+        /**
+         * Gets the form element input element by an index.
+         * @param {Number} [index] - The index of the form element input element
+         * @returns {HTMLInputElement} Returns the checkbox input element
+         */
+
+    }, {
+        key: 'getFormElement',
+        value: function getFormElement(index) {
+            return this.getFormElementGroup()[index || 0];
+        }
+
+        /**
+         * Gets the ui-version of the form element element.
+         * @param {Number} [index] - The index of the form element element
+         * @returns {HTMLElement} Returns the checkbox div element.
+         */
+
+    }, {
+        key: 'getUIElement',
+        value: function getUIElement(index) {
+            return this.getUIElements()[index || 0];
+        }
+
+        /**
+         * Deselects all form elements.
+         */
+
+    }, {
+        key: 'clear',
+        value: function clear() {
+            this.triggerAll(function (formElement, UIElement, idx) {
                 this.deselect(idx);
-            }
-        }, this);
-    },
+            }.bind(this));
+        }
 
-    /**
-     * Gets the form element input element by an index.
-     * @param {Number} [index] - The index of the form element input element
-     * @returns {HTMLInputElement} Returns the checkbox input element
-     */
-    getFormElement: function getFormElement(index) {
-        return this.getFormElementGroup()[index || 0];
-    },
+        /**
+         * Enables the form element.
+         */
 
-    /**
-     * Gets the ui-version of the form element element.
-     * @param {Number} [index] - The index of the form element element
-     * @returns {HTMLElement} Returns the checkbox div element.
-     */
-    getUIElement: function getUIElement(index) {
-        return this.getUIElements()[index || 0];
-    },
+    }, {
+        key: 'enable',
+        value: function enable() {
+            this.triggerAll(function (formElement, UIElement) {
+                formElement.disabled = false;
+                UIElement.classList.remove(this.options.disabledClass);
+            }.bind(this));
+        }
 
-    /**
-     * Deselects all form elements.
-     */
-    clear: function clear() {
-        this.triggerAll(function (formElement, UIElement, idx) {
-            this.deselect(idx);
-        }.bind(this));
-    },
+        /**
+         * Disables the form element.
+         */
 
-    /**
-     * Enables the form element.
-     */
-    enable: function enable() {
-        this.triggerAll(function (formElement, UIElement) {
-            formElement.disabled = false;
-            UIElement.kit.classList.remove(this.options.disabledClass);
-        }.bind(this));
-    },
+    }, {
+        key: 'disable',
+        value: function disable() {
+            this.triggerAll(function (formElement, UIElement) {
+                formElement.disabled = true;
+                UIElement.classList.add(this.options.disabledClass);
+            }.bind(this));
+        }
 
-    /**
-     * Disables the form element.
-     */
-    disable: function disable() {
-        this.triggerAll(function (formElement, UIElement) {
-            formElement.disabled = true;
-            UIElement.kit.classList.add(this.options.disabledClass);
-        }.bind(this));
-    },
+        /**
+         * Gets the unique identifier for form elements.
+         * @returns {string}
+         */
 
-    /**
-     * Gets the unique identifier for form elements.
-     * @returns {string}
-     */
-    getElementKey: function getElementKey() {
-        return 'FormElementGroup';
-    },
+    }, {
+        key: 'getElementKey',
+        value: function getElementKey() {
+            return 'FormElementGroup';
+        }
 
-    /**
-     * Destruction of this class.
-     */
-    destroy: function destroy() {
-        this.triggerAll(function (formElement, UIElement) {
-            UIElement.parentNode.replaceChild(formElement, UIElement);
-            formElement.addEventListener('click', '_onFormElementClick', this);
-        }.bind(this));
-        FormElement.prototype.destroy.call(this);
-    }
+        /**
+         * Destruction of this class.
+         */
 
-});
+    }, {
+        key: 'destroy',
+        value: function destroy() {
+            this.triggerAll(function (formElement, UIElement) {
+                UIElement.parentNode.replaceChild(formElement, UIElement);
+                this.removeEventListener(formElement, 'click', '_onFormElementClickEventListener', this);
+                this.removeEventListener(UIElement, 'click', '_onUIElementClickEventListener', this, true);
+            }.bind(this));
+            _get(Object.getPrototypeOf(FormElementGroup.prototype), 'destroy', this).call(this);
+        }
+    }]);
+
+    return FormElementGroup;
+}(_formElement2.default);
 
 module.exports = FormElementGroup;
 
-},{"./form-element":22,"element-kit":3,"underscore":18}],22:[function(require,module,exports){
+},{"./form-element":300,"underscore":295}],300:[function(require,module,exports){
 'use strict';
+// Import babel's polyfill here to allow for new Map() constructor
 
-var _ = require('underscore');
-var Module = require('module-js');
-require('element-kit');
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+require('babel-polyfill');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * Bubbles up each parent node of the element, triggering the callback on each element until traversal
+ * either runs out of parent nodes, reaches the document element, or if callback returns a falsy value
+ * @param {HTMLElement} [startEl] - The element where traversal will begin (including the passed element), defaults to current el
+ * @param {Function} callback - A callback that fires which gets passed the current element
+ */
+var traverseEachParent = function traverseEachParent(startEl, callback) {
+    var parentNode = startEl.parentNode || startEl,
+        predicate;
+    // check if the node has classname property, if not, we know we're at the #document element
+    while (parentNode && typeof parentNode.className === 'string') {
+        predicate = callback(parentNode);
+        if (predicate !== undefined && !predicate) {
+            break;
+        }
+        parentNode = parentNode.parentNode;
+    }
+};
 
 /**
  * @class FormElement
  * @description An extendable base class that provides common functionality among all form elements.
  */
-var FormElement = Module.extend({
 
-  /**
-   * Sets up stuff.
-   * @abstract
-   * @param {Object} options - Instantiation options
-   */
-  initialize: function initialize(options) {
-    this.options = options || {};
-  },
+var FormElement = function () {
 
-  /**
-   * Gets the form element.
-   * @returns {HTMLElement} Returns the form element
-   * @abstract
-   */
-  getFormElement: function getFormElement() {
-    return this.options.el;
-  },
+    /**
+     * Sets up stuff.
+     * @abstract
+     * @param {Object} options - Instantiation options
+     */
 
-  /**
-   * Gets the ui version of the form element.
-   * @returns {HTMLElement} Returns the ui-version of the element.
-   * @abstract
-   */
-  getUIElement: function getUIElement() {
-    return this.getFormElement();
-  },
+    function FormElement(options) {
+        _classCallCheck(this, FormElement);
 
-  /**
-   * Gets the form elements.
-   * @returns {Array} Returns the array of form elements
-   * @abstract
-   */
-  getFormElements: function getFormElements() {
-    return [this.getFormElement()];
-  },
-
-  /**
-   * Gets the current value of the element.
-   * @returns {string}
-   * @abstract
-   */
-  getValue: function getValue() {
-    return this.getFormElement().value;
-  },
-
-  /**
-   * Sets the value of the form element.
-   * @param {string} value - The new value
-   * @abstract
-   */
-  setValue: function setValue(value) {
-    var el = this.getFormElements()[0];
-    if (el) {
-      el.value = value;
+        this.options = options || {};
+        this._eventListeners = new Map();
     }
-  },
 
-  /**
-   * Clears the element.
-   * @abstract
-   */
-  clear: function clear() {},
+    /**
+     * Gets the form element.
+     * @returns {HTMLElement} Returns the form element
+     * @abstract
+     */
 
-  /**
-   * Gets the ui versions of the form elements.
-   * @returns {Array} Returns the array of ui-versions of the element.
-   * @abstract
-   */
-  getUIElements: function getUIElements() {
-    return [this.getUIElement()];
-  },
 
-  /**
-   * Enables the form element.
-   * @abstract
-   */
-  enable: function enable() {
-    this.getFormElement().disabled = false;
-  },
+    _createClass(FormElement, [{
+        key: 'getFormElement',
+        value: function getFormElement() {
+            return this.options.el;
+        }
 
-  /**
-   * Disables the form element.
-   * @abstract
-   */
-  disable: function disable() {
-    this.getFormElement().disabled = true;
-  },
+        /**
+         * Gets the ui version of the form element.
+         * @returns {HTMLElement} Returns the ui-version of the element.
+         * @abstract
+         */
 
-  /**
-   * Gets the element's identifier (preferably unique from all other elements that extend this class).
-   * @returns {string} Return the unique key
-   * @abstract
-   */
-  getElementKey: function getElementKey() {
-    return 'element';
-  }
+    }, {
+        key: 'getUIElement',
+        value: function getUIElement() {
+            return this.getFormElement();
+        }
 
-});
+        /**
+         * Gets the form elements.
+         * @returns {Array} Returns the array of form elements
+         * @abstract
+         */
+
+    }, {
+        key: 'getFormElements',
+        value: function getFormElements() {
+            return [this.getFormElement()];
+        }
+
+        /**
+         * Gets the current value of the element.
+         * @returns {string}
+         * @abstract
+         */
+
+    }, {
+        key: 'getValue',
+        value: function getValue() {
+            return this.getFormElement().value;
+        }
+
+        /**
+         * Sets the value of the form element.
+         * @param {string} value - The new value
+         * @abstract
+         */
+
+    }, {
+        key: 'setValue',
+        value: function setValue(value) {
+            var el = this.getFormElements()[0];
+            if (el) {
+                el.value = value;
+            }
+        }
+
+        /**
+         * Clears the element.
+         * @abstract
+         */
+
+    }, {
+        key: 'clear',
+        value: function clear() {}
+
+        /**
+         * Gets the ui versions of the form elements.
+         * @returns {Array} Returns the array of ui-versions of the element.
+         * @abstract
+         */
+
+    }, {
+        key: 'getUIElements',
+        value: function getUIElements() {
+            return [this.getUIElement()];
+        }
+
+        /**
+         * Enables the form element.
+         * @abstract
+         */
+
+    }, {
+        key: 'enable',
+        value: function enable() {
+            this.getFormElement().disabled = false;
+        }
+
+        /**
+         * Disables the form element.
+         * @abstract
+         */
+
+    }, {
+        key: 'disable',
+        value: function disable() {
+            this.getFormElement().disabled = true;
+        }
+
+        /**
+         * Gets the element's identifier (preferably unique from all other elements that extend this class).
+         * @returns {string} Return the unique key
+         * @abstract
+         */
+
+    }, {
+        key: 'addEventListener',
+
+
+        /**
+         * Adds an event listener to an element.
+         * @param {HTMLElement} element - The element to add the listener to
+         * @param {String} eventName - The name of the event
+         * @param {String} method - The name of the method to call when event fires
+         * @param {Object} [context] - The context in which to call the method parameter
+         * @param {Boolean} [useCapture] - Whether to use capture
+         */
+        value: function addEventListener(element, eventName, method, context, useCapture) {
+            context = context || this;
+            var listener = context[method].bind(context);
+            element.addEventListener(eventName, listener, useCapture);
+            this._eventListeners.set(listener, {
+                name: eventName,
+                el: element,
+                method: method,
+                context: context
+            });
+        }
+
+        /**
+         * Gets the closest ancestor element that has a css class.
+         * @param {HTMLElement} el - The element of which to get the closest ancestor
+         * @param {string} className - The class name that the ancestor must have to match
+         */
+
+    }, {
+        key: 'getClosestAncestorElementByClassName',
+        value: function getClosestAncestorElementByClassName(el, className) {
+            var result = null;
+            traverseEachParent(el, function (parent) {
+                if (parent.classList.contains(className)) {
+                    result = parent;
+                    return false;
+                }
+            });
+            return result;
+        }
+
+        /**
+         * Removes an event listener from an element.
+         * @param {HTMLElement} element - The element to add the listener to
+         * @param {String} eventName - The name of the event
+         * @param {String} method - The name of the method to call when event fires
+         * @param {Object} [context] - The context in which to call the method parameter
+         * @param {Boolean} [useCapture] - Whether to use capture
+         */
+
+    }, {
+        key: 'removeEventListener',
+        value: function removeEventListener(element, eventName, method, context, useCapture) {
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = this._eventListeners[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var _step$value = _slicedToArray(_step.value, 2);
+
+                    var listener = _step$value[0];
+                    var obj = _step$value[1];
+
+                    if (obj.el === element && obj.name === eventName && obj.context === context && obj.method === method) {
+                        element.removeEventListener(eventName, listener, useCapture);
+                        this._eventListeners.delete(listener);
+                        break;
+                    }
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+        }
+
+        /**
+         * Removes all event listeners.
+         */
+
+    }, {
+        key: 'destroy',
+        value: function destroy() {
+            var _this = this;
+
+            this._eventListeners.forEach(function (obj) {
+                _this.removeEventListener(obj.el, obj.name, obj.method, obj.context);
+            });
+            this._eventListeners.clear();
+        }
+    }], [{
+        key: 'getElementKey',
+        value: function getElementKey() {
+            return 'element';
+        }
+    }]);
+
+    return FormElement;
+}();
 
 module.exports = FormElement;
 
-},{"element-kit":3,"module-js":16,"underscore":18}],23:[function(require,module,exports){
+},{"babel-polyfill":2}],301:[function(require,module,exports){
 /* global Platform */
 'use strict';
 
-var _ = require('underscore');
-var Module = require('module-js');
-var Dropdown = require('./dropdown');
-var InputField = require('./input-field');
-var Checkbox = require('./checkbox');
-var Radios = require('./radios');
-var TextArea = require('./text-area');
-var SubmitButton = require('./submit-button');
-var ObjectObserver = require("observe-js").ObjectObserver;
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-require('element-kit');
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
+var _dropdown = require('./dropdown');
+
+var _dropdown2 = _interopRequireDefault(_dropdown);
+
+var _inputField = require('./input-field');
+
+var _inputField2 = _interopRequireDefault(_inputField);
+
+var _checkbox = require('./checkbox');
+
+var _checkbox2 = _interopRequireDefault(_checkbox);
+
+var _checkboxes = require('./checkboxes');
+
+var _checkboxes2 = _interopRequireDefault(_checkboxes);
+
+var _formElement = require('./form-element');
+
+var _formElement2 = _interopRequireDefault(_formElement);
+
+var _formElementGroup = require('./form-element-group');
+
+var _formElementGroup2 = _interopRequireDefault(_formElementGroup);
+
+var _radios = require('./radios');
+
+var _radios2 = _interopRequireDefault(_radios);
+
+var _textArea = require('./text-area');
+
+var _textArea2 = _interopRequireDefault(_textArea);
+
+var _submitButton = require('./submit-button');
+
+var _submitButton2 = _interopRequireDefault(_submitButton);
+
+var _observeJs = require('observe-js');
+
+var _observeJs2 = _interopRequireDefault(_observeJs);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
  * The function that fires when the input value changes
@@ -6768,7 +12392,8 @@ require('element-kit');
  * Utility class for form elements.
  * @class Form
  */
-var Form = Module.extend({
+
+var Form = function () {
 
     /**
      * Sets up the form.
@@ -6787,9 +12412,11 @@ var Form = Module.extend({
      * @param {Object} [options.data] - An object mapping the form elements name attributes (keys) to their values which will be binded to form's fields
      * @param {Number} [options.legacyDataPollTime] - The amount of time (in milliseconds) to poll for options.data changes for browsers that do not support native data observing
      */
-    initialize: function initialize(options) {
 
-        this.options = _.extend({
+    function Form(options) {
+        _classCallCheck(this, Form);
+
+        options = _underscore2.default.extend({
             el: null,
             onValueChange: null,
             onGetOptions: null,
@@ -6805,405 +12432,484 @@ var Form = Module.extend({
             legacyDataPollTime: 125
         }, options);
 
+        this.options = options;
+
         // okay to cache here because its a "live" html collection -- yay!
         this.formEls = this.options.el.elements;
 
         this._formInstances = [];
         this._moduleCount = 0;
-        Module.prototype.initialize.call(this, this.options);
-    },
+        this.subModules = {};
+    }
 
     /**
      * Sets up data map so that we're observing its changes.
      * @returns {Object}
      * @private
      */
-    _setupDataMapping: function _setupDataMapping(rawData) {
-        var data = {};
-        if (rawData) {
-            data = rawData;
 
-            // if Object.observe is not supported, we poll data every 125 milliseconds
-            if (!Object.observe) {
-                this._legacyDataPollTimer = window.setInterval(function () {
-                    Platform.performMicrotaskCheckpoint();
-                }, this.options.legacyDataPollTime);
-            }
 
-            // sync any changes made on data map to options data
-            this._observer = new ObjectObserver(data);
-            this._observer.open(function (added, removed, changed) {
-                var mashup = _.extend(added, removed, changed);
-                Object.keys(mashup).forEach(function (n) {
-                    this.getInstanceByName(n).setValue(mashup[n]);
+    _createClass(Form, [{
+        key: '_setupDataMapping',
+        value: function _setupDataMapping(rawData) {
+            var data = {};
+            if (rawData) {
+                data = rawData;
+
+                // if Object.observe is not supported, we poll data every 125 milliseconds
+                if (!Object.observe) {
+                    this._legacyDataPollTimer = window.setInterval(function () {
+                        Platform.performMicrotaskCheckpoint();
+                    }, this.options.legacyDataPollTime);
+                }
+
+                // sync any changes made on data map to options data
+                this._observer = new _observeJs2.default.ObjectObserver(data);
+                this._observer.open(function (added, removed, changed) {
+                    var mashup = _underscore2.default.extend(added, removed, changed);
+                    Object.keys(mashup).forEach(function (n) {
+                        this.getInstanceByName(n).setValue(mashup[n]);
+                    }.bind(this));
                 }.bind(this));
-            }.bind(this));
-        }
-        return data;
-    },
-
-    /**
-     * Returns a mapping of ids to their associated form option and selector.
-     */
-    _getSelectorMap: function _getSelectorMap() {
-        return {
-            dropdown: {
-                option: this.options.dropdownClass,
-                selector: 'select',
-                tag: 'select'
-            },
-            checkbox: {
-                option: this.options.checkboxClass,
-                tag: 'input',
-                types: ['checkbox']
-            },
-            input: {
-                option: this.options.inputFieldClass,
-                tag: 'input',
-                types: ['password', 'email', 'number', 'text', 'date', 'datetime', 'month', 'search', 'range', 'time', 'week', 'tel', 'color', 'datetime-local']
-            },
-            radio: {
-                option: this.options.radioClass,
-                tag: 'input',
-                types: ['radio']
-            },
-            textarea: {
-                option: this.options.textAreaClass,
-                tag: 'textarea'
             }
-        };
-    },
-
-    /**
-     * Sets up the form and instantiates all necessary element classes.
-     */
-    setup: function setup() {
-        var submitButtonEl = this.options.el.getElementsByClassName(this.options.submitButtonClass)[0];
-
-        this._setupInstances(this._getInstanceEls('dropdown'), Dropdown);
-        this._setupInstances(this._getInstanceEls('checkbox'), Checkbox);
-        this._setupInstances(this._getInstanceEls('input'), InputField);
-        this._setupInstances(this._getInstanceEls('textarea'), TextArea);
-
-        // group radio button toggles by name before instantiating
-        var radios = this._getInstanceEls('radio');
-        _.each(this.mapElementsByAttribute(radios, 'name'), function (els) {
-            this._setupInstance(els, Radios, {}, 'inputs');
-        }, this);
-
-        if (submitButtonEl) {
-            this.subModules.submitButton = new SubmitButton({
-                el: submitButtonEl,
-                disabledClass: this.options.submitButtonDisabledClass,
-                onClick: this.options.onSubmitButtonClick
-            });
+            return data;
         }
-        this._setupDataMapping(this.options.data);
-    },
 
-    /**
-     * Gets the matching form elements, based on the supplied type.
-     * @param {string} type - The type identifier (i.e. "dropdown", "checkbox", "input")
-     * @returns {Array|HTMLCollection} Returns an array of matching elements
-     * @private
-     */
-    _getInstanceEls: function _getInstanceEls(type) {
-        var formEl = this.options.el,
-            elements = [],
-            map = this._getSelectorMap();
+        /**
+         * Returns a mapping of ids to their associated form option and selector.
+         */
 
-        map = map[type] || {};
+    }, {
+        key: '_getSelectorMap',
+        value: function _getSelectorMap() {
+            return {
+                dropdown: {
+                    option: this.options.dropdownClass,
+                    selector: 'select',
+                    tag: 'select'
+                },
+                checkbox: {
+                    option: this.options.checkboxClass,
+                    tag: 'input',
+                    types: ['checkbox']
+                },
+                input: {
+                    option: this.options.inputFieldClass,
+                    tag: 'input',
+                    types: ['password', 'email', 'number', 'text', 'date', 'datetime', 'month', 'search', 'range', 'time', 'week', 'tel', 'color', 'datetime-local']
+                },
+                radio: {
+                    option: this.options.radioClass,
+                    tag: 'input',
+                    types: ['radio']
+                },
+                textarea: {
+                    option: this.options.textAreaClass,
+                    tag: 'textarea'
+                }
+            };
+        }
 
-        // we are strategically grabbing elements by "tagName" to ensure we have a LIVE HTMLCollection
-        // instead of an ineffective, non-live NodeList (i.e. querySelector), can we say, "less state management"!
+        /**
+         * Sets up the form and instantiates all necessary element classes.
+         */
 
-        if (map.option) {
-            elements = formEl.getElementsByClassName(map.option);
-        } else if (map.types) {
-            map.types.forEach(function (val) {
-                (this.mapElementsByAttribute(this.formEls, 'type')[val] || []).forEach(function (el) {
-                    elements.push(el);
-                });
+    }, {
+        key: 'setup',
+        value: function setup() {
+            var submitButtonEl = this.options.el.getElementsByClassName(this.options.submitButtonClass)[0];
+
+            this._setupInstances(this._getInstanceEls('dropdown'), _dropdown2.default);
+            this._setupInstances(this._getInstanceEls('checkbox'), _checkbox2.default);
+            this._setupInstances(this._getInstanceEls('input'), _inputField2.default);
+            this._setupInstances(this._getInstanceEls('textarea'), _textArea2.default);
+
+            // group radio button toggles by name before instantiating
+            var radios = this._getInstanceEls('radio');
+            _underscore2.default.each(this.mapElementsByAttribute(radios, 'name'), function (els) {
+                this._setupInstance(els, _radios2.default, {}, 'inputs');
             }, this);
-        } else if (map.tag) {
-            elements = formEl.getElementsByTagName(map.tag);
-        }
-        return elements;
-    },
 
-    /**
-     * Creates a single instance of a class for each of the supplied elements.
-     * @param {HTMLCollection|Array} elements - The set of elements to instance the class on
-     * @param {Function} View - The class to instantiate
-     * @param {Object} [options] - The options to be passed to instantiation
-     * @param {string} [elKey] - The key to use as the "el"
-     * @private
-     */
-    _setupInstances: function _setupInstances(elements, View, options, elKey) {
-        var count = elements.length,
-            i;
-        if (count) {
-            for (i = 0; i < count; i++) {
-                this._setupInstance(elements[i], View, options, elKey);
+            if (submitButtonEl) {
+                this.subModules.submitButton = new _submitButton2.default({
+                    el: submitButtonEl,
+                    disabledClass: this.options.submitButtonDisabledClass,
+                    onClick: this.options.onSubmitButtonClick
+                });
             }
+            this._setupDataMapping(this.options.data);
         }
-    },
 
-    /**
-     * Creates a single instance of a class using multiple elements.
-     * @param {Array|HTMLCollection} els - The elements for which to setup an instance
-     * @param {Function} View - The class to instantiate
-     * @param {Object} [options] - The options to be passed to instantiation
-     * @param {string} [elKey] - The key to use as the "el"
-     * @private
-     */
-    _setupInstance: function _setupInstance(els, View, options, elKey) {
-        elKey = elKey || 'el';
-        var formOptions = this.options;
-        var finalOptions = this._buildOptions(els, options);
-        finalOptions[elKey] = els; // dont allow custom options to override the el!
+        /**
+         * Gets the matching form elements, based on the supplied type.
+         * @param {string} type - The type identifier (i.e. "dropdown", "checkbox", "input")
+         * @returns {Array|HTMLCollection} Returns an array of matching elements
+         * @private
+         */
 
-        // assign value to form element if a data object was passed in options
-        els = els.length ? Array.prototype.slice.call(els) : [els]; //ensure array
-        var name = els[0].name;
-        if (formOptions.data && typeof formOptions.data[name] !== 'function' && formOptions.data.hasOwnProperty(name)) {
-            finalOptions.value = finalOptions.value || formOptions.data[name];
+    }, {
+        key: '_getInstanceEls',
+        value: function _getInstanceEls(type) {
+            var formEl = this.options.el,
+                elements = [],
+                map = this._getSelectorMap();
+
+            map = map[type] || {};
+
+            // we are strategically grabbing elements by "tagName" to ensure we have a LIVE HTMLCollection
+            // instead of an ineffective, non-live NodeList (i.e. querySelector), can we say, "less state management"!
+
+            if (map.option) {
+                elements = formEl.getElementsByClassName(map.option);
+            } else if (map.types) {
+                map.types.forEach(function (val) {
+                    (this.mapElementsByAttribute(this.formEls, 'type')[val] || []).forEach(function (el) {
+                        elements.push(el);
+                    });
+                }, this);
+            } else if (map.tag) {
+                elements = formEl.getElementsByTagName(map.tag);
+            }
+            return elements;
         }
-        this._moduleCount++;
-        var instance = this.subModules['fe' + this._moduleCount] = new View(finalOptions);
-        this._formInstances.push(instance);
-    },
 
-    /**
-     * Maps all supplied elements by an attribute.
-     * @param {Array|HTMLCollection|NodeList} elements
-     * @param {string} attr - The attribute to map by (the values will be the keys in the map returned)
-     * @returns {Object} Returns the final object
-     */
-    mapElementsByAttribute: function mapElementsByAttribute(elements, attr) {
-        var map = {},
-            count = elements.length,
-            i,
-            el;
-        if (count) {
-            for (i = 0; i < count; i++) {
-                el = elements[i];
-                if (map[el[attr]]) {
-                    map[el[attr]].push(el);
-                } else {
-                    map[el[attr]] = [el];
+        /**
+         * Creates a single instance of a class for each of the supplied elements.
+         * @param {HTMLCollection|Array} elements - The set of elements to instance the class on
+         * @param {Function} View - The class to instantiate
+         * @param {Object} [options] - The options to be passed to instantiation
+         * @param {string} [elKey] - The key to use as the "el"
+         * @private
+         */
+
+    }, {
+        key: '_setupInstances',
+        value: function _setupInstances(elements, View, options, elKey) {
+            var count = elements.length,
+                i;
+            if (count) {
+                for (i = 0; i < count; i++) {
+                    this._setupInstance(elements[i], View, options, elKey);
                 }
             }
         }
-        return map;
-    },
 
-    /**
-     * Takes a set of elements and maps them by their name attributes.
-     * @param {HTMLCollection|Array|NodeList} elements - An array of elements
-     * @returns {{}} Returns an object with name/elements mapping
-     * @deprecated since 2.0.0
-     */
-    mapElementsByName: function mapElementsByName(elements) {
-        return this.mapElementsByAttribute(elements, 'name');
-    },
+        /**
+         * Creates a single instance of a class using multiple elements.
+         * @param {Array|HTMLCollection} els - The elements for which to setup an instance
+         * @param {Function} View - The class to instantiate
+         * @param {Object} [options] - The options to be passed to instantiation
+         * @param {string} [elKey] - The key to use as the "el"
+         * @private
+         */
 
-    /**
-     * Returns the instance (if there is one) of an element with a specified name attribute
-     * @param {string} name - The name attribute of the element whos instance is desired
-     * @returns {Object} Returns the instance that matches the name specified
-     * @TODO: this method should return an array because there could be multiple form elements with the same name!
-     */
-    getInstanceByName: function getInstanceByName(name) {
-        var i, instance;
+    }, {
+        key: '_setupInstance',
+        value: function _setupInstance(els, View, options, elKey) {
+            elKey = elKey || 'el';
+            var formOptions = this.options;
+            var finalOptions = this._buildOptions(els, options);
+            finalOptions[elKey] = els; // dont allow custom options to override the el!
 
-        for (i = 0; i < this._formInstances.length; i++) {
-            instance = this._formInstances[i];
-            if (instance.getFormElement().name === name) {
-                break;
+            // assign value to form element if a data object was passed in options
+            els = els.length ? Array.prototype.slice.call(els) : [els]; //ensure array
+            var name = els[0].name;
+            if (formOptions.data && typeof formOptions.data[name] !== 'function' && formOptions.data.hasOwnProperty(name)) {
+                finalOptions.value = finalOptions.value || formOptions.data[name];
+            }
+            this._moduleCount++;
+            var instance = this.subModules['fe' + this._moduleCount] = new View(finalOptions);
+            this._formInstances.push(instance);
+        }
+
+        /**
+         * Maps all supplied elements by an attribute.
+         * @param {Array|HTMLCollection|NodeList} elements
+         * @param {string} attr - The attribute to map by (the values will be the keys in the map returned)
+         * @returns {Object} Returns the final object
+         */
+
+    }, {
+        key: 'mapElementsByAttribute',
+        value: function mapElementsByAttribute(elements, attr) {
+            var map = {},
+                count = elements.length,
+                i,
+                el;
+            if (count) {
+                for (i = 0; i < count; i++) {
+                    el = elements[i];
+                    if (map[el[attr]]) {
+                        map[el[attr]].push(el);
+                    } else {
+                        map[el[attr]] = [el];
+                    }
+                }
+            }
+            return map;
+        }
+
+        /**
+         * Returns the instance (if there is one) of an element with a specified name attribute
+         * @param {string} name - The name attribute of the element whos instance is desired
+         * @returns {Object} Returns the instance that matches the name specified
+         * @TODO: this method should return an array because there could be multiple form elements with the same name!
+         */
+
+    }, {
+        key: 'getInstanceByName',
+        value: function getInstanceByName(name) {
+            var i, instance;
+
+            for (i = 0; i < this._formInstances.length; i++) {
+                instance = this._formInstances[i];
+                if (instance.getFormElement().name === name) {
+                    break;
+                }
+            }
+            return instance;
+        }
+
+        /**
+         * Builds the initialize options for an element.
+         * @param {HTMLElement|Array} el - The element (or if radio buttons, an array of elements)
+         * @param {Object} options - The beginning set of options
+         * @returns {*|{}}
+         * @private
+         */
+
+    }, {
+        key: '_buildOptions',
+        value: function _buildOptions(el, options) {
+            options = options || {};
+
+            if (this.options.onGetOptions) {
+                options = _underscore2.default.extend({}, options, this.options.onGetOptions(el));
+            }
+            options.onChange = function (value, inputEl, UIElement) {
+                this._onValueChange(value, inputEl, UIElement);
+            }.bind(this);
+            return options;
+        }
+
+        /**
+         * When any form element's value changes.
+         * @param {string} value - The new value
+         * @param {HTMLElement} el - The element that triggered value change
+         * @param {HTMLElement} ui - The UI version of the element
+         * @private
+         */
+
+    }, {
+        key: '_onValueChange',
+        value: function _onValueChange(value, el, ui) {
+            var name = el.name,
+                formOptionsData = this.options.data || {},
+                mapValue = formOptionsData[name];
+
+            // update data map
+            if (typeof mapValue === 'function') {
+                // function, so call it
+                mapValue(value);
+            } else if (formOptionsData.hasOwnProperty(name)) {
+                formOptionsData[name] = value;
+            }
+
+            if (this.options.onValueChange) {
+                this.options.onValueChange(value, el, ui);
+            }
+            if (this.options.onChange) {
+                this.options.onChange(value, el, ui);
             }
         }
-        return instance;
-    },
 
-    /**
-     * Builds the initialize options for an element.
-     * @param {HTMLElement|Array} el - The element (or if radio buttons, an array of elements)
-     * @param {Object} options - The beginning set of options
-     * @returns {*|{}}
-     * @private
-     */
-    _buildOptions: function _buildOptions(el, options) {
-        options = options || {};
+        /**
+         * Disables all form elements.
+         */
 
-        if (this.options.onGetOptions) {
-            options = _.extend({}, options, this.options.onGetOptions(el));
-        }
-        options.onChange = function (value, inputEl, UIElement) {
-            this._onValueChange(value, inputEl, UIElement);
-        }.bind(this);
-        return options;
-    },
-
-    /**
-     * When any form element's value changes.
-     * @param {string} value - The new value
-     * @param {HTMLElement} el - The element that triggered value change
-     * @param {HTMLElement} ui - The UI version of the element
-     * @private
-     */
-    _onValueChange: function _onValueChange(value, el, ui) {
-        var name = el.name,
-            formOptionsData = this.options.data || {},
-            mapValue = formOptionsData[name];
-
-        // update data map
-        if (typeof mapValue === 'function') {
-            // function, so call it
-            mapValue(value);
-        } else if (formOptionsData.hasOwnProperty(name)) {
-            formOptionsData[name] = value;
-        }
-
-        if (this.options.onValueChange) {
-            this.options.onValueChange(value, el, ui);
-        }
-        if (this.options.onChange) {
-            this.options.onChange(value, el, ui);
-        }
-    },
-
-    /**
-     * Disables all form elements.
-     */
-    disable: function disable() {
-        var els = this.formEls,
-            i,
-            submitButton = this.getSubmitButtonInstance();
-        this.setPropertyAll('disabled', true);
-        // add disabled css classes
-        for (i = 0; i < els.length; i++) {
-            els[i].kit.classList.add('disabled');
-        }
-        if (submitButton) {
-            submitButton.disable();
-        }
-    },
-
-    /**
-     * Enables all form elements.
-     */
-    enable: function enable() {
-        var els = this.formEls,
-            i,
-            submitButton = this.getSubmitButtonInstance();
-        this.setPropertyAll('disabled', false);
-        // remove disabled css classes
-        for (i = 0; i < els.length; i++) {
-            els[i].kit.classList.remove('disabled');
-        }
-        if (submitButton) {
-            submitButton.disable();
-        }
-    },
-
-    /**
-     * Sets a property on all form elements.
-     * @TODO: this function still exists until this class can cover ALL possible form elements (i.e. radio buttons)
-     * @param {string} prop - The property to change
-     * @param {*} value - The value to set
-     */
-    setPropertyAll: function setPropertyAll(prop, value) {
-        var i,
-            els = this.formEls;
-        for (i = 0; i < els.length; i++) {
-            els[i][prop] = value;
-        }
-    },
-
-    /**
-     * Triggers a method on all form instances.
-     * @param {string} method - The method
-     * @param {...*} params - Any params for the method from here, onward
-     */
-    triggerMethodAll: function triggerMethodAll(method, params) {
-        var args = Array.prototype.slice.call(arguments, 1),
-            i,
-            instance;
-
-        for (i = 0; i < this._formInstances.length; i++) {
-            instance = this._formInstances[i];
-            instance[method].apply(instance, args);
-        }
-    },
-
-    /**
-     * Clears all form items.
-     */
-    clear: function clear() {
-        this.triggerMethodAll('clear');
-    },
-
-    /**
-     * Gets an object that maps all fields to their current name/value pairs.
-     * @returns {Array} Returns an array of objects
-     */
-    getCurrentValues: function getCurrentValues() {
-        var map = [],
-            fields = this.options.el.querySelectorAll('[name]'),
-            fieldCount = fields.length,
-            i,
-            field,
-            obj;
-        for (i = 0; i < fieldCount; i++) {
-            field = fields[i];
-            // only add fields with a name attribute
-            if (field.name) {
-                obj = {
-                    name: field.name,
-                    // fallback to value attribute when .value can't be trusted (i.e. input[type=date])
-                    value: field.value,
-                    //value: field.value || field.getAttribute('value')
-                    required: field.required,
-                    disabled: field.disabled,
-                    formElement: field
-                };
-                map.push(obj);
+    }, {
+        key: 'disable',
+        value: function disable() {
+            var els = this.formEls,
+                i,
+                submitButton = this.getSubmitButtonInstance();
+            this.setPropertyAll('disabled', true);
+            // add disabled css classes
+            for (i = 0; i < els.length; i++) {
+                els[i].classList.add('disabled');
+            }
+            if (submitButton) {
+                submitButton.disable();
             }
         }
-        return map;
-    },
 
-    /**
-     * Returns the submit button instance.
-     * @returns {Object}
-     */
-    getSubmitButtonInstance: function getSubmitButtonInstance() {
-        return this.subModules.submitButton;
-    },
+        /**
+         * Enables all form elements.
+         */
 
-    /**
-     * Cleans up some stuff.
-     */
-    destroy: function destroy() {
-        window.clearInterval(this._legacyDataPollTimer);
-        if (this._observer) {
-            this._observer.close();
+    }, {
+        key: 'enable',
+        value: function enable() {
+            var els = this.formEls,
+                i,
+                submitButton = this.getSubmitButtonInstance();
+            this.setPropertyAll('disabled', false);
+            // remove disabled css classes
+            for (i = 0; i < els.length; i++) {
+                els[i].classList.remove('disabled');
+            }
+            if (submitButton) {
+                submitButton.disable();
+            }
         }
-        Module.prototype.destroy.call(this);
-    }
 
-});
+        /**
+         * Sets a property on all form elements.
+         * @TODO: this function still exists until this class can cover ALL possible form elements (i.e. radio buttons)
+         * @param {string} prop - The property to change
+         * @param {*} value - The value to set
+         */
+
+    }, {
+        key: 'setPropertyAll',
+        value: function setPropertyAll(prop, value) {
+            var i,
+                els = this.formEls;
+            for (i = 0; i < els.length; i++) {
+                els[i][prop] = value;
+            }
+        }
+
+        /**
+         * Triggers a method on all form instances.
+         * @param {string} method - The method
+         * @param {...*} params - Any params for the method from here, onward
+         */
+
+    }, {
+        key: 'triggerMethodAll',
+        value: function triggerMethodAll(method, params) {
+            var args = Array.prototype.slice.call(arguments, 1),
+                i,
+                instance;
+
+            for (i = 0; i < this._formInstances.length; i++) {
+                instance = this._formInstances[i];
+                instance[method].apply(instance, args);
+            }
+        }
+
+        /**
+         * Clears all form items.
+         */
+
+    }, {
+        key: 'clear',
+        value: function clear() {
+            this.triggerMethodAll('clear');
+        }
+
+        /**
+         * Gets an object that maps all fields to their current name/value pairs.
+         * @returns {Array} Returns an array of objects
+         */
+
+    }, {
+        key: 'getCurrentValues',
+        value: function getCurrentValues() {
+            var map = [],
+                fields = this.options.el.querySelectorAll('[name]'),
+                fieldCount = fields.length,
+                i,
+                field,
+                obj;
+            for (i = 0; i < fieldCount; i++) {
+                field = fields[i];
+                // only add fields with a name attribute
+                if (field.name) {
+                    obj = {
+                        name: field.name,
+                        // fallback to value attribute when .value can't be trusted (i.e. input[type=date])
+                        value: field.value,
+                        //value: field.value || field.getAttribute('value')
+                        required: field.required,
+                        disabled: field.disabled,
+                        formElement: field
+                    };
+                    map.push(obj);
+                }
+            }
+            return map;
+        }
+
+        /**
+         * Returns the submit button instance.
+         * @returns {Object}
+         */
+
+    }, {
+        key: 'getSubmitButtonInstance',
+        value: function getSubmitButtonInstance() {
+            return this.subModules.submitButton;
+        }
+
+        /**
+         * Cleans up some stuff.
+         */
+
+    }, {
+        key: 'destroy',
+        value: function destroy() {
+            window.clearInterval(this._legacyDataPollTimer);
+            if (this._observer) {
+                this._observer.close();
+            }
+            for (var key in this.subModules) {
+                if (this.subModules.hasOwnProperty(key) && this.subModules[key]) {
+                    this.subModules[key].destroy();
+                }
+            }
+        }
+    }]);
+
+    return Form;
+}();
+
+Form.Checkbox = _checkbox2.default;
+Form.Checkboxes = _checkboxes2.default;
+Form.Dropdown = _dropdown2.default;
+Form.FormElement = _formElement2.default;
+Form.FormElementGroup = _formElementGroup2.default;
+Form.InputField = _inputField2.default;
+Form.Radios = _radios2.default;
+Form.SubmitButton = _submitButton2.default;
+Form.TextArea = _textArea2.default;
 
 module.exports = Form;
 
-},{"./checkbox":19,"./dropdown":20,"./input-field":24,"./radios":25,"./submit-button":26,"./text-area":27,"element-kit":3,"module-js":16,"observe-js":17,"underscore":18}],24:[function(require,module,exports){
+},{"./checkbox":296,"./checkboxes":297,"./dropdown":298,"./form-element":300,"./form-element-group":299,"./input-field":302,"./radios":303,"./submit-button":304,"./text-area":305,"observe-js":294,"underscore":295}],302:[function(require,module,exports){
 'use strict';
 
-var _ = require('underscore');
-var FormElement = require('./form-element');
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-require('element-kit');
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
+var _formElement = require('./form-element');
+
+var _formElement2 = _interopRequireDefault(_formElement);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 /**
  * The function that fires when the input value changes
  * @callback InputField~onChange
@@ -7227,7 +12933,9 @@ require('element-kit');
  * @class InputField
  * @extends FormElement
  */
-var InputField = FormElement.extend({
+
+var InputField = function (_FormElement) {
+    _inherits(InputField, _FormElement);
 
     /**
      * Initializes the Input Field class.
@@ -7241,9 +12949,11 @@ var InputField = FormElement.extend({
      * @param {string} [options.activeClass] - The css class that will be applied to the input field container element when in focus
      * @param {string} [options.value] - An initial value to set the input field to
      */
-    initialize: function initialize(options) {
 
-        this.options = _.extend({
+    function InputField(options) {
+        _classCallCheck(this, InputField);
+
+        options = _underscore2.default.extend({
             el: null,
             onChange: null,
             onKeyDownChange: null,
@@ -7254,234 +12964,317 @@ var InputField = FormElement.extend({
             value: null
         }, options);
 
-        FormElement.prototype.initialize.call(this, this.options);
-        this.setup();
-    },
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(InputField).call(this, options));
+
+        _this.options = options;
+        _this.setup();
+        return _this;
+    }
 
     /**
      * Sets up events for showing/hiding tooltip.
      */
-    setup: function setup() {
-        var input = this.options.el,
-            optionsValue = this.options.value || input.value;
 
-        // add internal class if doesnt already exist
-        input.kit.classList.add(this.options.inputClass);
 
-        this._container = this._buildUIElement(input);
-        this._inputEl = this._container.getElementsByClassName(this.options.inputClass)[0];
+    _createClass(InputField, [{
+        key: 'setup',
+        value: function setup() {
+            var input = this.options.el,
+                optionsValue = this.options.value || input.value;
 
-        if (input.value !== optionsValue) {
-            input.value = optionsValue;
+            // add internal class if doesnt already exist
+            input.classList.add(this.options.inputClass);
+
+            this._container = this._buildUIElement(input);
+            this._inputEl = this._container.getElementsByClassName(this.options.inputClass)[0];
+
+            if (input.value !== optionsValue) {
+                input.value = optionsValue;
+            }
+
+            this.origInputValue = optionsValue;
+            this.isInitDisabled = input.disabled;
+
+            // handle disabled state
+            if (this.isInitDisabled) {
+                this._container.classList.add(this.options.disabledClass);
+            }
+
+            this._bindEvents();
         }
 
-        this.origInputValue = optionsValue;
-        this.isInitDisabled = input.disabled;
+        /**
+         * Sets up events.
+         * @private
+         */
 
-        // handle disabled state
-        if (this.isInitDisabled) {
-            this._container.kit.classList.add(this.options.disabledClass);
+    }, {
+        key: '_bindEvents',
+        value: function _bindEvents() {
+            var input = this.getFormElement();
+            this.addEventListener(input, 'focus', '_onInputFocus', this);
+            this.addEventListener(input, 'blur', '_onInputBlur', this);
+            this.addEventListener(input, 'change', '_onInputValueChange', this);
+            this.addEventListener(input, 'keydown', '_onInputKeyDown', this);
         }
 
-        this._bindEvents();
-    },
+        /**
+         * Destroys events.
+         * @private
+         */
 
-    /**
-     * Sets up events.
-     * @private
-     */
-    _bindEvents: function _bindEvents() {
-        var input = this.getFormElement();
-        input.kit.addEventListener('focus', '_onInputFocus', this);
-        input.kit.addEventListener('blur', '_onInputBlur', this);
-        input.kit.addEventListener('change', '_onInputValueChange', this);
-        input.kit.addEventListener('keydown', '_onInputKeyDown', this);
-    },
-
-    /**
-     * Destroys events.
-     * @private
-     */
-    _unbindEvents: function _unbindEvents() {
-        var input = this.getFormElement();
-        input.kit.removeEventListener('focus', '_onInputFocus', this);
-        input.kit.removeEventListener('blur', '_onInputBlur', this);
-        input.kit.removeEventListener('change', '_onInputValueChange', this);
-        input.kit.removeEventListener('keydown', '_onInputKeyDown', this);
-    },
-
-    /**
-     * When a key is pressed down while inside the input field.
-     * @param {Event} e
-     * @private
-     */
-    _onInputKeyDown: function _onInputKeyDown(e) {
-        if (this.keyDownTimeoutId) {
-            clearTimeout(this.keyDownTimeoutId);
+    }, {
+        key: '_unbindEvents',
+        value: function _unbindEvents() {
+            var input = this.getFormElement();
+            this.removeEventListener(input, 'focus', '_onInputFocus', this);
+            this.removeEventListener(input, 'blur', '_onInputBlur', this);
+            this.removeEventListener(input, 'change', '_onInputValueChange', this);
+            this.removeEventListener(input, 'keydown', '_onInputKeyDown', this);
         }
-        // to ensure we have the most up-to-date the input field value,
-        // we must defer the update evaluation until after 1 millisecond
-        this.keyDownTimeoutId = setTimeout(this._triggerKeyDownChange.bind(this, e), 1);
-    },
 
-    /**
-     * Triggers a change event.
-     * @param e
-     * @private
-     */
-    _triggerKeyDownChange: function _triggerKeyDownChange(e) {
-        if (this.options.onKeyDownChange) {
-            this.options.onKeyDownChange(this.getFormElement(), this.getUIElement(), e);
+        /**
+         * When a key is pressed down while inside the input field.
+         * @param {Event} e
+         * @private
+         */
+
+    }, {
+        key: '_onInputKeyDown',
+        value: function _onInputKeyDown(e) {
+            if (this.keyDownTimeoutId) {
+                clearTimeout(this.keyDownTimeoutId);
+            }
+            // to ensure we have the most up-to-date the input field value,
+            // we must defer the update evaluation until after 1 millisecond
+            this.keyDownTimeoutId = setTimeout(this._triggerKeyDownChange.bind(this, e), 1);
         }
-    },
 
-    /**
-     * Sets the value of the input field.
-     * @param {string} value - The new input field value
-     */
-    setValue: function setValue(value) {
-        var input = this.getFormElement(),
-            currentVal = input.value;
-        if (value !== currentVal) {
-            input.value = value;
-            this._triggerChange();
+        /**
+         * Triggers a change event.
+         * @param e
+         * @private
+         */
+
+    }, {
+        key: '_triggerKeyDownChange',
+        value: function _triggerKeyDownChange(e) {
+            if (this.options.onKeyDownChange) {
+                this.options.onKeyDownChange(this.getFormElement(), this.getUIElement(), e);
+            }
         }
-    },
 
-    /**
-     * Gets the current input field value.
-     * @returns {string} Returns current value
-     */
-    getValue: function getValue() {
-        return this.getFormElement().value;
-    },
+        /**
+         * Sets the value of the input field.
+         * @param {string} value - The new input field value
+         */
 
-    /**
-     * Builds the UI-friendly version of input field by wrapping it inside of a container.
-     * @param {HTMLInputElement} inputEl - The input element
-     * @returns {HTMLElement} Returns the input element wrapped in its container
-     * @private
-     */
-    _buildUIElement: function _buildUIElement(inputEl) {
-        return inputEl.kit.appendOuterHtml('<div class="' + this.options.containerClass + '"></div>');
-    },
-
-    /**
-     * When the input gains focus.
-     * @private
-     */
-    _onInputFocus: function _onInputFocus() {
-        this.getUIElement().kit.classList.add(this.options.activeClass);
-    },
-
-    /**
-     * When the input loses focus.
-     * @private
-     */
-    _onInputBlur: function _onInputBlur() {
-        this.getUIElement().kit.classList.remove(this.options.activeClass);
-    },
-
-    /**
-     * Triggers a value change.
-     * @private
-     */
-    _triggerChange: function _triggerChange(e) {
-        var args = [this.getValue(), this.getFormElement(), this.getUIElement()];
-        if (e) {
-            args.push(e);
+    }, {
+        key: 'setValue',
+        value: function setValue(value) {
+            var input = this.getFormElement(),
+                currentVal = input.value;
+            if (value !== currentVal) {
+                input.value = value;
+                this._triggerChange();
+            }
         }
-        if (this.options.onChange) {
-            this.options.onChange.apply(this, args);
+
+        /**
+         * Gets the current input field value.
+         * @returns {string} Returns current value
+         */
+
+    }, {
+        key: 'getValue',
+        value: function getValue() {
+            return this.getFormElement().value;
         }
-    },
 
-    /**
-     * When the input value changes.
-     * @param {Event} e - The event that was triggered
-     * @private
-     */
-    _onInputValueChange: function _onInputValueChange(e) {
-        this._triggerChange(e);
-    },
+        /**
+         * Builds the UI-friendly version of input field by wrapping it inside of a container.
+         * @param {HTMLInputElement} inputEl - The input element
+         * @returns {HTMLElement} Returns the newly-created container element with the nested input element
+         * @private
+         */
 
-    /**
-     * Gets the input field element.
-     * @returns {HTMLInputElement} Returns the input field element
-     */
-    getFormElement: function getFormElement() {
-        return this._inputEl;
-    },
-
-    /**
-     * Gets the input field div element.
-     * @returns {HTMLElement} Returns the checkbox div element.
-     */
-    getUIElement: function getUIElement() {
-        return this._container;
-    },
-
-    /**
-     * Enables the button toggle.
-     */
-    enable: function enable() {
-        this.getFormElement().removeAttribute('disabled');
-        this.getUIElement().kit.classList.remove(this.options.disabledClass);
-    },
-
-    /**
-     * Disables the button toggle.
-     */
-    disable: function disable() {
-        this.getFormElement().setAttribute('disabled', 'true');
-        this.getUIElement().kit.classList.add(this.options.disabledClass);
-    },
-
-    /**
-     * Sets the input to nothing.
-     */
-    clear: function clear() {
-        this.setValue('');
-    },
-
-    /**
-     * Gets the unique identifier for input fields.
-     * @returns {string}
-     */
-    getElementKey: function getElementKey() {
-        return 'inputText';
-    },
-
-    /**
-     * Destruction of this class.
-     */
-    destroy: function destroy() {
-        var container = this.getUIElement(),
-            input = this.getFormElement();
-
-        this._unbindEvents();
-
-        container.parentNode.replaceChild(input, container);
-
-        if (this.isInitDisabled) {
-            input.setAttribute('disabled', 'true');
+    }, {
+        key: '_buildUIElement',
+        value: function _buildUIElement(inputEl) {
+            var parent = inputEl.parentNode;
+            var outerEl = document.createElement('div');
+            outerEl.classList.add(this.options.containerClass);
+            parent.replaceChild(outerEl, inputEl);
+            outerEl.appendChild(inputEl);
+            return outerEl;
         }
-        // set original value back
-        this.setValue(this.origInputValue);
 
-        FormElement.prototype.destroy.call(this);
-    }
+        /**
+         * When the input gains focus.
+         * @private
+         */
 
-});
+    }, {
+        key: '_onInputFocus',
+        value: function _onInputFocus() {
+            this.getUIElement().classList.add(this.options.activeClass);
+        }
+
+        /**
+         * When the input loses focus.
+         * @private
+         */
+
+    }, {
+        key: '_onInputBlur',
+        value: function _onInputBlur() {
+            this.getUIElement().classList.remove(this.options.activeClass);
+        }
+
+        /**
+         * Triggers a value change.
+         * @private
+         */
+
+    }, {
+        key: '_triggerChange',
+        value: function _triggerChange(e) {
+            var args = [this.getValue(), this.getFormElement(), this.getUIElement()];
+            if (e) {
+                args.push(e);
+            }
+            if (this.options.onChange) {
+                this.options.onChange.apply(this, args);
+            }
+        }
+
+        /**
+         * When the input value changes.
+         * @param {Event} e - The event that was triggered
+         * @private
+         */
+
+    }, {
+        key: '_onInputValueChange',
+        value: function _onInputValueChange(e) {
+            this._triggerChange(e);
+        }
+
+        /**
+         * Gets the input field element.
+         * @returns {HTMLInputElement} Returns the input field element
+         */
+
+    }, {
+        key: 'getFormElement',
+        value: function getFormElement() {
+            return this._inputEl;
+        }
+
+        /**
+         * Gets the input field div element.
+         * @returns {HTMLElement} Returns the checkbox div element.
+         */
+
+    }, {
+        key: 'getUIElement',
+        value: function getUIElement() {
+            return this._container;
+        }
+
+        /**
+         * Enables the button toggle.
+         */
+
+    }, {
+        key: 'enable',
+        value: function enable() {
+            this.getFormElement().removeAttribute('disabled');
+            this.getUIElement().classList.remove(this.options.disabledClass);
+        }
+
+        /**
+         * Disables the button toggle.
+         */
+
+    }, {
+        key: 'disable',
+        value: function disable() {
+            this.getFormElement().setAttribute('disabled', 'true');
+            this.getUIElement().classList.add(this.options.disabledClass);
+        }
+
+        /**
+         * Sets the input to nothing.
+         */
+
+    }, {
+        key: 'clear',
+        value: function clear() {
+            this.setValue('');
+        }
+
+        /**
+         * Gets the unique identifier for input fields.
+         * @returns {string}
+         */
+
+    }, {
+        key: 'getElementKey',
+        value: function getElementKey() {
+            return 'inputText';
+        }
+
+        /**
+         * Destruction of this class.
+         */
+
+    }, {
+        key: 'destroy',
+        value: function destroy() {
+            var container = this.getUIElement(),
+                input = this.getFormElement();
+
+            this._unbindEvents();
+
+            container.parentNode.replaceChild(input, container);
+
+            if (this.isInitDisabled) {
+                input.setAttribute('disabled', 'true');
+            }
+            // set original value back
+            this.setValue(this.origInputValue);
+
+            _get(Object.getPrototypeOf(InputField.prototype), 'destroy', this).call(this);
+        }
+    }]);
+
+    return InputField;
+}(_formElement2.default);
 
 module.exports = InputField;
 
-},{"./form-element":22,"element-kit":3,"underscore":18}],25:[function(require,module,exports){
+},{"./form-element":300,"underscore":295}],303:[function(require,module,exports){
 'use strict';
 
-var _ = require('underscore');
-var FormElementGroup = require('./form-element-group');
-require('element-kit');
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
+var _formElementGroup = require('./form-element-group');
+
+var _formElementGroup2 = _interopRequireDefault(_formElementGroup);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 /**
  * A callback function that fires when one of the radio button elements are selected
  * @callback Radios~onChange
@@ -7491,27 +13284,13 @@ require('element-kit');
  */
 
 /**
- * A callback function that fires when one of the radio button elements are selected
- * @callback Radios~onSelect
- * @param {string} value - The value of the input element that was selected
- * @param {HTMLInputElement} input - The input element that was selected
- * @param {HTMLElement} UIElement - The container of the input element that was selected
- */
-
-/**
- * A callback function that fires when one of the radio button elements are de-selected
- * @callback Radios~onDeselect
- * @param {string} value - The value of the input element that was de-selected
- * @param {HTMLInputElement} input - The input element that was de-selected
- * @param {HTMLElement} UIElement - The container of the input element that was de-selected
- */
-
-/**
  * Groups radio buttons elements.
  * @class Radios
  * @extends FormElement
  */
-var Radios = FormElementGroup.extend({
+
+var Radios = function (_FormElementGroup) {
+    _inherits(Radios, _FormElementGroup);
 
     /**
      * Initialization.
@@ -7520,15 +13299,15 @@ var Radios = FormElementGroup.extend({
      * @param {Radios~onChange} [options.onChange] - A callback function that fires when one of the toggle elements are selected
      * @param {string} [options.containerClass] - The css class that will be applied to each toggle item's container
      * @param {string} [options.inputClass] - The css class that will be applied to each toggle item (input element)
-     * @param {Radios~onSelect} [options.onSelect] - A callback function that fires when the radio button element is selected
-     * @param {Radios~onDeselect} [options.onDeselect] - A callback function that fires when the radio button element is deselected
      * @param {string} [options.selectedClass] - The css class that will be applied to a radio button item (UI-version) when it is selected
      * @param {string} [options.disabledClass] - The css class that will be applied to a radio button item (UI-version) when it is disabled
      * @param {string|Array} [options.value] - The string matching the name attribute of the toggle button to have selected initially (or an array of such strings)
      */
-    initialize: function initialize(options) {
 
-        this.options = _.extend({
+    function Radios(options) {
+        _classCallCheck(this, Radios);
+
+        options = _underscore2.default.extend({
             inputs: [],
             onChange: null,
             containerClass: 'ui-radio',
@@ -7538,148 +13317,236 @@ var Radios = FormElementGroup.extend({
             value: null
         }, options);
 
-        FormElementGroup.prototype.initialize.call(this, this.options);
-    },
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Radios).call(this, options));
+
+        _this.options = options;
+        return _this;
+    }
 
     /**
-     * When one of the radio elements are clicked.
+     * When one of the radio input elements are clicked.
      * @param {HTMLInputElement} formElement - The radio button element
      * @param {HTMLElement} UIElement - The ui element
      * @private
      */
-    _processClick: function _processClick(formElement, UIElement) {
-        // radio buttons should only trigger a change if the clicked item isnt already selected
-        if (this._lastRadioClicked !== formElement) {
-            this.triggerAll(function (formElement, UIElement) {
-                UIElement.kit.classList.remove(this.options.selectedClass);
-                formElement.checked = false;
-            }.bind(this));
-            formElement.checked = true;
-            UIElement.kit.classList.add(this.options.selectedClass);
-            this.triggerChange(formElement, UIElement);
-            this._lastRadioClicked = formElement;
-        }
-    },
 
-    /**
-     * Selects the toggle item.
-     * @param {Number} index - The index of the toggle item
-     */
-    select: function select(index) {
-        var input = this.getFormElement(index),
-            toggle = this.getUIElement(index);
-        if (!input.checked) {
-            input.checked = true;
-            toggle.kit.classList.add(this.options.selectedClass);
-            this.triggerChange(input, toggle);
-        }
 
-        this.triggerAll(function (formElement, UIElement, idx) {
-            if (!formElement.checked) {
-                // deselect all other toggles if they are radio buttons
-                this.deselect(idx);
+    _createClass(Radios, [{
+        key: '_onFormElementClick',
+        value: function _onFormElementClick(formElement, UIElement) {
+            var _this2 = this;
+
+            if (this._lastRadioClicked !== formElement) {
+                this.triggerAll(function (formEl, UIEl) {
+                    if (!formEl.checked) {
+                        UIEl.classList.remove(_this2.options.selectedClass);
+                    } else {
+                        UIEl.classList.add(_this2.options.selectedClass);
+                    }
+                });
+                this._lastRadioClicked = formElement;
+                this.triggerChange(formElement, UIElement);
             }
-        }.bind(this));
-    },
+        }
 
-    /**
-     * Gets the unique identifier for radio buttons.
-     * @returns {string}
-     */
-    getElementKey: function getElementKey() {
-        return 'radios';
-    }
+        /**
+         * When one of the radio UI elements are clicked.
+         * @param {HTMLInputElement} formElement - The radio button element
+         * @param {HTMLElement} UIElement - The ui element
+         * @private
+         */
 
-});
+    }, {
+        key: '_onUIElementClick',
+        value: function _onUIElementClick(formElement, UIElement) {
+            var _this3 = this;
+
+            if (this._lastRadioClicked !== formElement) {
+                this.triggerAll(function (formEl, UIEl) {
+                    if (formEl !== formElement) {
+                        UIEl.classList.remove(_this3.options.selectedClass);
+                        formEl.checked = false;
+                    } else {
+                        UIEl.classList.add(_this3.options.selectedClass);
+                        formEl.checked = true;
+                    }
+                });
+                this._lastRadioClicked = formElement;
+                this.triggerChange(formElement, UIElement);
+            }
+        }
+
+        /**
+         * Selects the toggle item.
+         * @param {Number} index - The index of the toggle item
+         */
+
+    }, {
+        key: 'select',
+        value: function select(index) {
+            var input = this.getFormElement(index),
+                toggle = this.getUIElement(index);
+            if (!input.checked) {
+                input.checked = true;
+                toggle.classList.add(this.options.selectedClass);
+                this.triggerChange(input, toggle);
+            }
+
+            this.triggerAll(function (formElement, UIElement, idx) {
+                if (!formElement.checked) {
+                    // deselect all other toggles if they are radio buttons
+                    this.deselect(idx);
+                }
+            }.bind(this));
+        }
+
+        /**
+         * Gets the unique identifier for radio buttons.
+         * @returns {string}
+         */
+
+    }, {
+        key: 'getElementKey',
+        value: function getElementKey() {
+            return 'radios';
+        }
+    }]);
+
+    return Radios;
+}(_formElementGroup2.default);
 
 module.exports = Radios;
 
-},{"./form-element-group":21,"element-kit":3,"underscore":18}],26:[function(require,module,exports){
+},{"./form-element-group":299,"underscore":295}],304:[function(require,module,exports){
 'use strict';
 
-var _ = require('underscore');
-var Module = require('module-js');
-require('element-kit');
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
  * @class SubmitButton
  */
-var SubmitButton = Module.extend({
+
+var SubmitButton = function () {
 
     /**
      * Sets up stuff.
      * @abstract
      * @param {Object} options - Instantiation options
      */
-    initialize: function initialize(options) {
-        this.options = _.extend({
+
+    function SubmitButton(options) {
+        _classCallCheck(this, SubmitButton);
+
+        options = _underscore2.default.extend({
             el: null,
             disabledClass: 'disabled',
             onClick: null
         }, options);
 
-        Module.prototype.initialize.call(this, this.options);
-
-        this.options.el.kit.addEventListener('click', 'onClick', this);
-    },
+        this.options = options;
+        this._onClickEventListener = this.onClick.bind(this);
+        this.options.el.addEventListener('click', this._onClickEventListener);
+    }
 
     /**
      * When the submit button is clicked.
      * @param e
      */
-    onClick: function onClick(e) {
-        if (this.options.onClick) {
-            this.options.onClick(e);
+
+
+    _createClass(SubmitButton, [{
+        key: 'onClick',
+        value: function onClick(e) {
+            if (this.options.onClick) {
+                this.options.onClick(e);
+            }
         }
-    },
 
-    /**
-     * Returns the submit button element
-     * @returns {HTMLElement} the submit button
-     * @abstract
-     */
-    getSubmitButton: function getSubmitButton() {
-        return this.options.el;
-    },
+        /**
+         * Returns the submit button element
+         * @returns {HTMLElement} the submit button
+         * @abstract
+         */
 
-    /**
-     * Enables the form element.
-     * @abstract
-     */
-    enable: function enable() {
-        var btn = this.getSubmitButton();
-        btn.disabled = false;
-        btn.classList.remove(this.options.disabledClass);
-    },
+    }, {
+        key: 'getSubmitButton',
+        value: function getSubmitButton() {
+            return this.options.el;
+        }
 
-    /**
-     * Disables the form element.
-     * @abstract
-     */
-    disable: function disable() {
-        var btn = this.getSubmitButton();
-        btn.disabled = true;
-        btn.classList.add(this.options.disabledClass);
-    },
+        /**
+         * Enables the form element.
+         * @abstract
+         */
 
-    /**
-     * Removes event listeners.
-     */
-    destroy: function destroy() {
-        this.options.el.kit.removeEventListener('click', 'onClick', this);
-        Module.prototype.destroy.call(this);
-    }
-});
+    }, {
+        key: 'enable',
+        value: function enable() {
+            var btn = this.getSubmitButton();
+            btn.disabled = false;
+            btn.classList.remove(this.options.disabledClass);
+        }
+
+        /**
+         * Disables the form element.
+         * @abstract
+         */
+
+    }, {
+        key: 'disable',
+        value: function disable() {
+            var btn = this.getSubmitButton();
+            btn.disabled = true;
+            btn.classList.add(this.options.disabledClass);
+        }
+
+        /**
+         * Removes event listeners.
+         */
+
+    }, {
+        key: 'destroy',
+        value: function destroy() {
+            this.options.el.removeEventListener('click', this._onClickEventListener);
+        }
+    }]);
+
+    return SubmitButton;
+}();
 
 module.exports = SubmitButton;
 
-},{"element-kit":3,"module-js":16,"underscore":18}],27:[function(require,module,exports){
+},{"underscore":295}],305:[function(require,module,exports){
 'use strict';
 
-var _ = require('underscore');
-var FormElement = require('./form-element');
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-require('element-kit');
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _underscore = require('underscore');
+
+var _underscore2 = _interopRequireDefault(_underscore);
+
+var _formElement = require('./form-element');
+
+var _formElement2 = _interopRequireDefault(_formElement);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 /**
  * The function that fires when the input value changes
  * @callback TextArea~onChange
@@ -7703,7 +13570,9 @@ require('element-kit');
  * @class TextArea
  * @extends FormElement
  */
-var TextArea = FormElement.extend({
+
+var TextArea = function (_FormElement) {
+    _inherits(TextArea, _FormElement);
 
     /**
      * Initializes the Input Field class.
@@ -7717,9 +13586,11 @@ var TextArea = FormElement.extend({
      * @param {string} [options.activeClass] - The css class that will be applied to the input field container element when in focus
      * @param {string} [options.value] - An initial value to set the input field to
      */
-    initialize: function initialize(options) {
 
-        this.options = _.extend({
+    function TextArea(options) {
+        _classCallCheck(this, TextArea);
+
+        options = _underscore2.default.extend({
             el: null,
             onChange: null,
             onKeyDownChange: null,
@@ -7730,226 +13601,295 @@ var TextArea = FormElement.extend({
             value: null
         }, options);
 
-        FormElement.prototype.initialize.call(this, this.options);
-        this.setup();
-    },
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(TextArea).call(this, options));
+
+        _this.options = options;
+
+        _this.setup();
+        return _this;
+    }
 
     /**
      * Sets up events for showing/hiding tooltip.
      */
-    setup: function setup() {
-        var textArea = this.options.el,
-            optionsValue = this.options.value || textArea.value;
 
-        // add internal class if doesnt already exist
-        textArea.kit.classList.add(this.options.inputClass);
 
-        this._container = this._buildUIElement(textArea);
+    _createClass(TextArea, [{
+        key: 'setup',
+        value: function setup() {
+            var textArea = this.options.el,
+                optionsValue = this.options.value || textArea.value;
 
-        if (textArea.value !== optionsValue) {
-            textArea.value = optionsValue;
+            // add internal class if doesnt already exist
+            textArea.classList.add(this.options.inputClass);
+
+            this._container = this._buildUIElement(textArea);
+
+            if (textArea.value !== optionsValue) {
+                textArea.value = optionsValue;
+            }
+
+            this.origValue = optionsValue;
+            this.origDisabled = textArea.disabled;
+
+            // handle disabled state
+            if (this.origDisabled) {
+                this._container.classList.add(this.options.disabledClass);
+            }
+
+            this._bindEvents();
         }
 
-        this.origValue = optionsValue;
-        this.origDisabled = textArea.disabled;
+        /**
+         * Sets up events.
+         * @private
+         */
 
-        // handle disabled state
-        if (this.origDisabled) {
-            this._container.kit.classList.add(this.options.disabledClass);
+    }, {
+        key: '_bindEvents',
+        value: function _bindEvents() {
+            var input = this.getFormElement();
+            this.addEventListener(input, 'focus', '_onInputFocus', this);
+            this.addEventListener(input, 'blur', '_onInputBlur', this);
+            this.addEventListener(input, 'change', '_onInputValueChange', this);
+            this.addEventListener(input, 'keydown', '_onInputKeyDown', this);
         }
 
-        this._bindEvents();
-    },
+        /**
+         * Destroys events.
+         * @private
+         */
 
-    /**
-     * Sets up events.
-     * @private
-     */
-    _bindEvents: function _bindEvents() {
-        var input = this.getFormElement();
-        input.kit.addEventListener('focus', '_onInputFocus', this);
-        input.kit.addEventListener('blur', '_onInputBlur', this);
-        input.kit.addEventListener('change', '_onInputValueChange', this);
-        input.kit.addEventListener('keydown', '_onInputKeyDown', this);
-    },
-
-    /**
-     * Destroys events.
-     * @private
-     */
-    _unbindEvents: function _unbindEvents() {
-        var input = this.getFormElement();
-        input.kit.removeEventListener('focus', '_onInputFocus', this);
-        input.kit.removeEventListener('blur', '_onInputBlur', this);
-        input.kit.removeEventListener('change', '_onInputValueChange', this);
-        input.kit.removeEventListener('keydown', '_onInputKeyDown', this);
-    },
-
-    /**
-     * When a key is pressed down while inside the input field.
-     * @param {Event} e
-     * @private
-     */
-    _onInputKeyDown: function _onInputKeyDown(e) {
-        if (this.keyDownTimeoutId) {
-            clearTimeout(this.keyDownTimeoutId);
+    }, {
+        key: '_unbindEvents',
+        value: function _unbindEvents() {
+            var input = this.getFormElement();
+            this.removeEventListener(input, 'focus', '_onInputFocus', this);
+            this.removeEventListener(input, 'blur', '_onInputBlur', this);
+            this.removeEventListener(input, 'change', '_onInputValueChange', this);
+            this.removeEventListener(input, 'keydown', '_onInputKeyDown', this);
         }
-        // to ensure we have the most up-to-date the input field value,
-        // we must defer the update evaluation until after 1 millisecond
-        this.keyDownTimeoutId = setTimeout(this._triggerKeyDownChange.bind(this, e), 1);
-    },
 
-    /**
-     * Triggers a change event.
-     * @param e
-     * @private
-     */
-    _triggerKeyDownChange: function _triggerKeyDownChange(e) {
-        if (this.options.onKeyDownChange) {
-            this.options.onKeyDownChange(this.getFormElement(), this.getUIElement(), e);
+        /**
+         * When a key is pressed down while inside the input field.
+         * @param {Event} e
+         * @private
+         */
+
+    }, {
+        key: '_onInputKeyDown',
+        value: function _onInputKeyDown(e) {
+            if (this.keyDownTimeoutId) {
+                clearTimeout(this.keyDownTimeoutId);
+            }
+            // to ensure we have the most up-to-date the input field value,
+            // we must defer the update evaluation until after 1 millisecond
+            this.keyDownTimeoutId = setTimeout(this._triggerKeyDownChange.bind(this, e), 1);
         }
-    },
 
-    /**
-     * Sets the value of the input field.
-     * @param {string} value - The new input field value
-     */
-    setValue: function setValue(value) {
-        var input = this.getFormElement(),
-            currentVal = input.value;
-        if (value !== currentVal) {
-            input.value = value;
-            this._triggerChange();
+        /**
+         * Triggers a change event.
+         * @param e
+         * @private
+         */
+
+    }, {
+        key: '_triggerKeyDownChange',
+        value: function _triggerKeyDownChange(e) {
+            if (this.options.onKeyDownChange) {
+                this.options.onKeyDownChange(this.getFormElement(), this.getUIElement(), e);
+            }
         }
-    },
 
-    /**
-     * Gets the current input field value.
-     * @returns {string} Returns current value
-     */
-    getValue: function getValue() {
-        return this.getFormElement().value;
-    },
+        /**
+         * Sets the value of the input field.
+         * @param {string} value - The new input field value
+         */
 
-    /**
-     * Builds the UI-friendly version of input field by wrapping it inside of a container.
-     * @param {HTMLTextAreaElement} inputEl - The input element
-     * @returns {HTMLElement} Returns the input element wrapped in its container
-     * @private
-     */
-    _buildUIElement: function _buildUIElement(inputEl) {
-        return inputEl.kit.appendOuterHtml('<div class="' + this.options.containerClass + '"></div>');
-    },
-
-    /**
-     * When the input gains focus.
-     * @private
-     */
-    _onInputFocus: function _onInputFocus() {
-        this.getUIElement().kit.classList.add(this.options.activeClass);
-    },
-
-    /**
-     * When the input loses focus.
-     * @private
-     */
-    _onInputBlur: function _onInputBlur() {
-        this.getUIElement().kit.classList.remove(this.options.activeClass);
-    },
-
-    /**
-     * Triggers a value change.
-     * @private
-     */
-    _triggerChange: function _triggerChange(e) {
-        var args = [this.getValue(), this.getFormElement(), this.getUIElement()];
-        if (e) {
-            args.push(e);
+    }, {
+        key: 'setValue',
+        value: function setValue(value) {
+            var input = this.getFormElement(),
+                currentVal = input.value;
+            if (value !== currentVal) {
+                input.value = value;
+                this._triggerChange();
+            }
         }
-        if (this.options.onChange) {
-            this.options.onChange.apply(this, args);
+
+        /**
+         * Gets the current input field value.
+         * @returns {string} Returns current value
+         */
+
+    }, {
+        key: 'getValue',
+        value: function getValue() {
+            return this.getFormElement().value;
         }
-    },
 
-    /**
-     * When the input value changes.
-     * @param {Event} e - The event that was triggered
-     * @private
-     */
-    _onInputValueChange: function _onInputValueChange(e) {
-        this._triggerChange(e);
-    },
+        /**
+         * Builds the UI-friendly version of input field by wrapping it inside of a container.
+         * @param {HTMLTextAreaElement} inputEl - The input element
+         * @returns {HTMLElement} Returns the input element wrapped in its container
+         * @private
+         */
 
-    /**
-     * Gets the input field element.
-     * @returns {HTMLTextAreaElement} Returns the input field element
-     */
-    getFormElement: function getFormElement() {
-        return this.options.el;
-    },
-
-    /**
-     * Gets the input field div element.
-     * @returns {HTMLElement} Returns the checkbox div element.
-     */
-    getUIElement: function getUIElement() {
-        return this._container;
-    },
-
-    /**
-     * Enables the button toggle.
-     */
-    enable: function enable() {
-        this.getFormElement().removeAttribute('disabled');
-        this.getUIElement().kit.classList.remove(this.options.disabledClass);
-    },
-
-    /**
-     * Disables the button toggle.
-     */
-    disable: function disable() {
-        this.getFormElement().setAttribute('disabled', 'true');
-        this.getUIElement().kit.classList.add(this.options.disabledClass);
-    },
-
-    /**
-     * Sets the input to nothing.
-     */
-    clear: function clear() {
-        this.setValue('');
-    },
-
-    /**
-     * Gets the unique identifier for input fields.
-     * @returns {string}
-     */
-    getElementKey: function getElementKey() {
-        return 'textArea';
-    },
-
-    /**
-     * Destruction of this class.
-     */
-    destroy: function destroy() {
-        var container = this.getUIElement(),
-            input = this.getFormElement();
-
-        this._unbindEvents();
-
-        container.parentNode.replaceChild(input, container);
-
-        if (this.origDisabled) {
-            input.setAttribute('disabled', 'true');
+    }, {
+        key: '_buildUIElement',
+        value: function _buildUIElement(inputEl) {
+            var parent = inputEl.parentNode;
+            var outerEl = document.createElement('div');
+            outerEl.classList.add(this.options.containerClass);
+            parent.replaceChild(outerEl, inputEl);
+            outerEl.appendChild(inputEl);
+            return outerEl;
         }
-        // set original value back
-        this.setValue(this.origValue);
 
-        FormElement.prototype.destroy.call(this);
-    }
+        /**
+         * When the input gains focus.
+         * @private
+         */
 
-});
+    }, {
+        key: '_onInputFocus',
+        value: function _onInputFocus() {
+            this.getUIElement().classList.add(this.options.activeClass);
+        }
+
+        /**
+         * When the input loses focus.
+         * @private
+         */
+
+    }, {
+        key: '_onInputBlur',
+        value: function _onInputBlur() {
+            this.getUIElement().classList.remove(this.options.activeClass);
+        }
+
+        /**
+         * Triggers a value change.
+         * @private
+         */
+
+    }, {
+        key: '_triggerChange',
+        value: function _triggerChange(e) {
+            var args = [this.getValue(), this.getFormElement(), this.getUIElement()];
+            if (e) {
+                args.push(e);
+            }
+            if (this.options.onChange) {
+                this.options.onChange.apply(this, args);
+            }
+        }
+
+        /**
+         * When the input value changes.
+         * @param {Event} e - The event that was triggered
+         * @private
+         */
+
+    }, {
+        key: '_onInputValueChange',
+        value: function _onInputValueChange(e) {
+            this._triggerChange(e);
+        }
+
+        /**
+         * Gets the input field element.
+         * @returns {HTMLTextAreaElement} Returns the input field element
+         */
+
+    }, {
+        key: 'getFormElement',
+        value: function getFormElement() {
+            return this.options.el;
+        }
+
+        /**
+         * Gets the input field div element.
+         * @returns {HTMLElement} Returns the checkbox div element.
+         */
+
+    }, {
+        key: 'getUIElement',
+        value: function getUIElement() {
+            return this._container;
+        }
+
+        /**
+         * Enables the button toggle.
+         */
+
+    }, {
+        key: 'enable',
+        value: function enable() {
+            this.getFormElement().removeAttribute('disabled');
+            this.getUIElement().classList.remove(this.options.disabledClass);
+        }
+
+        /**
+         * Disables the button toggle.
+         */
+
+    }, {
+        key: 'disable',
+        value: function disable() {
+            this.getFormElement().setAttribute('disabled', 'true');
+            this.getUIElement().classList.add(this.options.disabledClass);
+        }
+
+        /**
+         * Sets the input to nothing.
+         */
+
+    }, {
+        key: 'clear',
+        value: function clear() {
+            this.setValue('');
+        }
+
+        /**
+         * Gets the unique identifier for input fields.
+         * @returns {string}
+         */
+
+    }, {
+        key: 'getElementKey',
+        value: function getElementKey() {
+            return 'textArea';
+        }
+
+        /**
+         * Destruction of this class.
+         */
+
+    }, {
+        key: 'destroy',
+        value: function destroy() {
+            var container = this.getUIElement(),
+                input = this.getFormElement();
+
+            this._unbindEvents();
+
+            container.parentNode.replaceChild(input, container);
+
+            if (this.origDisabled) {
+                input.setAttribute('disabled', 'true');
+            }
+            // set original value back
+            this.setValue(this.origValue);
+
+            _get(Object.getPrototypeOf(TextArea.prototype), 'destroy', this).call(this);
+        }
+    }]);
+
+    return TextArea;
+}(_formElement2.default);
 
 module.exports = TextArea;
 
-},{"./form-element":22,"element-kit":3,"underscore":18}]},{},[23])(23)
+},{"./form-element":300,"underscore":295}]},{},[301])(301)
 });
