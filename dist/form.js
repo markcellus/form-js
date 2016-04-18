@@ -1,5 +1,5 @@
 /** 
-* form-js - v4.0.0.
+* form-js - v4.0.1.
 * https://github.com/mkay581/form-js.git
 * Copyright 2016 Mark Kennedy. Licensed MIT.
 */
@@ -12921,8 +12921,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 /**
  * The function that is triggered when the input field has changed after a key has been pressed down
- * NOTE: This function can fire rapidly as a user types!
+ * BEWARE: This function fires rapidly as a user types!
  * @callback InputField~onKeyDownChange
+ * @param {string} value - The new value of the input element
  * @param {HTMLInputElement} input - The updated input element
  * @param {HTMLElement} UIElement - The updated container of the input element
  * @param {Event} event - The event
@@ -13059,8 +13060,9 @@ var InputField = function (_FormElement) {
     }, {
         key: '_triggerKeyDownChange',
         value: function _triggerKeyDownChange(e) {
+            var input = this.getFormElement();
             if (this.options.onKeyDownChange) {
-                this.options.onKeyDownChange(this.getFormElement(), this.getUIElement(), e);
+                this.options.onKeyDownChange(input.value, input, this.getUIElement(), e);
             }
         }
 
