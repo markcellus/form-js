@@ -40,7 +40,7 @@
   },
   "main": "src/form.js",
   "devDependencies": {
-    "build-tools": "^3.1.5",
+    "build-tools": "^4.1.2",
     "sinon": "^1.17.3"
   },
   "scripts": {
