@@ -154,6 +154,60 @@ form.setup();
  
 Examples can be found in the [examples](https://github.com/mkay581/formjs/blob/master/examples) page.
 
-## Release History
+## API Documentation
 
-Release history can be found in the [releases](https://github.com/mkay581/form-js/releases) page.
+### Form
+
+The form class allows you to instantiate an entire form (along with its nested elements: <input>, <textarea>, <select>).
+
+#### Form.constructor
+
+To create an instance of a form, you need to pass the form element (and a set of options if you'd like).
+
+```javascript
+let formElement = document.getElementByTagName('form')[0];
+var form = new Form({
+   el: formElement
+});
+```
+
+#### Form.setup()
+
+Setup just does a few standard setup tasks, like bind event listeners and such. This method is necessary after
+instantiation in order to begin working with your form instance.
+
+
+#### Form.getCurrentValues()
+
+A utility method to grab a serialized object of all of the form elements and their current values. See below.
+
+```html
+<form id="my-form">
+    <input name="location" value="Arlington, VA" required />
+</form>
+```
+
+```javascript
+let formElement = document.getElementById('my-form')[0];
+var form = new Form({
+   el: formElement
+});
+console.log(form.getCurrentValues());
+
+/*
+[{
+    disabled: false,
+    name: "location",
+    required: false,
+    value: "Arlington, VA"
+}]
+*/
+```
+
+#### Form.disable()
+
+Disables all form elements.
+
+#### Form.enable()
+
+Re-enables all form elements.

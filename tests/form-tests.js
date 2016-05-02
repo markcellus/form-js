@@ -492,4 +492,28 @@ module.exports = (function () {
         instance.destroy();
     });
 
+    QUnit.test('should trigger onSubmit with appropriate arguments when the form is submitted', function () {
+        QUnit.expect(5);
+        var inputValue = 'San Fran';
+        var inputName = 'location';
+        var formEl = document.createElement('form');
+        var inputEl = document.createElement('input');
+        inputEl.value = inputValue;
+        inputEl.name = inputName;
+        inputEl.required = true;
+        formEl.appendChild(inputEl);
+        var onSubmitSpy = Sinon.spy();
+        var instance = new Form({el: formEl, onSubmit: onSubmitSpy});
+        instance.setup();
+        var submitEvent = new Event('submit', {bubbles: false,cancelable: false});
+        formEl.dispatchEvent(submitEvent);
+        QUnit.deepEqual(onSubmitSpy.args[0][0], submitEvent);
+        var submittedInputValue = onSubmitSpy.args[0][1][0];
+        QUnit.equal(submittedInputValue.name, inputName);
+        QUnit.equal(submittedInputValue.value, inputValue);
+        QUnit.equal(submittedInputValue.disabled, false);
+        QUnit.equal(submittedInputValue.required, true);
+        instance.destroy();
+    });
+
 })();

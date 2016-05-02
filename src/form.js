@@ -31,6 +31,12 @@ import ObserveJS from 'observe-js';
  * The function that fires when the submit button is clicked
  * @callback Form~onSubmitButtonClick
  * @returns {Event} Returns the click event
+
+/**
+ * The function that fires when the form is submitted.
+ * @callback Form~onSubmit
+ * @params {Event} e - The click event
+ * @params {Array} values - An array of the form's current values at the time the form was submitted
  */
 
 /**
@@ -50,6 +56,7 @@ class Form {
      * @param {string} [options.inputFieldClass] - The css class used to query the set of text input elements that should be included
      * @param {string} [options.textAreaClass] - The css class used to query the set of textarea elements that should be included
      * @param {string} [options.radioClass] - The css class used to query the set of radio button elements that should be included
+     * @param {Form~onSubmit} [options.onSubmit] - Function that is called when the form is submitted
      * @param {string} [options.submitButtonClass] - The css class used to query the submit button
      * @param {string} [options.submitButtonDisabledClass] - The class that will be applied to the submit button when its disabled
      * @param {string} [options.onSubmitButtonClick] - Function that is called when the submit button is clicked
@@ -67,6 +74,7 @@ class Form {
             inputFieldClass: null,
             textAreaClass: null,
             radioClass: null,
+            onSubmit: null,
             submitButtonClass: null,
             submitButtonDisabledClass: null,
             onSubmitButtonClick: null,
@@ -82,6 +90,9 @@ class Form {
         this._formInstances = [];
         this._moduleCount = 0;
         this.subModules = {};
+
+        this._onSubmitEventListener = this.onSubmit.bind(this);
+        this.options.el.addEventListener('submit', this._onSubmitEventListener, true);
     }
 
     /**
@@ -150,6 +161,16 @@ class Form {
         }
     }
 
+    onSubmit (e) {
+        let currentValues = this.getCurrentValues();
+        if (this.options.onSubmitButtonClick) {
+            this.options.onSubmitButtonClick(e, currentValues);
+        }
+        if (this.options.onSubmit) {
+            this.options.onSubmit(e, currentValues)
+        }
+    }
+
     /**
      * Sets up the form and instantiates all necessary element classes.
      */
@@ -172,7 +193,7 @@ class Form {
             this.subModules.submitButton = new SubmitButton({
                 el: submitButtonEl,
                 disabledClass: this.options.submitButtonDisabledClass,
-                onClick: this.options.onSubmitButtonClick
+                onClick: this.onSubmit.bind(this)
             });
         }
         this._setupDataMapping(this.options.data);
@@ -455,6 +476,7 @@ class Form {
      * Cleans up some stuff.
      */
     destroy () {
+        this.options.el.removeEventListener('submit', this._onSubmitEventListener, true);
         window.clearInterval(this._legacyDataPollTimer);
         if (this._observer) {
             this._observer.close();
