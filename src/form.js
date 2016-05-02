@@ -30,7 +30,8 @@ import ObserveJS from 'observe-js';
 /**
  * The function that fires when the submit button is clicked
  * @callback Form~onSubmitButtonClick
- * @returns {Event} Returns the click event
+ * @params {Event} e - The click event
+ */
 
 /**
  * The function that fires when the form is submitted.
@@ -59,7 +60,7 @@ class Form {
      * @param {Form~onSubmit} [options.onSubmit] - Function that is called when the form is submitted
      * @param {string} [options.submitButtonClass] - The css class used to query the submit button
      * @param {string} [options.submitButtonDisabledClass] - The class that will be applied to the submit button when its disabled
-     * @param {string} [options.onSubmitButtonClick] - Function that is called when the submit button is clicked
+     * @param {Form~onSubmitButtonClick} [options.onSubmitButtonClick] - Function that is called when the submit button is clicked
      * @param {Object} [options.data] - An object mapping the form elements name attributes (keys) to their values which will be binded to form's fields
      * @param {Number} [options.legacyDataPollTime] - The amount of time (in milliseconds) to poll for options.data changes for browsers that do not support native data observing
      */
