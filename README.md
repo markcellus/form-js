@@ -158,7 +158,7 @@ Examples can be found in the [examples](https://github.com/mkay581/formjs/blob/m
 
 ### Form
 
-The form class allows you to instantiate an entire form (along with its nested elements: <input>, <textarea>, <select>).
+The form class allows you to instantiate an entire form (along with its nested elements: `<input>`, `<textarea>`, `<select>`).
 
 #### Form.constructor
 
