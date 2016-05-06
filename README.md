@@ -183,15 +183,16 @@ A utility method to grab a serialized object of all of the form elements and the
 
 ```html
 <form id="my-form">
-    <input name="location" value="Arlington, VA" required />
+    <input type="text" name="location" value="Arlington, VA" required />
 </form>
 ```
 
 ```javascript
-let formElement = document.getElementById('my-form')[0];
+let formElement = document.getElementById('my-form');
 var form = new Form({
    el: formElement
 });
+form.setup();
 console.log(form.getCurrentValues());
 
 /*
@@ -202,6 +203,34 @@ console.log(form.getCurrentValues());
     value: "Arlington, VA"
 }]
 */
+```
+
+#### Form.clear()
+
+Clears all fields inside of the form. It also unchecks any checkboxes and resets any dropdown selections.
+
+```html
+<form id="my-form">
+    <input type="text" id="location-input" name="location" value="Arlington, VA" required />
+    <input type="text" id="name-input" name="name" value="John Smith" required />
+    <input type="number" name="age" value="Arlington, VA" required />
+</form>
+```
+
+```javascript
+let formElement = document.getElementById('my-form');
+let locationInput = document.getElementById('location-input');
+let nameInput = document.getElementById('name-input');
+var form = new Form({
+   el: formElement
+});
+form.setup();
+locationInput.value // => "Arlington, VA"
+nameInput.value // => "John Smith"
+form.clear();
+locationInput.value // => ""
+nameInput.value // => ""
+
 ```
 
 #### Form.disable()
