@@ -1,5 +1,5 @@
 /** 
-* form-js - v4.1.3.
+* form-js - v4.2.0.
 * https://github.com/mkay581/form-js.git
 * Copyright 2016 Mark Kennedy. Licensed MIT.
 */
@@ -12430,7 +12430,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /**
  * The function that fires to give users opportunity to return a custom set of options on a per-element basis
  * @callback Form~onGetOptions
- * @param {HTMLElement|Array} element(s) - The element (or if radio buttons, an array of elements) on which to use the custom options
+ * @param {HTMLElement} element - The element on which to use the custom options
  * @returns {Object} Return the custom set of options
  */
 
