@@ -23,7 +23,7 @@ import ObserveJS from 'observe-js';
 /**
  * The function that fires to give users opportunity to return a custom set of options on a per-element basis
  * @callback Form~onGetOptions
- * @param {HTMLElement|Array} element(s) - The element (or if radio buttons, an array of elements) on which to use the custom options
+ * @param {HTMLElement} element - The element on which to use the custom options
  * @returns {Object} Return the custom set of options
  */
 
