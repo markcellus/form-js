@@ -1,6 +1,7 @@
 'use strict';
-// Import babel's polyfill here to allow for new Map() constructor
-import 'babel-polyfill';
+// we need Map (which requires Symbol) here
+import 'core-js/es6/symbol';
+import Map from 'core-js/es6/map';
 
 /**
  * Bubbles up each parent node of the element, triggering the callback on each element until traversal
