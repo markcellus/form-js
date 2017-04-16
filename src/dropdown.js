@@ -616,7 +616,7 @@ class Dropdown extends FormElement {
             e = document.createEvent('HTMLEvents'),
             formEl = this.getFormElement();
 
-        e.initEvent('change', false, true);
+        e.initEvent('change', true, true);
 
         // switch selected value because browser doesnt do it for us
         if (origOptionEl) {
@@ -627,8 +627,16 @@ class Dropdown extends FormElement {
             // in most cases, setting attribute (above) also updates the dropdown's value
             // but for some browsers (like phantomjs), we need to manually set it
             formEl.value = dataValue;
-            // trigger change event on dropdown
-            formEl.dispatchEvent(e);
+
+            // trigger change event on dropdown option if firefox
+            // otherwise trigger change event on dropdown element
+            if (DeviceManager.isBrowser('firefox')) {
+                newOptionEl.dispatchEvent(e);
+            }
+            else {
+                formEl.dispatchEvent(e);
+            }
+
         } else {
             console.warn('Form Dropdown Error: Cannot call setValue(), dropdown has no option element with a ' +
             'value attribute of ' + dataValue + '.');
