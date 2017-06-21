@@ -37,9 +37,9 @@
 
 <script>
 
-    var valueContainer = document.getElementById('input-value');
-    var enableBtn = document.getElementById('enable-btn');
-    var disableBtn = document.getElementById('disable-btn');
+    let valueContainer = document.getElementById('input-value');
+    let enableBtn = document.getElementById('enable-btn');
+    let disableBtn = document.getElementById('disable-btn');
 
     enableBtn.onclick = function () {
         field.enable();
@@ -49,7 +49,7 @@
         field.disable();
     };
 
-    var field = new Form.InputField({
+    let field = new Form.InputField({
         el: document.getElementById('my-text'),
         containerClass: 'my-field',
         inputClass: 'my-field-input',
@@ -60,7 +60,7 @@
     });
 
     // set the input field's value to a default value on load
-    var defaultVal = 'newValue';
+    let defaultVal = 'newValue';
     field.setValue(defaultVal);
     valueContainer.textContent = defaultVal;
 

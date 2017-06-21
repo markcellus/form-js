@@ -102,7 +102,7 @@ class Form {
      * @private
      */
     _setupDataMapping (rawData) {
-        var data = {};
+        let data = {};
         if (rawData) {
             data = rawData;
 
@@ -110,13 +110,13 @@ class Form {
             if (!Object.observe) {
                 this._legacyDataPollTimer = window.setInterval(function () {
                     Platform.performMicrotaskCheckpoint();
-                }, this.options.legacyDataPollTime)
+                }, this.options.legacyDataPollTime);
             }
 
             // sync any changes made on data map to options data
             this._observer = new ObserveJS.ObjectObserver(data);
             this._observer.open(function (added, removed, changed) {
-                var mashup = _.extend(added, removed, changed);
+                let mashup = _.extend(added, removed, changed);
                 Object.keys(mashup).forEach(function(n) {
                     this.getInstanceByName(n).setValue(mashup[n]);
                 }.bind(this));
@@ -176,7 +176,7 @@ class Form {
      * Sets up the form and instantiates all necessary element classes.
      */
     setup () {
-        var submitButtonEl = this.options.el.getElementsByClassName(this.options.submitButtonClass)[0];
+        let submitButtonEl = this.options.el.getElementsByClassName(this.options.submitButtonClass)[0];
 
         this._setupInstances(this._getInstanceEls('dropdown'), Dropdown);
         this._setupInstances(this._getInstanceEls('checkbox'), Checkbox);
@@ -184,7 +184,7 @@ class Form {
         this._setupInstances(this._getInstanceEls('textarea'), TextArea);
 
         // group radio button toggles by name before instantiating
-        var radios = this._getInstanceEls('radio');
+        let radios = this._getInstanceEls('radio');
         _.each(this.mapElementsByAttribute(radios, 'name'), function (els) {
             this._setupInstance(els, Radios, {}, 'inputs');
         }, this);
@@ -207,7 +207,7 @@ class Form {
      * @private
      */
     _getInstanceEls (type) {
-        var formEl = this.options.el,
+        let formEl = this.options.el,
             elements = [],
             map = this._getSelectorMap();
 
@@ -239,7 +239,7 @@ class Form {
      * @private
      */
     _setupInstances (elements, View, options, elKey) {
-        var count = elements.length,
+        let count = elements.length,
             i;
         if (count) {
             for (i = 0; i < count; i++) {
@@ -258,18 +258,18 @@ class Form {
      */
     _setupInstance (els, View, options, elKey) {
         elKey = elKey || 'el';
-        var formOptions = this.options;
-        var finalOptions = this._buildOptions(els, options);
+        let formOptions = this.options;
+        let finalOptions = this._buildOptions(els, options);
         finalOptions[elKey] = els; // dont allow custom options to override the el!
 
         // assign value to form element if a data object was passed in options
         els = els.length ? Array.prototype.slice.call(els) : [els]; //ensure array
-        var name = els[0].name;
+        let name = els[0].name;
         if (formOptions.data && typeof formOptions.data[name] !== 'function' && formOptions.data.hasOwnProperty(name)) {
             finalOptions.value = finalOptions.value || formOptions.data[name];
         }
         this._moduleCount++;
-        var instance = this.subModules['fe' + this._moduleCount] = new View(finalOptions);
+        let instance = this.subModules['fe' + this._moduleCount] = new View(finalOptions);
         this._formInstances.push(instance);
     }
 
@@ -280,7 +280,7 @@ class Form {
      * @returns {Object} Returns the final object
      */
     mapElementsByAttribute (elements, attr) {
-        var map = {},
+        let map = {},
             count = elements.length,
             i,
             el;
@@ -304,7 +304,7 @@ class Form {
      * @TODO: this method should return an array because there could be multiple form elements with the same name!
      */
     getInstanceByName (name) {
-        var i,
+        let i,
             instance;
 
         for (i = 0; i < this._formInstances.length; i++) {
@@ -343,7 +343,7 @@ class Form {
      * @private
      */
     _onValueChange (value, el, ui) {
-        var name = el.name,
+        let name = el.name,
             formOptionsData = this.options.data || {},
             mapValue = formOptionsData[name];
 
@@ -368,7 +368,7 @@ class Form {
      * Disables all form elements.
      */
     disable () {
-        var els = this.formEls,
+        let els = this.formEls,
             i,
             submitButton = this.getSubmitButtonInstance();
         this.setPropertyAll('disabled', true);
@@ -386,7 +386,7 @@ class Form {
      * Enables all form elements.
      */
     enable () {
-        var els = this.formEls,
+        let els = this.formEls,
             i,
             submitButton = this.getSubmitButtonInstance();
         this.setPropertyAll('disabled', false);
@@ -406,7 +406,7 @@ class Form {
      * @param {*} value - The value to set
      */
     setPropertyAll (prop, value) {
-        var i,
+        let i,
             els = this.formEls;
         for (i = 0; i < els.length; i++) {
             els[i][prop] = value;
@@ -419,7 +419,7 @@ class Form {
      * @param {...*} params - Any params for the method from here, onward
      */
     triggerMethodAll (method, params) {
-        var args = Array.prototype.slice.call(arguments, 1),
+        let args = Array.prototype.slice.call(arguments, 1),
             i, instance;
 
         for (i = 0; i < this._formInstances.length; i++) {
@@ -440,7 +440,7 @@ class Form {
      * @returns {Array} Returns an array of objects
      */
     getCurrentValues () {
-        var map = [],
+        let map = [],
             fields = this.options.el.querySelectorAll('[name]'),
             fieldCount = fields.length,
             i,

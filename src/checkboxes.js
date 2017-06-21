@@ -76,7 +76,7 @@ class Checkboxes extends FormElementGroup {
      * @param {Number} index - The index of the checkbox item
      */
     select (index) {
-        var input = this.getFormElement(index),
+        let input = this.getFormElement(index),
             checkbox = this.getUIElement(index);
         if (!input.checked) {
             input.checked = true;

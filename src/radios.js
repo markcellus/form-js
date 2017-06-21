@@ -91,7 +91,7 @@ class Radios extends FormElementGroup {
      * @param {Number} index - The index of the toggle item
      */
     select (index) {
-        var input = this.getFormElement(index),
+        let input = this.getFormElement(index),
             toggle = this.getUIElement(index);
         if (!input.checked) {
             input.checked = true;

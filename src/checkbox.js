@@ -77,7 +77,7 @@ class Checkbox extends FormElement {
      * Sets up html.
      */
     setup () {
-        var input = this.getFormElement();
+        let input = this.getFormElement();
 
         input.classList.add(this.options.inputClass);
 
@@ -121,7 +121,7 @@ class Checkbox extends FormElement {
      * @private
      */
     _onUIElementClick (e) {
-        var input = this.getFormElement();
+        let input = this.getFormElement();
         // respond to clicks made to the UI element ONLY
         if (!input.disabled && e.target === e.currentTarget && e.target.classList.contains(this.options.containerClass)) {
             // we are preventing default here to ensure default
@@ -144,7 +144,7 @@ class Checkbox extends FormElement {
      */
     _buildUIElement (inputEl) {
         let parent = inputEl.parentNode;
-        var outerEl = document.createElement('div');
+        let outerEl = document.createElement('div');
         outerEl.classList.add(this.options.containerClass);
         parent.replaceChild(outerEl, inputEl);
         outerEl.appendChild(inputEl);
@@ -156,7 +156,7 @@ class Checkbox extends FormElement {
      * Checks the checkbox.
      */
     check () {
-        var input = this.getFormElement(),
+        let input = this.getFormElement(),
             container = this.getUIElement();
         if (!input.checked) {
             input.checked = true;
@@ -175,7 +175,7 @@ class Checkbox extends FormElement {
      * Un-checks the checkbox.
      */
     uncheck () {
-        var input = this.getFormElement(),
+        let input = this.getFormElement(),
             container = this.getUIElement();
         if (input.checked) {
             input.checked = false;
@@ -261,7 +261,7 @@ class Checkbox extends FormElement {
      * Destruction of this class.
      */
     destroy () {
-        var container = this.getUIElement(),
+        let container = this.getUIElement(),
             input = this.getFormElement();
 
         this.removeEventListener(container, 'click', '_onUIElementClick', this, true);

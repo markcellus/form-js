@@ -25,13 +25,13 @@
 <script src="../dist/form.js"></script>
 
 <script>
-    var formEl = document.getElementsByTagName('form')[0];
-    var nameInput = formEl.getElementsByTagName('input')[0];
-    var code = document.getElementsByTagName('code')[0];
+    let formEl = document.getElementsByTagName('form')[0];
+    let nameInput = formEl.getElementsByTagName('input')[0];
+    let code = document.getElementsByTagName('code')[0];
 
-    var model = {first_name: 'Joe'};
+    let model = {first_name: 'Joe'};
 
-    var form = new Form({
+    let form = new Form({
         el: formEl,
         data: model,
         onChange: function () {
