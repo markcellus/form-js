@@ -16,7 +16,7 @@ module.exports = {
     },
     tests: {
         qunit: {
-            src: ['tests/*.js']
+            files: ['tests/*.js']
         }
     }
 };

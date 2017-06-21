@@ -10,6 +10,9 @@
     "name": "Mark Kennedy",
     "url": "http://heyimmark.com"
   },
+  "engines": {
+    "node": ">=6.0.0 <=6.11.3"
+  },
   "license": "MIT",
   "keywords": [
     "forms",
