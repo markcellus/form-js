@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.2.1",
-    "build-tools": "^4.3.0",
+    "build-tools": "^7.2.4",
     "sinon": "^1.17.3"
   }
 }
