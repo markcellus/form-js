@@ -1,8 +1,8 @@
 "use strict";
-let Sinon = require('sinon');
-let QUnit = require('qunit');
-let TestUtils = require('test-utils');
-let InputField = require('../src/input-field');
+import sinon from 'sinon';
+import QUnit from 'qunit';
+import {createHtmlElementFromString, createEvent} from '../utils/element';
+import InputField from '../src/input-field';
 
 module.exports = (function () {
 
@@ -19,7 +19,7 @@ module.exports = (function () {
     QUnit.test('initializing and destroying', function() {
         QUnit.expect(2);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let inputEl = container.getElementsByClassName(inputClass)[0];
         let instance = new InputField({el: inputEl});
@@ -32,15 +32,15 @@ module.exports = (function () {
     QUnit.test('focusing and blurring', function() {
         QUnit.expect(3);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let inputEl = container.getElementsByClassName(inputClass)[0];
         let instance = new InputField({el: inputEl});
         let uiEl = container.getElementsByClassName(containerClass)[0];
         QUnit.ok(!uiEl.classList.contains(activeClass), 'input does not have active class initially');
-        inputEl.dispatchEvent(TestUtils.createEvent('focus'));
+        inputEl.dispatchEvent(createEvent('focus'));
         QUnit.ok(uiEl.classList.contains(activeClass), 'input now has active class after focus');
-        inputEl.dispatchEvent(TestUtils.createEvent('blur'));
+        inputEl.dispatchEvent(createEvent('blur'));
         QUnit.ok(!uiEl.classList.contains(activeClass), 'input does not have active class after it loses focus');
         instance.destroy();
     });
@@ -48,10 +48,10 @@ module.exports = (function () {
     QUnit.test('change callback firing', function() {
         QUnit.expect(6);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let inputEl = container.getElementsByClassName(inputClass)[0];
-        let onChangeSpy = Sinon.spy();
+        let onChangeSpy = sinon.spy();
         let instance = new InputField({el: inputEl, onChange: onChangeSpy});
         let uiEl = container.getElementsByClassName(containerClass)[0];
         QUnit.equal(inputEl.value, '', 'input value is empty initially');
@@ -69,7 +69,7 @@ module.exports = (function () {
 
     QUnit.test('initializing and destroying when initial value is present', function() {
         QUnit.expect(3);
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         let fixture = document.getElementById('qunit-fixture').appendChild(container);
         let input = container.getElementsByClassName(inputClass)[0];
         let origValue = 'testy';
@@ -86,7 +86,7 @@ module.exports = (function () {
     QUnit.test('enabling and disabling', function () {
         QUnit.expect(6);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let inputEl = container.getElementsByClassName(inputClass)[0];
         let instance = new InputField({el: inputEl});
@@ -104,11 +104,11 @@ module.exports = (function () {
 
     QUnit.test('initialize and destroy when initially disabled', function() {
         QUnit.expect(5);
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         let fixture = document.getElementById('qunit-fixture').appendChild(container);
         let inputEl = container.getElementsByClassName(inputClass)[0];
         inputEl.setAttribute('disabled', 'true'); // make it so that input is checked initially
-        let setAttrSpy = Sinon.spy(inputEl, 'setAttribute');
+        let setAttrSpy = sinon.spy(inputEl, 'setAttribute');
         let instance = new InputField({el: inputEl});
         let uiEl = container.getElementsByClassName(containerClass)[0];
         QUnit.ok(inputEl.disabled, 'input was disabled initially');
@@ -124,10 +124,10 @@ module.exports = (function () {
     QUnit.asyncTest('onKeyDownChange event', function() {
         QUnit.expect(2);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let inputEl = container.getElementsByClassName(inputClass)[0];
-        let onChangeSpy = Sinon.spy();
+        let onChangeSpy = sinon.spy();
         let instance = new InputField({el: inputEl, onKeyDownChange: onChangeSpy});
         let uiEl = container.getElementsByClassName(containerClass)[0];
         let testValue = 'aha';
@@ -148,7 +148,7 @@ module.exports = (function () {
 
     QUnit.test('should clear the input value to empty string when clear() is called', function() {
         QUnit.expect(2);
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         document.getElementById('qunit-fixture').appendChild(container);
         let inputEl = container.getElementsByClassName(inputClass)[0];
         let instance = new InputField({el: inputEl});
@@ -162,7 +162,7 @@ module.exports = (function () {
 
     QUnit.test('should set the input field as the value passed in the options', function() {
         QUnit.expect(1);
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         let fixture = document.getElementById('qunit-fixture').appendChild(container);
         let input = container.getElementsByClassName(inputClass)[0];
         let myValue = 'testy';

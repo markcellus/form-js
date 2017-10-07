@@ -281,4 +281,4 @@ class Checkbox extends FormElement {
 
 }
 
-module.exports = Checkbox;
+export default Checkbox;

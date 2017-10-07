@@ -1,8 +1,7 @@
-"use strict";
-let Sinon = require('sinon');
-let QUnit = require('qunit');
-let TestUtils = require('test-utils');
-let Checkbox = require('../src/checkbox');
+import sinon from 'sinon';
+import QUnit from 'qunit';
+import {createHtmlElementFromString, createEvent} from '../utils/element';
+import Checkbox from '../src/checkbox';
 
 module.exports = (function () {
 
@@ -14,7 +13,7 @@ module.exports = (function () {
     QUnit.test('initializing/destroying the checkbox', function() {
         QUnit.expect(2);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let input = container.getElementsByClassName('ui-checkbox-input')[0];
         let checkbox = new Checkbox({el: input});
@@ -27,7 +26,7 @@ module.exports = (function () {
     QUnit.test('checking/unchecking checkbox', function() {
         QUnit.expect(6);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let input = container.getElementsByClassName('ui-checkbox-input')[0];
         let checkbox = new Checkbox({el: input});
@@ -45,7 +44,7 @@ module.exports = (function () {
 
     QUnit.test('initializing/destroying when checked initially', function() {
         QUnit.expect(4);
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         let fixture = document.getElementById('qunit-fixture').appendChild(container);
         let input = container.getElementsByClassName('ui-checkbox-input')[0];
         input.setAttribute('checked', 'checked'); // make it so that input is checked initially
@@ -62,10 +61,10 @@ module.exports = (function () {
     QUnit.test('should trigger onChecked callback option with correct args when checked', function() {
         QUnit.expect(2);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let input = container.getElementsByClassName('ui-checkbox-input')[0];
-        let onCheckedSpy = Sinon.spy();
+        let onCheckedSpy = sinon.spy();
         let checkbox = new Checkbox({el: input, onChecked: onCheckedSpy});
         let UICheckbox = container.getElementsByClassName('ui-checkbox')[0];
         checkbox.check();
@@ -78,10 +77,10 @@ module.exports = (function () {
     QUnit.test('should trigger onUnchecked callback option with empty string and correct args when unchecked', function() {
         QUnit.expect(1);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let input = container.getElementsByClassName('ui-checkbox-input')[0];
-        let onUncheckedSpy = Sinon.spy();
+        let onUncheckedSpy = sinon.spy();
         let checkbox = new Checkbox({el: input, onUnchecked: onUncheckedSpy});
         let UICheckbox = container.getElementsByClassName('ui-checkbox')[0];
         checkbox.check();
@@ -93,26 +92,26 @@ module.exports = (function () {
     QUnit.test('clicking on and off ui element', function () {
        QUnit.expect(12);
        let fixture = document.getElementById('qunit-fixture');
-       let container = TestUtils.createHtmlElement(html);
+       let container = createHtmlElementFromString(html);
        fixture.appendChild(container);
        let input = container.getElementsByClassName('ui-checkbox-input')[0];
-       let checkSpy = Sinon.spy(Checkbox.prototype, 'check');
-       let uncheckSpy = Sinon.spy(Checkbox.prototype, 'uncheck');
+       let checkSpy = sinon.spy(Checkbox.prototype, 'check');
+       let uncheckSpy = sinon.spy(Checkbox.prototype, 'uncheck');
        let instance = new Checkbox({el: input});
        let checkboxUIEl = container.getElementsByClassName('ui-checkbox')[0];
        QUnit.equal(checkSpy.callCount, 0, 'check() method was not called initially');
        QUnit.equal(uncheckSpy.callCount, 0, 'uncheck() method was not called initially');
        QUnit.equal(input.checked, false, 'input checked boolean returns false');
-       checkboxUIEl.dispatchEvent(TestUtils.createEvent('click'));
+       checkboxUIEl.dispatchEvent(createEvent('click'));
        QUnit.equal(checkSpy.callCount, 1, 'clicking checkbox element calls check() method');
        QUnit.equal(uncheckSpy.callCount, 0, 'uncheck() method was not called');
        QUnit.equal(input.checked, true, 'input checked boolean returns true');
-       checkboxUIEl.dispatchEvent(TestUtils.createEvent('click'));
+       checkboxUIEl.dispatchEvent(createEvent('click'));
        QUnit.equal(uncheckSpy.callCount, 1, 'clicking checkbox element a second time calls uncheck() method');
        QUnit.equal(checkSpy.callCount, 1, 'check() method was not called');
        QUnit.equal(input.checked, false, 'input checked boolean returns false');
        instance.destroy();
-       checkboxUIEl.dispatchEvent(TestUtils.createEvent('click'));
+       checkboxUIEl.dispatchEvent(createEvent('click'));
        QUnit.equal(checkSpy.callCount, 1, 'clicking checkbox element again does NOT call check() method because instance was destroyed');
        QUnit.equal(uncheckSpy.callCount, 1, 'uncheck() method was not called');
        QUnit.equal(input.checked, false, 'input checked boolean returns false');
@@ -124,26 +123,26 @@ module.exports = (function () {
         let html = '<div><label for="inp" class="checkbox-label"></label><input type="checkbox" id="inp" class="ui-checkbox-input" value="NY" name="ny" /> New York</div>';
         QUnit.expect(11);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let input = container.getElementsByClassName('ui-checkbox-input')[0];
-        let checkSpy = Sinon.spy(Checkbox.prototype, 'check');
-        let uncheckSpy = Sinon.spy(Checkbox.prototype, 'uncheck');
+        let checkSpy = sinon.spy(Checkbox.prototype, 'check');
+        let uncheckSpy = sinon.spy(Checkbox.prototype, 'uncheck');
         let instance = new Checkbox({el: input});
         let label = container.getElementsByClassName('checkbox-label')[0];
         QUnit.equal(checkSpy.callCount, 0, 'check() method was not called initially');
         QUnit.equal(uncheckSpy.callCount, 0, 'uncheck() method was not called initially');
         QUnit.equal(input.checked, false, 'input checked boolean returns false');
-        label.dispatchEvent(TestUtils.createEvent('click'));
+        label.dispatchEvent(createEvent('click'));
         QUnit.equal(checkSpy.callCount, 1, 'clicking checkbox element calls check() method');
         QUnit.equal(uncheckSpy.callCount, 0, 'uncheck() method was not called');
         QUnit.equal(input.checked, true, 'input checked boolean returns true');
-        label.dispatchEvent(TestUtils.createEvent('click'));
+        label.dispatchEvent(createEvent('click'));
         QUnit.equal(uncheckSpy.callCount, 1, 'clicking checkbox element a second time calls uncheck() method');
         QUnit.equal(checkSpy.callCount, 1, 'check() method was not called');
         QUnit.equal(input.checked, false, 'input checked boolean returns false');
         instance.destroy();
-        label.dispatchEvent(TestUtils.createEvent('click'));
+        label.dispatchEvent(createEvent('click'));
         QUnit.equal(checkSpy.callCount, 1, 'clicking checkbox element again does NOT call check() method because instance was destroyed');
         QUnit.equal(uncheckSpy.callCount, 1, 'uncheck() method was not called');
         checkSpy.restore();
@@ -153,21 +152,21 @@ module.exports = (function () {
     QUnit.test('clicking on and off when disabled', function () {
        QUnit.expect(5);
        let fixture = document.getElementById('qunit-fixture');
-       let container = TestUtils.createHtmlElement(html);
+       let container = createHtmlElementFromString(html);
        fixture.appendChild(container);
        let input = container.getElementsByClassName('ui-checkbox-input')[0];
-       let checkSpy = Sinon.spy(Checkbox.prototype, 'check');
-       let uncheckSpy = Sinon.spy(Checkbox.prototype, 'uncheck');
+       let checkSpy = sinon.spy(Checkbox.prototype, 'check');
+       let uncheckSpy = sinon.spy(Checkbox.prototype, 'uncheck');
        let instance = new Checkbox({el: input});
        let checkboxEl = container.getElementsByClassName('ui-checkbox')[0];
        instance.disable(); //disable
-       checkboxEl.dispatchEvent(TestUtils.createEvent('click'));
+       checkboxEl.dispatchEvent(createEvent('click'));
        QUnit.equal(checkSpy.callCount, 0, 'clicking checkbox element while its disabled does not call check() method');
        QUnit.equal(uncheckSpy.callCount, 0, 'clicking checkbox element while its disabled does not call uncheck() method');
        instance.enable();
-       checkboxEl.dispatchEvent(TestUtils.createEvent('click'));
+       checkboxEl.dispatchEvent(createEvent('click'));
        QUnit.equal(checkSpy.callCount, 1, 'after enabling, clicking checkbox element calls check() method');
-       checkboxEl.dispatchEvent(TestUtils.createEvent('click'));
+       checkboxEl.dispatchEvent(createEvent('click'));
        QUnit.equal(uncheckSpy.callCount, 1, 'clicking checkbox element a second time calls uncheck() method');
        QUnit.equal(checkSpy.callCount, 1, 'check() method was not called');
        instance.destroy();
@@ -178,7 +177,7 @@ module.exports = (function () {
     QUnit.test('enabling and disabling', function () {
         QUnit.expect(6);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let inputEl = container.getElementsByClassName('ui-checkbox-input')[0];
         let instance = new Checkbox({el: inputEl});
@@ -196,11 +195,11 @@ module.exports = (function () {
 
     QUnit.test('initializing and destroying when disabled state already exists', function () {
         QUnit.expect(5);
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         let fixture = document.getElementById('qunit-fixture').appendChild(container);
         let inputEl = container.getElementsByClassName('ui-checkbox-input')[0];
         inputEl.setAttribute('disabled', 'disabled'); // make it so that input is checked initially
-        let setAttrSpy = Sinon.spy(inputEl, 'setAttribute');
+        let setAttrSpy = sinon.spy(inputEl, 'setAttribute');
         let instance = new Checkbox({el: inputEl});
         let checkboxEl = container.getElementsByClassName('ui-checkbox')[0];
         QUnit.ok(inputEl.disabled, 'input was disabled initially');
@@ -216,7 +215,7 @@ module.exports = (function () {
     QUnit.test('should set the value passed to setValue() onto the checkbox form element', function() {
         QUnit.expect(1);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let checkboxEl = container.getElementsByClassName('ui-checkbox-input')[0];
         let checkbox = new Checkbox({el: checkboxEl});
@@ -229,7 +228,7 @@ module.exports = (function () {
     QUnit.test('getValue() should return value of the checkbox when checked', function() {
         QUnit.expect(1);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let checkbox = new Checkbox({el: container.getElementsByClassName('ui-checkbox-input')[0]});
         checkbox.check();
@@ -240,7 +239,7 @@ module.exports = (function () {
     QUnit.test('getValue() should return empty string when unchecked', function() {
         QUnit.expect(1);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let checkbox = new Checkbox({el: container.getElementsByClassName('ui-checkbox-input')[0]});
         checkbox.check();
@@ -251,7 +250,7 @@ module.exports = (function () {
 
     QUnit.test('should be checked if options value passed is true', function() {
         QUnit.expect(1);
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         let fixture = document.getElementById('qunit-fixture').appendChild(container);
         let input = container.getElementsByClassName('ui-checkbox-input')[0];
         let checkbox = new Checkbox({el: input, value: true});
@@ -261,7 +260,7 @@ module.exports = (function () {
 
     QUnit.test('should not be checked if options value passed is false', function() {
         QUnit.expect(1);
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         let fixture = document.getElementById('qunit-fixture').appendChild(container);
         let input = container.getElementsByClassName('ui-checkbox-input')[0];
         let checkbox = new Checkbox({el: input, value: false});
@@ -271,7 +270,7 @@ module.exports = (function () {
 
     QUnit.test('clear() should uncheck checkbox', function() {
         QUnit.expect(2);
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         let fixture = document.getElementById('qunit-fixture').appendChild(container);
         let input = container.getElementsByClassName('ui-checkbox-input')[0];
         let checkbox = new Checkbox({el: input});
@@ -285,10 +284,10 @@ module.exports = (function () {
     QUnit.test('clicking on ui element should trigger onChange callback option with correct args', function() {
         QUnit.expect(3);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let input = container.getElementsByClassName('ui-checkbox-input')[0];
-        let onChangeSpy = Sinon.spy();
+        let onChangeSpy = sinon.spy();
         let checkbox = new Checkbox({el: input, onChange: onChangeSpy});
         let UICheckbox = container.getElementsByClassName('ui-checkbox')[0];
         QUnit.equal(onChangeSpy.callCount, 0);
@@ -302,10 +301,10 @@ module.exports = (function () {
     QUnit.test('clicking on input checkbox element should trigger onChange callback option with correct args', function() {
         QUnit.expect(3);
         let fixture = document.getElementById('qunit-fixture');
-        let container = TestUtils.createHtmlElement(html);
+        let container = createHtmlElementFromString(html);
         fixture.appendChild(container);
         let input = container.getElementsByClassName('ui-checkbox-input')[0];
-        let onChangeSpy = Sinon.spy();
+        let onChangeSpy = sinon.spy();
         let checkbox = new Checkbox({el: input, onChange: onChangeSpy});
         let UICheckbox = container.getElementsByClassName('ui-checkbox')[0];
         QUnit.equal(onChangeSpy.callCount, 0);

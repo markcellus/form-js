@@ -1,9 +1,8 @@
-"use strict";
-let Sinon = require('sinon');
-let QUnit = require('qunit');
-let Dropdown = require('../src/dropdown');
-let TestUtils = require('test-utils');
-let DeviceManager = require('device-manager');
+import sinon from 'sinon';
+import QUnit from 'qunit';
+import {createHtmlElementFromString, createEvent} from '../utils/element';
+import Dropdown from '../src/dropdown';
+import DeviceManager from 'device-manager';
 
 module.exports = (function (){
 
@@ -12,8 +11,8 @@ module.exports = (function (){
     QUnit.module('Dropdown', {
 
         setup: function () {
-            deviceManagerIsMobileStub = Sinon.stub(DeviceManager, 'isMobile');
-            redrawOptionsContainerStub = Sinon.stub(Dropdown.prototype, 'redrawOptionsContainer');
+            deviceManagerIsMobileStub = sinon.stub(DeviceManager, 'isMobile');
+            redrawOptionsContainerStub = sinon.stub(Dropdown.prototype, 'redrawOptionsContainer');
             // be default assume desktop
             deviceManagerIsMobileStub.returns(false);
         },
@@ -35,7 +34,7 @@ module.exports = (function (){
     QUnit.test('initialize, setup, and destruction', function() {
         QUnit.expect(6);
         let fixture = document.getElementById('qunit-fixture');
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let uiContainerClass = 'my-ui-container';
         let uiOptionsContainerClass = 'my-options-container';
@@ -66,7 +65,7 @@ module.exports = (function (){
     QUnit.test('initializing when a dropdown item is pre-selected', function() {
         QUnit.expect(4);
         let fixture = document.getElementById('qunit-fixture');
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let formOptionEls = selectEl.getElementsByTagName('option');
         let uiContainerClass = 'my-ui-container';
@@ -95,7 +94,7 @@ module.exports = (function (){
     QUnit.test('clicking through ui dropdown selections', function() {
         QUnit.expect(5);
         let fixture = document.getElementById('qunit-fixture');
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let formOptionEls = selectEl.getElementsByTagName('option');
         let uiContainerClass = 'my-ui-container';
@@ -103,7 +102,7 @@ module.exports = (function (){
         let uiOptionsClass = 'my-option';
         let uiSelectedValueContainerClass = 'my-selected-val-container';
         let uiOptionsContainerActiveClass = 'active-options-container';
-        let onChangeSpy = Sinon.spy();
+        let onChangeSpy = sinon.spy();
         let dropdown = new Dropdown({
             el: selectEl,
             containerClass: uiContainerClass,
@@ -113,7 +112,7 @@ module.exports = (function (){
             selectedValueContainerClass: uiSelectedValueContainerClass,
             onChange: onChangeSpy
         });
-        let selectChangeSpy = Sinon.spy();
+        let selectChangeSpy = sinon.spy();
         selectEl.onchange = selectChangeSpy;
         let uiEl = fixture.getElementsByClassName(uiContainerClass)[0];
         let uiOptionsContainerEl = uiEl.getElementsByClassName(uiOptionsContainerClass)[0];
@@ -121,10 +120,10 @@ module.exports = (function (){
         let uiSelectedValueContainerEl = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
         QUnit.ok(!uiEl.classList.contains(uiOptionsContainerActiveClass), 'on initialize, options container element does NOT have active class');
         // click on selected value container to show options
-        uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
+        uiSelectedValueContainerEl.dispatchEvent(createEvent('click'));
         QUnit.ok(uiEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on selected value container element, options container now has active class');
         // click on second option element
-        uiOptionEls[1].dispatchEvent(TestUtils.createEvent('click'));
+        uiOptionEls[1].dispatchEvent(createEvent('click'));
         QUnit.equal(dropdown.getValue(), formOptionEls[1].value, 'after clicking on second item, getValue() returns data value of second item correctly');
         QUnit.equal(uiSelectedValueContainerEl.getAttribute('data-value'), formOptionEls[1].value, 'selected value container reflects the second item data value');
         QUnit.deepEqual(onChangeSpy.args[0], [formOptionEls[1].value, selectEl, uiEl, selectChangeSpy.args[0][0]], 'onChange callback was fired with correct args');
@@ -134,7 +133,7 @@ module.exports = (function (){
     QUnit.test('get option element by its data and display value', function() {
         QUnit.expect(2);
         let fixture = document.getElementById('qunit-fixture');
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let options = selectEl.getElementsByTagName('option');
         let dropdown = new Dropdown({el: selectEl});
@@ -146,7 +145,7 @@ module.exports = (function (){
     QUnit.test('get ui option element by its data', function() {
         QUnit.expect(1);
         let fixture = document.getElementById('qunit-fixture');
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let options = selectEl.getElementsByTagName('option');
         let optionsClass = 'my-opt';
@@ -166,7 +165,7 @@ module.exports = (function (){
             '<option value="GOOG">Google</option>' +
             '</select>';
         let fixture = document.getElementById('qunit-fixture');
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let uiContainerClass = 'my-ui-container';
         let uiDisabledClass = 'ui-disabled';
@@ -187,7 +186,7 @@ module.exports = (function (){
             '<option value=""></option>' +
             '</select>';
         let fixture = document.getElementById('qunit-fixture');
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let uiContainerClass = 'my-ui-container';
         let uiDisabledClass = 'ui-disabled';
@@ -209,7 +208,7 @@ module.exports = (function (){
             '<option value=""></option>' +
             '</select>';
         let fixture = document.getElementById('qunit-fixture');
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let uiContainerClass = 'my-ui-container';
         let uiSelectedValueContainerClass = 'my-selected-val-container';
@@ -223,7 +222,7 @@ module.exports = (function (){
         let uiEl = fixture.getElementsByClassName(uiContainerClass)[0];
         let uiSelectedValueContainerEl = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
         dropdown.disable();
-        uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
+        uiSelectedValueContainerEl.dispatchEvent(createEvent('click'));
         QUnit.ok(!uiEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on selected value container element while disabled, active class is not applied to ui element');
         dropdown.destroy();
     });
@@ -235,7 +234,7 @@ module.exports = (function (){
             '<option value=""></option>' +
             '</select>';
         let fixture = document.getElementById('qunit-fixture');
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let uiContainerClass = 'my-ui-container';
         let uiDisabledClass = 'ui-disabled';
@@ -255,7 +254,7 @@ module.exports = (function (){
     QUnit.test('new value changed on select dropdown updates its ui counterpart', function() {
         QUnit.expect(2);
         let fixture = document.getElementById('qunit-fixture');
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let formOptionEls = selectEl.getElementsByTagName('option');
         let dropdown = new Dropdown({
@@ -265,7 +264,7 @@ module.exports = (function (){
         QUnit.equal(valueContainer.getAttribute('data-value'), '', 'when change event is triggered with a new value on select element, ui element is updated');
         // trigger change event and set to second items value
         selectEl.value = formOptionEls[1].value;
-        selectEl.dispatchEvent(TestUtils.createEvent('change'));
+        selectEl.dispatchEvent(createEvent('change'));
         QUnit.equal(valueContainer.getAttribute('data-value'), formOptionEls[1].value, 'when change event is triggered with a new value on select element, ui element is updated');
         dropdown.destroy();
     });
@@ -273,7 +272,7 @@ module.exports = (function (){
     QUnit.test('clicking a ui dropdown selection should remove active class from dropdown container element', function() {
         QUnit.expect(1);
         let fixture = document.getElementById('qunit-fixture');
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let uiContainerClass = 'my-ui-container';
         let uiOptionsContainerClass = 'my-options-container';
@@ -292,9 +291,9 @@ module.exports = (function (){
         let uiOptionEls = uiEl.getElementsByClassName(uiOptionsClass);
         let uiSelectedValueContainerEl = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
         // click on selected value container to show options
-        uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
+        uiSelectedValueContainerEl.dispatchEvent(createEvent('click'));
         // click on second option element
-        uiOptionEls[1].dispatchEvent(TestUtils.createEvent('click'));
+        uiOptionEls[1].dispatchEvent(createEvent('click'));
         QUnit.ok(!uiEl.classList.contains(uiOptionsContainerActiveClass), 'after clicking on an option ui item, dropdown container no longer has active class');
         dropdown.destroy();
     });
@@ -307,7 +306,7 @@ module.exports = (function (){
             '<select disabled>' +
                 '<option value="" selected>' + testDisplayValue + '</option>' +
             '</select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let formOption = selectEl.getElementsByTagName('option')[0];
         formOption.setAttribute('selected', 'selected'); // set the second dropdown as selected
@@ -321,7 +320,7 @@ module.exports = (function (){
     QUnit.test('clicking anywhere outside the ui element when its ui options container element is open should hide the ui options container element', function() {
         QUnit.expect(1);
         let fixture = document.getElementById('qunit-fixture');
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let uiContainerClass = 'my-ui-container';
         let uiOptionsContainerActiveClass = 'active-options-container';
@@ -335,9 +334,9 @@ module.exports = (function (){
         let uiEl = fixture.getElementsByClassName(uiContainerClass)[0];
         let uiSelectedValueContainerEl = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
         // click on selected value container to show options
-        uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
+        uiSelectedValueContainerEl.dispatchEvent(createEvent('click'));
         // click outside
-        fixture.dispatchEvent(TestUtils.createEvent('click'));
+        fixture.dispatchEvent(createEvent('click'));
         QUnit.ok(!uiEl.classList.contains(uiOptionsContainerActiveClass), 'since click was NOT in ui options container, ui options container element no longer has active class');
         dropdown.destroy();
     });
@@ -345,7 +344,7 @@ module.exports = (function (){
     QUnit.test('clicking on the ui element and anywhere inside of it while ui options container is open does NOT close ui options container', function() {
         QUnit.expect(1);
         let fixture = document.getElementById('qunit-fixture');
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let uiContainerClass = 'my-ui-container';
         let uiOptionsContainerActiveClass = 'active-options-container';
@@ -359,7 +358,7 @@ module.exports = (function (){
         let uiEl = fixture.getElementsByClassName(uiContainerClass)[0];
         let uiSelectedValueContainerEl = uiEl.getElementsByClassName(uiSelectedValueContainerClass)[0];
         // click on selected value container to show options
-        uiSelectedValueContainerEl.dispatchEvent(TestUtils.createEvent('click'));
+        uiSelectedValueContainerEl.dispatchEvent(createEvent('click'));
         // click outside
         QUnit.ok(uiEl.classList.contains(uiOptionsContainerActiveClass), 'ui options container element still has active class after clicking anywhere inside of ui options container');
         dropdown.destroy();
@@ -380,7 +379,7 @@ module.exports = (function (){
                     '<option value="Orange">Orange</option>' +
                 '</select>' +
             '</form>';
-        let formEl = TestUtils.createHtmlElement(html);
+        let formEl = createHtmlElementFromString(html);
         fixture.appendChild(formEl);
         let uiContainerClass = 'my-ui-container';
         let uiOptionsContainerActiveClass = 'active-options-container';
@@ -400,10 +399,10 @@ module.exports = (function (){
         });
         // click on selected value container of first element to show its options
         let firstUIElement = fixture.getElementsByClassName(uiContainerClass)[0];
-        firstUIElement.getElementsByClassName(uiSelectedValueContainerClass)[0].dispatchEvent(TestUtils.createEvent('click'));
+        firstUIElement.getElementsByClassName(uiSelectedValueContainerClass)[0].dispatchEvent(createEvent('click'));
         // click on selected value container of second element to show its options
         let secondUIElement = fixture.getElementsByClassName(uiContainerClass)[1];
-        secondUIElement.getElementsByClassName(uiSelectedValueContainerClass)[0].dispatchEvent(TestUtils.createEvent('click'));
+        secondUIElement.getElementsByClassName(uiSelectedValueContainerClass)[0].dispatchEvent(createEvent('click'));
         QUnit.ok(!firstUIElement.classList.contains(uiOptionsContainerActiveClass), 'clicking on second ui value container closes the first');
         firstDropdown.destroy();
         secondDropdown.destroy();
@@ -418,7 +417,7 @@ module.exports = (function (){
                 '<option value="FB">Facebook</option>' +
                 '<option value="GOOG">Google</option>' +
             '</select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let uiContainerClass = 'my-ui-container';
         let uiOptionsClass = 'my-option';
@@ -447,11 +446,11 @@ module.exports = (function (){
                 '<option value="FB">Facebook</option>' +
                 '<option value="GOOG">Google</option>' +
             '</select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let uiContainerClass = 'my-ui-container';
         let uiOptionsClass = 'my-option';
-        let clearOptionsSpy = Sinon.spy(Dropdown.prototype, 'clearOptions');
+        let clearOptionsSpy = sinon.spy(Dropdown.prototype, 'clearOptions');
         let dropdown = new Dropdown({
             el: selectEl,
             containerClass: uiContainerClass,
@@ -478,7 +477,7 @@ module.exports = (function (){
                 '<option value="AAPL">Apple</option>' +
                 '<option value="FB">Facebook</option>' +
             '</select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let uiContainerClass = 'my-ui-container';
         let uiOptionsClass = 'my-option';
@@ -499,7 +498,7 @@ module.exports = (function (){
         QUnit.expect(1);
         let fixture = document.getElementById('qunit-fixture');
         let html = '<select></select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let dropdown = new Dropdown({el: selectEl});
         QUnit.equal(dropdown.getUIElement().getAttribute('tabindex'), 0, 'ui dropdown was given a default tabindex of 0');
@@ -511,7 +510,7 @@ module.exports = (function (){
         let fixture = document.getElementById('qunit-fixture');
         let ti = 34;
         let html = '<select tabindex="' + ti + '"></select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let dropdown = new Dropdown({el: selectEl});
         QUnit.equal(dropdown.getUIElement().getAttribute('tabindex'), ti, 'tabindex attribute from form element was set on the ui element');
@@ -523,7 +522,7 @@ module.exports = (function (){
         let fixture = document.getElementById('qunit-fixture');
         let ti = 5;
         let html = '<select tabindex="' + ti + '"></select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let dropdown = new Dropdown({el: selectEl});
         QUnit.equal(dropdown.getFormElement().getAttribute('tabindex'), -1, 'tabindex attribute on form element was set to -1');
@@ -537,7 +536,7 @@ module.exports = (function (){
         deviceManagerIsMobileStub.returns(true);
         let ti = 5;
         let html = '<select tabindex="' + ti + '"></select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let dropdown = new Dropdown({el: selectEl});
         QUnit.equal(dropdown.getFormElement().getAttribute('tabindex'), ti, 'tabindex attribute on form element was NOT set to -1 because mobile devices should use native select element');
@@ -549,19 +548,19 @@ module.exports = (function (){
         QUnit.expect(3);
         let fixture = document.getElementById('qunit-fixture');
         let html = '<select></select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
-        let focusSpy = Sinon.spy();
+        let focusSpy = sinon.spy();
         let dropdown = new Dropdown({
             el: selectEl,
             onFocus: focusSpy
         });
         QUnit.equal(focusSpy.callCount, 0, 'onFocus callback was NOT yet triggered because it isnt initially focused');
         // trigger focus
-        selectEl.dispatchEvent(TestUtils.createEvent('focus'));
+        selectEl.dispatchEvent(createEvent('focus'));
         QUnit.equal(focusSpy.callCount, 1, 'onFocus callback was triggered after select element became focused');
         dropdown.destroy();
-        selectEl.dispatchEvent(TestUtils.createEvent('focus'));
+        selectEl.dispatchEvent(createEvent('focus'));
         QUnit.equal(focusSpy.callCount, 1, 'onFocus callback was NOT triggered after destroy when select element is focused again');
     });
 
@@ -569,24 +568,24 @@ module.exports = (function (){
         QUnit.expect(3);
         let fixture = document.getElementById('qunit-fixture');
         let html = '<select></select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
-        let blurSpy = Sinon.spy();
+        let blurSpy = sinon.spy();
         let dropdown = new Dropdown({
             el: selectEl,
             onBlur: blurSpy
         });
         QUnit.equal(blurSpy.callCount, 0, 'onBlur callback was NOT triggered because it isnt blurred yet');
         // trigger focus
-        selectEl.dispatchEvent(TestUtils.createEvent('focus'));
+        selectEl.dispatchEvent(createEvent('focus'));
         // trigger blur
-        selectEl.dispatchEvent(TestUtils.createEvent('blur'));
+        selectEl.dispatchEvent(createEvent('blur'));
         QUnit.equal(blurSpy.callCount, 1, 'onBlur callback was triggered after select element became focused');
         dropdown.destroy();
         // trigger focus
-        selectEl.dispatchEvent(TestUtils.createEvent('focus'));
+        selectEl.dispatchEvent(createEvent('focus'));
         // trigger blur
-        selectEl.dispatchEvent(TestUtils.createEvent('blur'));
+        selectEl.dispatchEvent(createEvent('blur'));
         QUnit.equal(blurSpy.callCount, 1, 'onBlur callback was NOT triggered after destroy when select element is focused then blurred again');
     });
 
@@ -594,9 +593,9 @@ module.exports = (function (){
         QUnit.expect(3);
         let fixture = document.getElementById('qunit-fixture');
         let html = '<select></select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
-        let focusSpy = Sinon.spy();
+        let focusSpy = sinon.spy();
         let dropdown = new Dropdown({
             el: selectEl,
             onFocus: focusSpy
@@ -604,10 +603,10 @@ module.exports = (function (){
         let uiEl = dropdown.getUIElement();
         QUnit.equal(focusSpy.callCount, 0, 'onFocus callback was NOT yet triggered because it isnt initially focused');
         // trigger focus
-        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        uiEl.dispatchEvent(createEvent('focus'));
         QUnit.equal(focusSpy.callCount, 1, 'onFocus callback was triggered after element became focused');
         dropdown.destroy();
-        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        uiEl.dispatchEvent(createEvent('focus'));
         QUnit.equal(focusSpy.callCount, 1, 'onFocus callback was NOT triggered after destroy when element is focused again');
     });
 
@@ -615,9 +614,9 @@ module.exports = (function (){
         QUnit.expect(3);
         let fixture = document.getElementById('qunit-fixture');
         let html = '<select></select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
-        let blurSpy = Sinon.spy();
+        let blurSpy = sinon.spy();
         let dropdown = new Dropdown({
             el: selectEl,
             onBlur: blurSpy
@@ -625,15 +624,15 @@ module.exports = (function (){
         let uiEl = dropdown.getUIElement();
         QUnit.equal(blurSpy.callCount, 0, 'onBlur callback was NOT triggered because it isnt blurred yet');
         // trigger focus
-        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        uiEl.dispatchEvent(createEvent('focus'));
         // trigger blur
-        uiEl.dispatchEvent(TestUtils.createEvent('blur'));
+        uiEl.dispatchEvent(createEvent('blur'));
         QUnit.equal(blurSpy.callCount, 1, 'onBlur callback was triggered after select element became focused');
         dropdown.destroy();
         // trigger focus
-        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        uiEl.dispatchEvent(createEvent('focus'));
         // trigger blur
-        uiEl.dispatchEvent(TestUtils.createEvent('blur'));
+        uiEl.dispatchEvent(createEvent('blur'));
         QUnit.equal(blurSpy.callCount, 1, 'onBlur callback was NOT triggered after destroy when select element is focused then blurred again');
     });
 
@@ -645,7 +644,7 @@ module.exports = (function (){
                 '<option value="">Default</option>' +
                 '<option value="FB">Facebook</option>' +
             '</select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let uiOptionsClass = 'my-option';
         let myOptionSelected = 'opt-selected';
@@ -664,16 +663,16 @@ module.exports = (function (){
         QUnit.expect(3);
         let fixture = document.getElementById('qunit-fixture');
         let html = '<select></select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
-        let showOptionsContainerStub = Sinon.stub(Dropdown.prototype, 'showOptionsContainer');
+        let showOptionsContainerStub = sinon.stub(Dropdown.prototype, 'showOptionsContainer');
         let highlighter = 'highlited';
         let dropdown = new Dropdown({el: selectEl, optionsHighlightedClass: highlighter});
         let uiEl = dropdown.getUIElement();
         QUnit.equal(showOptionsContainerStub.callCount, 0, 'showOptionsContainer() method was called because no key was pressed');
         // trigger focus
-        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
-        let keyEvent = TestUtils.createEvent('keyup');
+        uiEl.dispatchEvent(createEvent('focus'));
+        let keyEvent = createEvent('keyup');
         // up arrow key
         keyEvent.keyCode = 38;
         uiEl.dispatchEvent(keyEvent);
@@ -692,7 +691,7 @@ module.exports = (function (){
                 '<option value="FB">Facebook</option>' +
                 '<option value="GOOG">Google</option>' +
             '</select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let highlighter = 'highlited';
         let optionsContainerClass = 'my-options';
@@ -704,10 +703,10 @@ module.exports = (function (){
         let uiEl = dropdown.getUIElement();
         let uiOptionsContainerEl = uiEl.getElementsByClassName(optionsContainerClass)[0];
         // trigger focus
-        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        uiEl.dispatchEvent(createEvent('focus'));
         // open container
         dropdown.showOptionsContainer();
-        let keyEvent = TestUtils.createEvent('keyup');
+        let keyEvent = createEvent('keyup');
         // up arrow key
         keyEvent.keyCode = 38;
         uiEl.dispatchEvent(keyEvent);
@@ -724,7 +723,7 @@ module.exports = (function (){
                 '<option value="FB" selected>Facebook</option>' +
                 '<option value="GOOG">Google</option>' +
             '</select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let highlighter = 'highlited';
         let optionsContainerClass = 'my-options';
@@ -737,11 +736,11 @@ module.exports = (function (){
         let uiOptionsContainerEl = uiEl.getElementsByClassName(optionsContainerClass)[0];
         let uiOptionEls = uiOptionsContainerEl.childNodes;
         // trigger focus
-        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        uiEl.dispatchEvent(createEvent('focus'));
         // open container
         dropdown.showOptionsContainer();
         // second option element will automatically be highlighted since it is the selected one
-        let keyEvent = TestUtils.createEvent('keyup');
+        let keyEvent = createEvent('keyup');
         // up arrow key
         keyEvent.keyCode = 38;
         uiEl.dispatchEvent(keyEvent);
@@ -754,16 +753,16 @@ module.exports = (function (){
         QUnit.expect(3);
         let fixture = document.getElementById('qunit-fixture');
         let html = '<select></select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
-        let showOptionsContainerStub = Sinon.stub(Dropdown.prototype, 'showOptionsContainer');
+        let showOptionsContainerStub = sinon.stub(Dropdown.prototype, 'showOptionsContainer');
         let highlighter = 'highlited';
         let dropdown = new Dropdown({el: selectEl, optionsHighlightedClass: highlighter});
         let uiEl = dropdown.getUIElement();
         QUnit.equal(showOptionsContainerStub.callCount, 0, 'showOptionsContainer() method was called because no key was pressed');
         // trigger focus
-        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
-        let keyEvent = TestUtils.createEvent('keyup');
+        uiEl.dispatchEvent(createEvent('focus'));
+        let keyEvent = createEvent('keyup');
         // down arrow key
         keyEvent.keyCode = 40;
         uiEl.dispatchEvent(keyEvent);
@@ -782,7 +781,7 @@ module.exports = (function (){
                 '<option value="FB">Facebook</option>' +
                 '<option value="GOOG" selected>Google</option>' +
             '</select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let highlighter = 'highlited';
         let optionsContainerClass = 'my-options';
@@ -794,10 +793,10 @@ module.exports = (function (){
         let uiEl = dropdown.getUIElement();
         let uiOptionsContainerEl = uiEl.getElementsByClassName(optionsContainerClass)[0];
         // trigger focus
-        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        uiEl.dispatchEvent(createEvent('focus'));
         // open container
         dropdown.showOptionsContainer();
-        let keyEvent = TestUtils.createEvent('keyup');
+        let keyEvent = createEvent('keyup');
         // down arrow key
         keyEvent.keyCode = 40;
         uiEl.dispatchEvent(keyEvent);
@@ -814,7 +813,7 @@ module.exports = (function (){
             '<option value="FB">Facebook</option>' +
             '<option value="GOOG">Google</option>' +
             '</select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         fixture.appendChild(selectEl);
         let highlighter = 'highlited';
         let optionsContainerClass = 'my-options';
@@ -827,12 +826,12 @@ module.exports = (function (){
         let uiOptionsContainerEl = uiEl.getElementsByClassName(optionsContainerClass)[0];
         let uiOptionEls = uiOptionsContainerEl.childNodes;
         // trigger focus
-        uiEl.dispatchEvent(TestUtils.createEvent('focus'));
+        uiEl.dispatchEvent(createEvent('focus'));
         // open container
         dropdown.showOptionsContainer();
         // first option element will automatically
         // be highlighted since it is the selected one
-        let keyEvent = TestUtils.createEvent('keyup');
+        let keyEvent = createEvent('keyup');
         // down arrow key
         keyEvent.keyCode = 40;
         uiEl.dispatchEvent(keyEvent);
@@ -845,7 +844,7 @@ module.exports = (function (){
         QUnit.expect(1);
         let val = 'myTestVal';
         let html = '<select><option value="' + val + '"></option></select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         document.getElementById('qunit-fixture').appendChild(selectEl);
         let dropdown = new Dropdown({el: selectEl});
         dropdown.setValue(val);
@@ -861,7 +860,7 @@ module.exports = (function (){
                 '<option value=""></option>' +
                 '<option value="' + val + '"></option>' +
             '</select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         document.getElementById('qunit-fixture').appendChild(selectEl);
         let dropdown = new Dropdown({el: selectEl});
         dropdown.setValue(val);
@@ -874,7 +873,7 @@ module.exports = (function (){
         QUnit.expect(1);
         let val = 'myTestVal';
         let html = '<select><option value="' + val + '"></option></select>';
-        let selectEl = TestUtils.createHtmlElement(html);
+        let selectEl = createHtmlElementFromString(html);
         document.getElementById('qunit-fixture').appendChild(selectEl);
         let dropdown = new Dropdown({el: selectEl});
         dropdown.setValue(val);

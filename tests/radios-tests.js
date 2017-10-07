@@ -1,8 +1,7 @@
-"use strict";
-let Sinon = require('sinon');
-let QUnit = require('qunit');
-let TestUtils = require('test-utils');
-let Radios = require('../src/radios');
+import sinon from 'sinon';
+import QUnit from 'qunit';
+import {createHtmlElementFromString} from '../utils/element';
+import Radios from '../src/radios';
 
 module.exports = (function () {
 
@@ -21,7 +20,7 @@ module.exports = (function () {
     QUnit.test('initializing/destroying', function() {
         QUnit.expect(6);
         let fixture = document.getElementById('qunit-fixture');
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         fixture.appendChild(wrapper);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
         let containers = wrapper.getElementsByTagName('label');
@@ -39,10 +38,10 @@ module.exports = (function () {
     QUnit.test('selecting and deselecting', function() {
         QUnit.expect(28);
         let fixture = document.getElementById('qunit-fixture');
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         fixture.appendChild(wrapper);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
-        let onChangeSpy = Sinon.spy();
+        let onChangeSpy = sinon.spy();
         let instance = new Radios({inputs: inputs, onChange: onChangeSpy});
         let UIElements = wrapper.getElementsByClassName('ui-radio');
         // select first toggle
@@ -87,7 +86,7 @@ module.exports = (function () {
     QUnit.test('clicking on input elements should apply and remove appropriate active classes', function() {
         QUnit.expect(12);
         let fixture = document.getElementById('qunit-fixture');
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         fixture.appendChild(wrapper);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
         let instance = new Radios({inputs: inputs});
@@ -118,10 +117,10 @@ module.exports = (function () {
     QUnit.test('clicking on input elements should trigger onChange callback', function() {
         QUnit.expect(4);
         let fixture = document.getElementById('qunit-fixture');
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         fixture.appendChild(wrapper);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
-        let onChangeSpy = Sinon.spy();
+        let onChangeSpy = sinon.spy();
         let instance = new Radios({inputs: inputs, onChange: onChangeSpy});
         let UIElements = wrapper.getElementsByClassName('ui-radio');
         // click first toggle
@@ -142,7 +141,7 @@ module.exports = (function () {
     QUnit.test('clicking on input elements should reflect correct checked boolean value', function() {
         QUnit.expect(12);
         let fixture = document.getElementById('qunit-fixture');
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         fixture.appendChild(wrapper);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
         let instance = new Radios({inputs: inputs});
@@ -172,7 +171,7 @@ module.exports = (function () {
     QUnit.test('clicking on input\'s parent label should add and remove css active classes appropriately', function() {
         QUnit.expect(12);
         let fixture = document.getElementById('qunit-fixture');
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         fixture.appendChild(wrapper);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
         let labels = wrapper.getElementsByTagName('label');
@@ -204,11 +203,11 @@ module.exports = (function () {
     QUnit.test('clicking on input\'s parent label should call onChange callback', function() {
         QUnit.expect(4);
         let fixture = document.getElementById('qunit-fixture');
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         fixture.appendChild(wrapper);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
         let labels = wrapper.getElementsByTagName('label');
-        let onChangeSpy = Sinon.spy();
+        let onChangeSpy = sinon.spy();
         let instance = new Radios({inputs: inputs, onChange: onChangeSpy});
         let UIElements = wrapper.getElementsByClassName('ui-radio');
         // click first label
@@ -238,11 +237,11 @@ module.exports = (function () {
                 '<input type="radio"  id="test-stock-vz" class="ui-radio-input" value="VZ" name="stocks" />' +
             '</div>';
         let fixture = document.getElementById('qunit-fixture');
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         fixture.appendChild(wrapper);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
         let labels = wrapper.getElementsByTagName('label');
-        let onChangeSpy = Sinon.spy();
+        let onChangeSpy = sinon.spy();
         let instance = new Radios({inputs: inputs, onChange: onChangeSpy});
         let UIElements = wrapper.getElementsByClassName('ui-radio');
         // click first label
@@ -274,7 +273,7 @@ module.exports = (function () {
 
     QUnit.test('getElementKey()', function() {
         QUnit.expect(1);
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         let radios = wrapper.getElementsByClassName('ui-radio-input');
         let instance = new Radios({inputs: radios});
         QUnit.equal(instance.getElementKey(), 'radios', 'getElementKey() method was called and returned "radios"');
@@ -283,10 +282,10 @@ module.exports = (function () {
 
     QUnit.test('initializing when checked initially', function() {
         QUnit.expect(3);
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
         inputs[0].checked = true; // make it so that input is checked initially
-        let onSelectedSpy = Sinon.spy();
+        let onSelectedSpy = sinon.spy();
         let instance = new Radios({inputs: inputs});
         let UIElements = wrapper.getElementsByClassName('ui-radio');
         QUnit.equal(inputs[0].checked, true, 'first input\'s checked property returns true initially');
@@ -297,7 +296,7 @@ module.exports = (function () {
 
     QUnit.test('enabling and disabling', function () {
         QUnit.expect(18);
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
         let instance = new Radios({inputs: inputs});
         let UIElements = wrapper.getElementsByClassName('ui-radio');
@@ -326,7 +325,7 @@ module.exports = (function () {
 
     QUnit.test('initializing when disabled initially', function() {
         QUnit.expect(2);
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
         inputs[0].disabled = true; // disable input field initially
         let instance = new Radios({inputs: inputs});
@@ -344,7 +343,7 @@ module.exports = (function () {
             '<label><input type="radio" class="ui-radio-input" value="FB" name="stocks" />Facebook</label>' +
             '<label><input type="radio" class="ui-radio-input" value="VZ" name="stocks" />Verizon</label>' +
             '</div>';
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         document.getElementById('qunit-fixture').appendChild(wrapper);
         let radios = wrapper.getElementsByTagName('input');
         let instance = new Radios({inputs: radios});
@@ -365,7 +364,7 @@ module.exports = (function () {
             '<label><input type="radio" value="MD" name="state" />Maryland</label>' +
             '<label><input type="radio" value="DC" name="state" />District Of Columbia</label>' +
             '</div>';
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         document.getElementById('qunit-fixture').appendChild(wrapper);
         let radios = wrapper.getElementsByTagName('input');
         let instance = new Radios({inputs: radios});
@@ -391,7 +390,7 @@ module.exports = (function () {
                 '<label><input type="radio" class="ui-radio-input" value="' + selectValue + '" name="stocks" />Facebook</label>' +
                 '<label><input type="radio" class="ui-radio-input" value="VZ" name="stocks" />Verizon</label>' +
             '</div>';
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         fixture.appendChild(wrapper);
         let radios = wrapper.getElementsByTagName('input');
         let fbRadioInput = wrapper.querySelector('input[value="' + selectValue + '"]');
@@ -417,7 +416,7 @@ module.exports = (function () {
                 '<label><input type="radio" value="' + val + '" name="stocks" />Facebook</label>' +
                 '<label><input type="radio" value="VZ" name="stocks" />Verizon</label>' +
             '</div>';
-        let wrapper = TestUtils.createHtmlElement(html);
+        let wrapper = createHtmlElementFromString(html);
         let inputs = wrapper.getElementsByTagName('input');
         let instance = new Radios({inputs: inputs, value: val});
         QUnit.equal(inputs[0].checked, false, 'first radio\'s checked property returns false because its value doesnt match value passed in initialize options');
@@ -429,10 +428,10 @@ module.exports = (function () {
     QUnit.test('should NOT call onChange callback when clicking on input element after destruction', function() {
         QUnit.expect(1);
         let fixture = document.getElementById('qunit-fixture');
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         fixture.appendChild(wrapper);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
-        let onChangeSpy = Sinon.spy();
+        let onChangeSpy = sinon.spy();
         let instance = new Radios({inputs: inputs, onChange: onChangeSpy});
         instance.destroy();
         // click third input
@@ -443,7 +442,7 @@ module.exports = (function () {
     QUnit.test('clicking on ui elements should apply and remove appropriate active classes', function() {
         QUnit.expect(12);
         let fixture = document.getElementById('qunit-fixture');
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         fixture.appendChild(wrapper);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
         let instance = new Radios({inputs: inputs});
@@ -470,10 +469,10 @@ module.exports = (function () {
     QUnit.test('clicking on ui elements should trigger onChange callback', function() {
         QUnit.expect(4);
         let fixture = document.getElementById('qunit-fixture');
-        let wrapper = TestUtils.createHtmlElement(radioHtml);
+        let wrapper = createHtmlElementFromString(radioHtml);
         fixture.appendChild(wrapper);
         let inputs = wrapper.getElementsByClassName('ui-radio-input');
-        let onChangeSpy = Sinon.spy();
+        let onChangeSpy = sinon.spy();
         let instance = new Radios({inputs: inputs, onChange: onChangeSpy});
         let UIElements = wrapper.getElementsByClassName('ui-radio');
         UIElements[0].click();

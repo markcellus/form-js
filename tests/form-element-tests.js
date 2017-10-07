@@ -1,7 +1,6 @@
-"use strict";
-let sinon = require('sinon');
-let QUnit = require('qunit');
-let FormElement = require('../src/form-element');
+import sinon from 'sinon';
+import QUnit from 'qunit';
+import FormElement from '../src/form-element';
 
 module.exports = (function () {
 
