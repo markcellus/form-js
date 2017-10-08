@@ -156,6 +156,7 @@ class FormElementGroup extends FormElement {
      * @private
      * @abstract
      */
+    // eslint-disable-next-line no-unused-vars
     _onFormElementClick (formElement, UIElement) {}
 
     /**
@@ -185,6 +186,7 @@ class FormElementGroup extends FormElement {
      * @private
      * @abstract
      */
+    // eslint-disable-next-line no-unused-vars
     _onUIElementClick (formElement, UIElement) {}
 
     /**

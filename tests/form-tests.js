@@ -1,6 +1,6 @@
 import sinon from 'sinon';
 import QUnit from 'qunit';
-import {createHtmlElementFromString, createEvent} from '../utils/element';
+import {createHtmlElementFromString} from '../utils/element';
 import Form from '../src/form';
 
 module.exports = (function () {

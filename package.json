@@ -45,7 +45,7 @@
   "scripts": {
     "build": "bt build",
     "start": "bt server",
-    "test": "bt test"
+    "test": "eslint ./ && bt test"
   },
   "browserify": {
     "transform": [
@@ -72,6 +72,7 @@
   "devDependencies": {
     "babel-plugin-add-module-exports": "^0.2.1",
     "build-tools": "^7.2.4",
+    "eslint": "^4.8.0",
     "sinon": "^1.17.3"
   }
 }

@@ -693,8 +693,6 @@ class Dropdown extends FormElement {
         });
         if (reset) {
             formEl.innerHTML = '';
-        } else {
-
         }
         formEl.appendChild(frag);
      }

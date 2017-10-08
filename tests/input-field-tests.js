@@ -12,7 +12,6 @@ module.exports = (function () {
     let activeClass = 'ui-input-text-active';
     let inputClass = 'ui-input-text-input';
     let containerClass = 'ui-input-text';
-    let placeholderClass = 'ui-input-text-placeholder';
 
     let html = '<label class="container"><input type="text" class=' + inputClass + ' value="" placeholder="Enter your name" name="first_name" /></label>';
 
@@ -70,7 +69,7 @@ module.exports = (function () {
     QUnit.test('initializing and destroying when initial value is present', function() {
         QUnit.expect(3);
         let container = createHtmlElementFromString(html);
-        let fixture = document.getElementById('qunit-fixture').appendChild(container);
+        document.getElementById('qunit-fixture').appendChild(container);
         let input = container.getElementsByClassName(inputClass)[0];
         let origValue = 'testy';
         input.value = origValue; // add custom value before initialization
@@ -105,7 +104,7 @@ module.exports = (function () {
     QUnit.test('initialize and destroy when initially disabled', function() {
         QUnit.expect(5);
         let container = createHtmlElementFromString(html);
-        let fixture = document.getElementById('qunit-fixture').appendChild(container);
+        document.getElementById('qunit-fixture').appendChild(container);
         let inputEl = container.getElementsByClassName(inputClass)[0];
         inputEl.setAttribute('disabled', 'true'); // make it so that input is checked initially
         let setAttrSpy = sinon.spy(inputEl, 'setAttribute');
@@ -163,7 +162,7 @@ module.exports = (function () {
     QUnit.test('should set the input field as the value passed in the options', function() {
         QUnit.expect(1);
         let container = createHtmlElementFromString(html);
-        let fixture = document.getElementById('qunit-fixture').appendChild(container);
+        document.getElementById('qunit-fixture').appendChild(container);
         let input = container.getElementsByClassName(inputClass)[0];
         let myValue = 'testy';
         let instance = new InputField({el: input, value: myValue});

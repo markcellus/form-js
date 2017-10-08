@@ -416,9 +416,8 @@ class Form {
     /**
      * Triggers a method on all form instances.
      * @param {string} method - The method
-     * @param {...*} params - Any params for the method from here, onward
      */
-    triggerMethodAll (method, params) {
+    triggerMethodAll (method) {
         let args = Array.prototype.slice.call(arguments, 1),
             i, instance;
 
