@@ -62,7 +62,7 @@ class InputField extends FormElement {
      * Sets up events for showing/hiding tooltip.
      */
     setup () {
-        var input = this.options.el,
+        let input = this.options.el,
             optionsValue = this.options.value || input.value;
 
         // add internal class if doesnt already exist
@@ -93,7 +93,7 @@ class InputField extends FormElement {
      * @private
      */
     _bindEvents () {
-        var input = this.getFormElement();
+        let input = this.getFormElement();
         this.addEventListener(input, 'focus', '_onInputFocus', this);
         this.addEventListener(input, 'blur', '_onInputBlur', this);
         this.addEventListener(input, 'change', '_onInputValueChange', this);
@@ -105,7 +105,7 @@ class InputField extends FormElement {
      * @private
      */
     _unbindEvents () {
-        var input = this.getFormElement();
+        let input = this.getFormElement();
         this.removeEventListener(input, 'focus', '_onInputFocus', this);
         this.removeEventListener(input, 'blur', '_onInputBlur', this);
         this.removeEventListener(input, 'change', '_onInputValueChange', this);
@@ -132,7 +132,7 @@ class InputField extends FormElement {
      * @private
      */
     _triggerKeyDownChange (e) {
-        var input = this.getFormElement();
+        let input = this.getFormElement();
         if (this.options.onKeyDownChange) {
             this.options.onKeyDownChange(input.value, input, this.getUIElement(), e);
         }
@@ -143,7 +143,7 @@ class InputField extends FormElement {
      * @param {string} value - The new input field value
      */
     setValue (value) {
-        var input = this.getFormElement(),
+        let input = this.getFormElement(),
             currentVal = input.value;
         if (value !== currentVal) {
             input.value = value;
@@ -167,7 +167,7 @@ class InputField extends FormElement {
      */
     _buildUIElement (inputEl) {
         let parent = inputEl.parentNode;
-        var outerEl = document.createElement('div');
+        let outerEl = document.createElement('div');
         outerEl.classList.add(this.options.containerClass);
         parent.replaceChild(outerEl, inputEl);
         outerEl.appendChild(inputEl);
@@ -195,7 +195,7 @@ class InputField extends FormElement {
      * @private
      */
     _triggerChange (e) {
-        var args = [this.getValue(), this.getFormElement(), this.getUIElement()];
+        let args = [this.getValue(), this.getFormElement(), this.getUIElement()];
         if (e) {
             args.push(e);
         }
@@ -264,7 +264,7 @@ class InputField extends FormElement {
      * Destruction of this class.
      */
     destroy () {
-        var container = this.getUIElement(),
+        let container = this.getUIElement(),
             input = this.getFormElement();
 
         this._unbindEvents();

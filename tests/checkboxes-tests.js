@@ -1,32 +1,31 @@
-"use strict";
-var Sinon = require('sinon');
-var QUnit = require('qunit');
-var TestUtils = require('test-utils');
-var Checkboxes = require('../src/checkboxes');
+import sinon from 'sinon';
+import QUnit from 'qunit';
+import {createHtmlElementFromString} from '../utils/element';
+import Checkboxes from '../src/checkboxes';
 
 module.exports = (function () {
 
     QUnit.module('Checkboxes');
 
-    var checkboxHtml = '' +
+    let checkboxHtml = '' +
         '<div class="container">' +
         '<label><input type="checkbox" class="ui-checkbox-input" value="NY" name="state1" />New York</label>' +
         '<label><input type="checkbox" class="ui-checkbox-input" value="MD" name="state2" />Maryland</label>' +
         '<label><input type="checkbox" class="ui-checkbox-input" value="DC" name="state3" />District Of Columbia</label>' +
         '</div>';
 
-    var selectedClass = 'ui-checkbox-selected',
+    let selectedClass = 'ui-checkbox-selected',
         disabledClass = 'ui-checkbox-disabled';
 
     QUnit.test('initializing/destroying', function() {
         QUnit.expect(6);
-        var fixture = document.getElementById('qunit-fixture');
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let fixture = document.getElementById('qunit-fixture');
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         fixture.appendChild(wrapper);
-        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
-        var containers = wrapper.getElementsByTagName('label');
-        var instance = new Checkboxes({inputs: inputs});
-        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        let inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        let containers = wrapper.getElementsByTagName('label');
+        let instance = new Checkboxes({inputs: inputs});
+        let UIElements = wrapper.getElementsByClassName('ui-checkbox');
         QUnit.ok(UIElements[0].childNodes[0].isEqualNode(inputs[0]), 'after init, ui button toggle wrapper html was created for first el');
         QUnit.ok(UIElements[1].childNodes[0].isEqualNode(inputs[1]), 'ui button toggle wrapper html was created for second el');
         QUnit.ok(UIElements[2].childNodes[0].isEqualNode(inputs[2]), 'ui button toggle wrapper html was created for third el');
@@ -38,14 +37,14 @@ module.exports = (function () {
 
     QUnit.test('selecting and deselecting', function() {
         QUnit.expect(14);
-        var fixture = document.getElementById('qunit-fixture');
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let fixture = document.getElementById('qunit-fixture');
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         fixture.appendChild(wrapper);
-        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
-        var onChangeSpy = Sinon.spy();
-        var instance = new Checkboxes({inputs: inputs, onChange: onChangeSpy});
-        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
-        var onChangeCallCount = 0;
+        let inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        let onChangeSpy = sinon.spy();
+        let instance = new Checkboxes({inputs: inputs, onChange: onChangeSpy});
+        let UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        let onChangeCallCount = 0;
         // select first toggle
         instance.select(0);
         onChangeCallCount++;
@@ -77,12 +76,12 @@ module.exports = (function () {
 
     QUnit.test('clicking on input element should apply the appropriate active classes', function() {
         QUnit.expect(8);
-        var fixture = document.getElementById('qunit-fixture');
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let fixture = document.getElementById('qunit-fixture');
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         fixture.appendChild(wrapper);
-        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
-        var instance = new Checkboxes({inputs: inputs});
-        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        let inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        let instance = new Checkboxes({inputs: inputs});
+        let UIElements = wrapper.getElementsByClassName('ui-checkbox');
         // click first input
         inputs[0].click();
         QUnit.ok(UIElements[0].classList.contains(selectedClass), 'first input ui element contains active class');
@@ -104,13 +103,13 @@ module.exports = (function () {
 
     QUnit.test('clicking on input element should trigger onChange callback option', function() {
         QUnit.expect(4);
-        var fixture = document.getElementById('qunit-fixture');
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let fixture = document.getElementById('qunit-fixture');
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         fixture.appendChild(wrapper);
-        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
-        var onChangeSpy = Sinon.spy();
-        var instance = new Checkboxes({inputs: inputs, onChange: onChangeSpy});
-        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        let inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        let onChangeSpy = sinon.spy();
+        let instance = new Checkboxes({inputs: inputs, onChange: onChangeSpy});
+        let UIElements = wrapper.getElementsByClassName('ui-checkbox');
         // click first input
         inputs[0].click();
         QUnit.deepEqual(onChangeSpy.args[0], [inputs[0].value, inputs[0], UIElements[0]], 'clicking on first input input fires onChange callback with correct args');
@@ -128,13 +127,13 @@ module.exports = (function () {
 
     QUnit.test('clicking on input\'s label parent adds and removes css active classes appropriately', function() {
         QUnit.expect(8);
-        var fixture = document.getElementById('qunit-fixture');
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let fixture = document.getElementById('qunit-fixture');
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         fixture.appendChild(wrapper);
-        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
-        var labels = wrapper.getElementsByTagName('label');
-        var instance = new Checkboxes({inputs: inputs});
-        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        let inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        let labels = wrapper.getElementsByTagName('label');
+        let instance = new Checkboxes({inputs: inputs});
+        let UIElements = wrapper.getElementsByClassName('ui-checkbox');
         // click first label
         labels[0].click();
         QUnit.ok(UIElements[0].classList.contains(selectedClass), 'first label ui element contains active class');
@@ -156,14 +155,14 @@ module.exports = (function () {
 
     QUnit.test('clicking on input\'s label parent call onChange callback option', function() {
         QUnit.expect(4);
-        var fixture = document.getElementById('qunit-fixture');
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let fixture = document.getElementById('qunit-fixture');
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         fixture.appendChild(wrapper);
-        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
-        var labels = wrapper.getElementsByTagName('label');
-        var onChangeSpy = Sinon.spy();
-        var instance = new Checkboxes({inputs: inputs, onChange: onChangeSpy});
-        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        let inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        let labels = wrapper.getElementsByTagName('label');
+        let onChangeSpy = sinon.spy();
+        let instance = new Checkboxes({inputs: inputs, onChange: onChangeSpy});
+        let UIElements = wrapper.getElementsByClassName('ui-checkbox');
         // click first label
         labels[0].click();
         QUnit.deepEqual(onChangeSpy.args[0], [inputs[0].value, inputs[0], UIElements[0]], 'clicking on first label fires onChange callback with correct args');
@@ -181,21 +180,21 @@ module.exports = (function () {
 
     QUnit.test('getElementKey()', function() {
         QUnit.expect(1);
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
-        var checkboxes = wrapper.getElementsByClassName('ui-checkbox-input');
-        var instance = new Checkboxes({inputs: checkboxes});
+        let wrapper = createHtmlElementFromString(checkboxHtml);
+        let checkboxes = wrapper.getElementsByClassName('ui-checkbox-input');
+        let instance = new Checkboxes({inputs: checkboxes});
         QUnit.equal(instance.getElementKey(), 'checkboxes', 'getElementKey() method was called and returned "checkboxes"');
         instance.destroy();
     });
 
     QUnit.test('initializing when checked initially', function() {
         QUnit.expect(3);
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
-        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        let wrapper = createHtmlElementFromString(checkboxHtml);
+        let inputs = wrapper.getElementsByClassName('ui-checkbox-input');
         inputs[0].checked = true; // make it so that input is checked initially
-        var onSelectedSpy = Sinon.spy();
-        var instance = new Checkboxes({inputs: inputs});
-        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        let onSelectedSpy = sinon.spy();
+        let instance = new Checkboxes({inputs: inputs});
+        let UIElements = wrapper.getElementsByClassName('ui-checkbox');
         QUnit.equal(inputs[0].checked, true, 'first input\'s checked property returns true initially');
         QUnit.ok(UIElements[0].classList.contains(selectedClass), 'first ui element toggle has active class initially because original input was checked initially');
         QUnit.equal(onSelectedSpy.callCount, 0, 'onSelected callback was NOT fired');
@@ -204,10 +203,10 @@ module.exports = (function () {
 
     QUnit.test('enabling and disabling', function () {
         QUnit.expect(18);
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
-        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
-        var instance = new Checkboxes({inputs: inputs});
-        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        let wrapper = createHtmlElementFromString(checkboxHtml);
+        let inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        let instance = new Checkboxes({inputs: inputs});
+        let UIElements = wrapper.getElementsByClassName('ui-checkbox');
         QUnit.ok(!UIElements[0].classList.contains(disabledClass), 'first toggle does not have active class initially');
         QUnit.ok(!inputs[0].disabled, 'first toggle input\'s disabled property returns falsy');
         QUnit.ok(!UIElements[1].classList.contains(disabledClass), 'second toggle does not have active class initially');
@@ -233,11 +232,11 @@ module.exports = (function () {
 
     QUnit.test('initializing when disabled initially', function() {
         QUnit.expect(2);
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
-        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        let wrapper = createHtmlElementFromString(checkboxHtml);
+        let inputs = wrapper.getElementsByClassName('ui-checkbox-input');
         inputs[0].disabled = true; // disable input field initially
-        var instance = new Checkboxes({inputs: inputs});
-        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        let instance = new Checkboxes({inputs: inputs});
+        let UIElements = wrapper.getElementsByClassName('ui-checkbox');
         QUnit.ok(inputs[0].disabled, 'first toggle input was disabled initially');
         QUnit.ok(UIElements[0].classList.contains(disabledClass), 'first toggle element has disabled class initially because original input was disabled initially');
         instance.destroy();
@@ -245,20 +244,20 @@ module.exports = (function () {
 
     QUnit.test('getValue() should return all values of the currently selected checkboxes', function() {
         QUnit.expect(3);
-        var checkboxHtml = '' +
+        let checkboxHtml = '' +
             '<div class="container">' +
             '<label><input type="checkbox" value="NY" name="state1" />New York</label>' +
             '<label><input type="checkbox" value="MD" name="state2" />Maryland</label>' +
             '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
             '</div>';
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         document.getElementById('qunit-fixture').appendChild(wrapper);
-        var checkboxes = wrapper.getElementsByTagName('input');
-        var instance = new Checkboxes({inputs: checkboxes});
+        let checkboxes = wrapper.getElementsByTagName('input');
+        let instance = new Checkboxes({inputs: checkboxes});
         QUnit.equal(instance.getValue(), '', 'calling getValue() when there is no currently set value returns empty string');
         // select first checkbox
         instance.select(0);
-        var testArray = [checkboxes[0].value];
+        let testArray = [checkboxes[0].value];
         QUnit.deepEqual(instance.getValue(), testArray, 'after selecting first toggle, getValue() returns an array with first item\'s value');
         // click second toggle
         instance.select(1);
@@ -269,32 +268,32 @@ module.exports = (function () {
 
     QUnit.test('getValue() should return an empty array if no checkboxes are selected', function() {
         QUnit.expect(1);
-        var checkboxHtml = '' +
+        let checkboxHtml = '' +
             '<div class="container">' +
             '<label><input type="checkbox" value="NY" name="state1" />New York</label>' +
             '<label><input type="checkbox" value="MD" name="state2" />Maryland</label>' +
             '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
             '</div>';
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         document.getElementById('qunit-fixture').appendChild(wrapper);
-        var checkboxes = wrapper.getElementsByTagName('input');
-        var instance = new Checkboxes({inputs: checkboxes});
+        let checkboxes = wrapper.getElementsByTagName('input');
+        let instance = new Checkboxes({inputs: checkboxes});
         QUnit.deepEqual(instance.getValue(), []);
         instance.destroy();
     });
 
     QUnit.test('clear() should clear all checkbox button toggles', function() {
         QUnit.expect(1);
-        var checkboxHtml = '' +
+        let checkboxHtml = '' +
             '<div class="container">' +
                 '<label><input type="checkbox" value="NY" name="state1" />New York</label>' +
                 '<label><input type="checkbox" value="MD" name="state2" />Maryland</label>' +
                 '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
             '</div>';
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         document.getElementById('qunit-fixture').appendChild(wrapper);
-        var checkboxes = wrapper.getElementsByTagName('input');
-        var instance = new Checkboxes({inputs: checkboxes});
+        let checkboxes = wrapper.getElementsByTagName('input');
+        let instance = new Checkboxes({inputs: checkboxes});
         instance.select(0); // select first toggle
         instance.select(1); // select second toggle
         instance.clear();
@@ -304,16 +303,16 @@ module.exports = (function () {
 
     QUnit.test('clear() should unselect the currently selected radio button toggle', function() {
         QUnit.expect(4);
-        var checkboxHtml = '' +
+        let checkboxHtml = '' +
             '<div class="container">' +
             '<label><input type="checkbox" value="NY" name="state1" />New York</label>' +
             '<label><input type="checkbox" value="MD" name="state2" />Maryland</label>' +
             '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
             '</div>';
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         document.getElementById('qunit-fixture').appendChild(wrapper);
-        var radios = wrapper.getElementsByTagName('input');
-        var instance = new Checkboxes({inputs: radios});
+        let radios = wrapper.getElementsByTagName('input');
+        let instance = new Checkboxes({inputs: radios});
         // click second toggle
         instance.select(1);
         QUnit.equal(radios[1].checked, true, 'second item is original selected');
@@ -327,16 +326,16 @@ module.exports = (function () {
 
     QUnit.test('getValue() should return empty array when clear() method is called on checkboxes', function() {
         QUnit.expect(2);
-        var checkboxHtml = '' +
+        let checkboxHtml = '' +
             '<div class="container">' +
             '<label><input type="checkbox" value="NY" name="state1" />New York</label>' +
             '<label><input type="checkbox" value="MD" name="state2" />Maryland</label>' +
             '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
             '</div>';
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         document.getElementById('qunit-fixture').appendChild(wrapper);
-        var radios = wrapper.getElementsByTagName('input');
-        var instance = new Checkboxes({inputs: radios});
+        let radios = wrapper.getElementsByTagName('input');
+        let instance = new Checkboxes({inputs: radios});
         // click second toggle
         instance.select(1);
         QUnit.equal(instance.getValue(), radios[1].value, 'second item is original selected');
@@ -347,21 +346,21 @@ module.exports = (function () {
 
     QUnit.test('should select the checkbox element with a value that matches the value passed into setValue()', function() {
         QUnit.expect(6);
-        var fixture = document.getElementById('qunit-fixture');
-        var selectValue = 'MD';
-        var checkboxHtml = '' +
+        let fixture = document.getElementById('qunit-fixture');
+        let selectValue = 'MD';
+        let checkboxHtml = '' +
             '<div class="container">' +
                 '<label><input type="checkbox" class="ui-checkbox-input" value="NY" name="state1" />New York</label>' +
                 '<label><input type="checkbox" class="ui-checkbox-input" value="' + selectValue + '" name="state2" />Maryland</label>' +
                 '<label><input type="checkbox" class="ui-checkbox-input" value="DC" name="state3" />District of Columbia</label>' +
             '</div>';
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         fixture.appendChild(wrapper);
-        var radios = wrapper.getElementsByTagName('input');
-        var checkbox2 = wrapper.querySelector('input[value="' + selectValue + '"]');
-        var checkbox1 = wrapper.querySelector('input[value="NY"]');
-        var checkbox3 = wrapper.querySelector('input[value="DC"]');
-        var instance = new Checkboxes({inputs: radios});
+        let radios = wrapper.getElementsByTagName('input');
+        let checkbox2 = wrapper.querySelector('input[value="' + selectValue + '"]');
+        let checkbox1 = wrapper.querySelector('input[value="NY"]');
+        let checkbox3 = wrapper.querySelector('input[value="DC"]');
+        let instance = new Checkboxes({inputs: radios});
         QUnit.equal(checkbox2.checked, false);
         QUnit.equal(checkbox1.checked, false);
         QUnit.equal(checkbox3.checked, false);
@@ -374,16 +373,16 @@ module.exports = (function () {
 
     QUnit.test('should check all checkboxes that match the value of the options values passed in on initialize', function() {
         QUnit.expect(3);
-        var val = 'NY';
-        var checkboxHtml = '' +
+        let val = 'NY';
+        let checkboxHtml = '' +
             '<div class="container">' +
                 '<label><input type="checkbox" value="MD" name="state2" />Maryland</label>' +
                 '<label><input type="checkbox" value="' + val + '" name="state1" />New York</label>' +
                 '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
             '</div>';
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
-        var inputs = wrapper.getElementsByTagName('input');
-        var instance = new Checkboxes({inputs: inputs, value: val});
+        let wrapper = createHtmlElementFromString(checkboxHtml);
+        let inputs = wrapper.getElementsByTagName('input');
+        let instance = new Checkboxes({inputs: inputs, value: val});
         QUnit.equal(inputs[0].checked, false, 'first input\'s checked property returns false because its value doesnt match value passed in initialize options');
         QUnit.equal(inputs[1].checked, true, 'second input\'s checked property returns true initially because value was passed to options that matches it');
         QUnit.equal(inputs[2].checked, false, 'third input\'s checked property returns false because its value doesnt match value passed in initialize options');
@@ -392,17 +391,17 @@ module.exports = (function () {
 
     QUnit.test('should check all checkboxes that match the value of the options values passed in on initialize', function() {
         QUnit.expect(3);
-        var val = 'NY';
-        var val2 = 'MD';
-        var checkboxHtml = '' +
+        let val = 'NY';
+        let val2 = 'MD';
+        let checkboxHtml = '' +
             '<div class="container">' +
             '<label><input type="checkbox" value="' + val + '" name="state1" />New York</label>' +
             '<label><input type="checkbox" value="' + val2 + '" name="state2" />Maryland</label>' +
             '<label><input type="checkbox" value="DC" name="state3" />District Of Columbia</label>' +
             '</div>';
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
-        var inputs = wrapper.getElementsByTagName('input');
-        var instance = new Checkboxes({inputs: inputs, value: [val, val2]});
+        let wrapper = createHtmlElementFromString(checkboxHtml);
+        let inputs = wrapper.getElementsByTagName('input');
+        let instance = new Checkboxes({inputs: inputs, value: [val, val2]});
         QUnit.equal(inputs[0].checked, true, 'first input\'s checked property returns true initially because value was passed to options that matches it');
         QUnit.equal(inputs[1].checked, true, 'second input\'s checked property returns true initially because value was passed to options that matches it');
         QUnit.equal(inputs[2].checked, false, 'third input\'s checked property returns false because its value doesnt match value passed in initialize options');
@@ -411,12 +410,12 @@ module.exports = (function () {
 
     QUnit.test('clicking on UI elements should apply the appropriate active classes', function() {
         QUnit.expect(8);
-        var fixture = document.getElementById('qunit-fixture');
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let fixture = document.getElementById('qunit-fixture');
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         fixture.appendChild(wrapper);
-        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
-        var instance = new Checkboxes({inputs: inputs});
-        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        let inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        let instance = new Checkboxes({inputs: inputs});
+        let UIElements = wrapper.getElementsByClassName('ui-checkbox');
         // click first input
         UIElements[0].click();
         QUnit.ok(UIElements[0].classList.contains(selectedClass), 'first input ui element contains active class');
@@ -438,13 +437,13 @@ module.exports = (function () {
 
     QUnit.test('clicking on UI elements should trigger onChange callback option', function() {
         QUnit.expect(4);
-        var fixture = document.getElementById('qunit-fixture');
-        var wrapper = TestUtils.createHtmlElement(checkboxHtml);
+        let fixture = document.getElementById('qunit-fixture');
+        let wrapper = createHtmlElementFromString(checkboxHtml);
         fixture.appendChild(wrapper);
-        var inputs = wrapper.getElementsByClassName('ui-checkbox-input');
-        var onChangeSpy = Sinon.spy();
-        var instance = new Checkboxes({inputs: inputs, onChange: onChangeSpy});
-        var UIElements = wrapper.getElementsByClassName('ui-checkbox');
+        let inputs = wrapper.getElementsByClassName('ui-checkbox-input');
+        let onChangeSpy = sinon.spy();
+        let instance = new Checkboxes({inputs: inputs, onChange: onChangeSpy});
+        let UIElements = wrapper.getElementsByClassName('ui-checkbox');
         // click first input
         UIElements[0].click();
         QUnit.deepEqual(onChangeSpy.args[0], [inputs[0].value, inputs[0], UIElements[0]], 'clicking on first input input fires onChange callback with correct args');

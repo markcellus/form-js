@@ -47,7 +47,7 @@ class SubmitButton {
      * @abstract
      */
     enable () {
-        var btn = this.getSubmitButton();
+        let btn = this.getSubmitButton();
         btn.disabled = false;
         btn.classList.remove(this.options.disabledClass);
     }
@@ -57,7 +57,7 @@ class SubmitButton {
      * @abstract
      */
     disable () {
-        var btn = this.getSubmitButton();
+        let btn = this.getSubmitButton();
         btn.disabled = true;
         btn.classList.add(this.options.disabledClass);
     }

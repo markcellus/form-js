@@ -68,7 +68,7 @@ class Dropdown extends FormElement {
         }, options);
 
         super(options);
-        
+
         this.options = options;
 
         this._keyMap = {
@@ -88,7 +88,7 @@ class Dropdown extends FormElement {
      * @memberOf Dropdown
      */
     setup () {
-        var el = this.options.el,
+        let el = this.options.el,
             selectedOption = el.querySelectorAll('option[selected]')[0];
 
         this.addEventListener(el, 'change', '_onSelectChange', this);
@@ -117,7 +117,7 @@ class Dropdown extends FormElement {
      */
     _buildWrapperEl (el) {
         let parent = el.parentNode;
-        var outerEl = document.createElement('div');
+        let outerEl = document.createElement('div');
         outerEl.classList.add(this.options.customWrapperClass);
         parent.replaceChild(outerEl, el);
         outerEl.appendChild(el);
@@ -130,7 +130,7 @@ class Dropdown extends FormElement {
      * @private
      */
     _buildUIElement () {
-        var options = this.options,
+        let options = this.options,
             formEl = options.el,
             uiEl = document.createElement('div');
 
@@ -157,7 +157,7 @@ class Dropdown extends FormElement {
      * @memberOf Dropdown
      */
     _setUISelectedValue (dataValue) {
-        var optionsContainerEl = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+        let optionsContainerEl = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
             prevSelectedOption = optionsContainerEl.getElementsByClassName(this.options.optionsSelectedClass)[0],
             newSelectedOptionEl = optionsContainerEl.querySelectorAll('.' + this.options.optionsClass + '[data-value="' + dataValue + '"]')[0],
             selectedClass = this.options.optionsSelectedClass,
@@ -183,7 +183,7 @@ class Dropdown extends FormElement {
      * @param {KeyboardEvent} e - The key up event
      */
     onKeyStrokeUIElement (e) {
-        var options = this.options,
+        let options = this.options,
             highlightClass = this.options.optionsHighlightedClass,
             uiEl = this.getUIElement(),
             uiContainer = uiEl.getElementsByClassName(options.optionsContainerClass)[0],
@@ -216,7 +216,7 @@ class Dropdown extends FormElement {
      * @private
      */
     _onKeyStrokeUp (highlightedOptionEl) {
-        var highlightClass = this.options.optionsHighlightedClass,
+        let highlightClass = this.options.optionsHighlightedClass,
             prevSibling = highlightedOptionEl.previousSibling;
 
         highlightedOptionEl.classList.remove(highlightClass);
@@ -234,7 +234,7 @@ class Dropdown extends FormElement {
      * @private
      */
     _onKeyStrokeDown (highlightedOptionEl) {
-        var highlightClass = this.options.optionsHighlightedClass,
+        let highlightClass = this.options.optionsHighlightedClass,
             nextSibling = highlightedOptionEl.nextSibling;
 
         highlightedOptionEl.classList.remove(highlightClass);
@@ -340,7 +340,7 @@ class Dropdown extends FormElement {
      * @memberOf Dropdown
      */
     _bindUIElementEvents () {
-        var uiEl = this.getUIElement(),
+        let uiEl = this.getUIElement(),
             uiValueContainer = uiEl.getElementsByClassName(this.options.selectedValueContainerClass)[0],
             formEl = this.getFormElement();
         this.addEventListener(uiEl, 'focus', '_onFocusUIElement', this);
@@ -356,7 +356,7 @@ class Dropdown extends FormElement {
      * @private
      */
     _unbindUIElementEvents () {
-        var uiEl = this.getUIElement(),
+        let uiEl = this.getUIElement(),
             uiValueContainer = uiEl.getElementsByClassName(this.options.selectedValueContainerClass)[0],
             formEl = this.getFormElement();
         this.removeEventListener(uiEl, 'focus', '_onFocusUIElement', this);
@@ -371,7 +371,7 @@ class Dropdown extends FormElement {
      * Adds click events on all option elements of the UI-version of dropdown.
      */
     bindUIOptionEvents () {
-        var optionEls = this.getUIElement().getElementsByClassName(this.options.optionsClass),
+        let optionEls = this.getUIElement().getElementsByClassName(this.options.optionsClass),
             i, count = optionEls.length;
 
         for (i = 0; i < count; i++) {
@@ -386,7 +386,7 @@ class Dropdown extends FormElement {
      * Removes click events from all options elements of the UI-version of dropdown.
      */
     unbindUIOptionEvents () {
-        var optionEls = this.getUIElement().getElementsByClassName(this.options.optionsClass),
+        let optionEls = this.getUIElement().getElementsByClassName(this.options.optionsClass),
             i, count = optionEls.length;
         for (i = 0; i < count; i++) {
             let el = optionEls[i];
@@ -415,7 +415,7 @@ class Dropdown extends FormElement {
      * Shows the UI options container element.
      */
     showOptionsContainer () {
-        var uiEl = this.getUIElement(),
+        let uiEl = this.getUIElement(),
             options = this.options,
             selectedUIOption = this.getUIOptionByDataValue(this.getValue()) || uiEl.getElementsByClassName(options.optionsClass)[0];
         uiEl.classList.add(options.optionsContainerActiveClass);
@@ -447,7 +447,7 @@ class Dropdown extends FormElement {
      * this will force the styles to be updated when active class is removed.
      */
     redrawOptionsContainer () {
-        var optionsContainerEl = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+        let optionsContainerEl = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
             currentOverflowAttr = optionsContainerEl.style.overflow;
 
         // update overflow property to force the redraw.
@@ -475,7 +475,7 @@ class Dropdown extends FormElement {
      * @param {Event} e
      */
     onClickDocument (e) {
-        var closestUIContainer = this.getClosestAncestorElementByClassName(e.target, this.options.containerClass);
+        let closestUIContainer = this.getClosestAncestorElementByClassName(e.target, this.options.containerClass);
         if (!closestUIContainer || closestUIContainer !== this.getUIElement()) {
             // clicked outside of ui element!
             this.hideOptionsContainer();
@@ -489,7 +489,7 @@ class Dropdown extends FormElement {
      * @memberOf Dropdown
      */
     _onClickUIOption (e) {
-        var selectedOption = e.currentTarget,
+        let selectedOption = e.currentTarget,
             newDataValue = selectedOption.dataset.value;
 
         if (this.getValue() !== newDataValue) {
@@ -519,7 +519,7 @@ class Dropdown extends FormElement {
      * @memberOf Dropdown
      */
     _buildOptionsHtml () {
-        var options = this.options,
+        let options = this.options,
             uiOptionsContainer = document.createElement('div'),
             html = '<div class="' + options.optionsContainerClass + '">',
             optionEls = options.el.getElementsByTagName('option'),
@@ -550,7 +550,7 @@ class Dropdown extends FormElement {
      * @memberOf Dropdown
      */
     _onSelectChange (e) {
-        var value = this.getValue();
+        let value = this.getValue();
         this._setUISelectedValue(value);
         if (this.options.onChange) {
             this.options.onChange(value, this.getFormElement(), this.getUIElement(), e);
@@ -591,7 +591,7 @@ class Dropdown extends FormElement {
      * @memberOf Dropdown
      */
     getOptionByDisplayValue (displayValue) {
-        var optionEls = this.options.el.querySelectorAll('option'),
+        let optionEls = this.options.el.querySelectorAll('option'),
             i,
             count = optionEls.length,
             option;
@@ -611,7 +611,7 @@ class Dropdown extends FormElement {
      * @memberOf Dropdown
      */
     setValue (dataValue) {
-        var origOptionEl = this.getOptionByDataValue(this.getValue()),
+        let origOptionEl = this.getOptionByDataValue(this.getValue()),
             newOptionEl = this.getOptionByDataValue(dataValue),
             e = document.createEvent('HTMLEvents'),
             formEl = this.getFormElement();
@@ -644,7 +644,7 @@ class Dropdown extends FormElement {
      * @param {Boolean} [options.replace] - If true, the new options will replace all current options, if false, new options will be merged with current ones
      */
     updateOptions (optionsData, options) {
-        var uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+        let uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
             frag = document.createDocumentFragment(),
             optionEl;
 
@@ -669,7 +669,7 @@ class Dropdown extends FormElement {
      * Clears all options in the dropdown.
      */
     clearOptions () {
-        var uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
+        let uiOptionsContainer = this.getUIElement().getElementsByClassName(this.options.optionsContainerClass)[0],
             formEl = this.getFormElement();
         formEl.innerHTML = '';
         uiOptionsContainer.innerHTML = '';
@@ -682,7 +682,7 @@ class Dropdown extends FormElement {
      * @private
      */
     _updateFormOptionElements (optionsData, reset) {
-        var formEl = this.getFormElement(),
+        let formEl = this.getFormElement(),
             frag = document.createDocumentFragment(),
             optionEl;
         optionsData.forEach(function (obj) {
@@ -693,8 +693,6 @@ class Dropdown extends FormElement {
         });
         if (reset) {
             formEl.innerHTML = '';
-        } else {
-
         }
         formEl.appendChild(frag);
      }
@@ -719,7 +717,7 @@ class Dropdown extends FormElement {
      * Clears all options in the dropdown
      */
     clear () {
-        var optionEl = this.getOptionByDataValue('');
+        let optionEl = this.getOptionByDataValue('');
         if (optionEl) {
             this.setValue('');
         }
@@ -739,7 +737,7 @@ class Dropdown extends FormElement {
      * @memberOf Dropdown
      */
     destroy () {
-        var el = this.options.el;
+        let el = this.options.el;
         this.unbindUIOptionEvents();
         this._unbindUIElementEvents();
         this.removeEventListener(el, 'change', '_onSelectChange', this);

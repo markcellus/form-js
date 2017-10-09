@@ -69,7 +69,7 @@ class FormElementGroup extends FormElement {
      * @returns {Array} Returns the form elements after they've been setup
      */
     _setupFormElements (elements) {
-        var value = this.options.value,
+        let value = this.options.value,
             values = [];
 
         // convert to real array if HTMLCollection
@@ -128,7 +128,7 @@ class FormElementGroup extends FormElement {
      * @param {Function} callback - The function that should be executed for each input item
      */
     triggerAll (callback) {
-        var i,
+        let i,
             FormElementGroup = this.getFormElementGroup(),
             UIElements = this.getUIElements();
         for (i = 0; i < FormElementGroup.length; i++) {
@@ -156,6 +156,7 @@ class FormElementGroup extends FormElement {
      * @private
      * @abstract
      */
+    // eslint-disable-next-line no-unused-vars
     _onFormElementClick (formElement, UIElement) {}
 
     /**
@@ -164,8 +165,8 @@ class FormElementGroup extends FormElement {
      * @private
      */
     _onUIElementClickEventListener (e) {
-        var formElement;
-        var UIElement;
+        let formElement;
+        let UIElement;
         // respond to clicks made to the UI element ONLY
         if (e.target === e.currentTarget && e.target.classList.contains(this.options.containerClass)) {
             // we are preventing default here to ensure default
@@ -185,6 +186,7 @@ class FormElementGroup extends FormElement {
      * @private
      * @abstract
      */
+    // eslint-disable-next-line no-unused-vars
     _onUIElementClick (formElement, UIElement) {}
 
     /**
@@ -194,7 +196,7 @@ class FormElementGroup extends FormElement {
      * @private
      */
     _buildUIElements (elements) {
-        var count = elements.length,
+        let count = elements.length,
             arr = [],
             i,
             formElement,
@@ -222,7 +224,7 @@ class FormElementGroup extends FormElement {
      */
     _buildContainerEl (el) {
         let parent = el.parentNode;
-        var outerEl = document.createElement('div');
+        let outerEl = document.createElement('div');
         outerEl.classList.add(this.options.containerClass);
         parent.replaceChild(outerEl, el);
         outerEl.appendChild(el);
@@ -245,7 +247,7 @@ class FormElementGroup extends FormElement {
      * @param {Number} index - The index of the form element item
      */
     select (index) {
-        var input = this.getFormElement(index),
+        let input = this.getFormElement(index),
             uiEl = this.getUIElement(index);
         if (!input.checked) {
             input.checked = true;
@@ -259,7 +261,7 @@ class FormElementGroup extends FormElement {
      * @param {Number} index - The index of the form element item
      */
     deselect (index) {
-        var input = this.getFormElement(index),
+        let input = this.getFormElement(index),
             uiEl = this.getUIElement(index);
         uiEl.classList.remove(this.options.selectedClass);
         if (input.checked) {
@@ -273,7 +275,7 @@ class FormElementGroup extends FormElement {
      * @returns {Array} Returns the value of the currently selected form elements
      */
     getValue () {
-        var values = [];
+        let values = [];
         this.getFormElementGroup().forEach(function (el) {
             if (el.checked) {
                 values.push(el.value);

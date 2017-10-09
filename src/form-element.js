@@ -10,7 +10,7 @@ import Map from 'core-js/es6/map';
  * @param {Function} callback - A callback that fires which gets passed the current element
  */
 let traverseEachParent = function (startEl, callback) {
-    var parentNode = startEl.parentNode || startEl,
+    let parentNode = startEl.parentNode || startEl,
         predicate;
     // check if the node has classname property, if not, we know we're at the #document element
     while (parentNode && typeof parentNode.className === 'string') {
@@ -80,7 +80,7 @@ class FormElement {
      * @abstract
      */
     setValue (value) {
-        var el = this.getFormElements()[0];
+        let el = this.getFormElements()[0];
         if (el) {
             el.value = value;
         }

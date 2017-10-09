@@ -7,14 +7,14 @@ This library provides a simple API to manipulate a form or its related elements 
 Supports IE10+, all modern browsers, and mobile.
 
 It's important for you to use native form elements (i.e. `<select>`, `<input>`, etc) because they come with critical built-in
-logic needed for the interactions that users expect. Like tabbing to fields, pressing enter or spacebar to commit a 
+logic needed for the interactions that users expect. Like tabbing to fields, pressing enter or spacebar to commit a
 dropdown item, mobile keyboard input triggering, etc.
 
 ## Benefits
 
  * Automatic form data binding (JSON data and JS object literals)
  * Use CSS to easily customize hard-to-style native elements (i.e. dropdowns)
- * Listen to user events on forms 
+ * Listen to user events on forms
  * Easily change and update form elements and their values with JavaScript
  * Trigger events programmatically
 
@@ -47,8 +47,8 @@ Let's say you wanted to style a dropdown menu with the following html:
 With this library, you can do this:
 
 ```javascript
-var Dropdown = require('form-js').Dropdown;
-var dropdown = new Dropdown({
+let Dropdown = require('form-js').Dropdown;
+let dropdown = new Dropdown({
     el: document.getElementsByTagName('select')[0]
 });
 ```
@@ -104,8 +104,8 @@ You can also listen to events on form elements. Given the following input elemen
 You can do the following:
 
 ```javascript
-var InputField = require('form-js').InputField;
-var inputField = new InputField({
+let InputField = require('form-js').InputField;
+let inputField = new InputField({
     el: document.getElementsByTagName('input')[0],
     onChange: function (el) {
         // user has finished typing into the field!
@@ -139,8 +139,8 @@ Suppose you have this HTML:
 You can detect when a user changes any of the form's elements like so:
 
 ```javascript
-var Form = require('form-js').Form;
-var form = new Form({
+let Form = require('form-js').Form;
+let form = new Form({
     el: document.body.getElementsByClassName('debt-info-form')[0],
     onValueChange: function (val, el) {
         // a value has been changed!
@@ -151,7 +151,7 @@ form.setup();
 ```
 
 ## Examples
- 
+
 Examples can be found in the [examples](https://github.com/mkay581/formjs/blob/master/examples) page.
 
 ## API Documentation
@@ -166,7 +166,7 @@ To create an instance of a form, you need to pass the form element (and a set of
 
 ```javascript
 let formElement = document.getElementByTagName('form')[0];
-var form = new Form({
+let form = new Form({
    el: formElement
 });
 ```
@@ -189,7 +189,7 @@ A utility method to grab a serialized object of all of the form elements and the
 
 ```javascript
 let formElement = document.getElementById('my-form');
-var form = new Form({
+let form = new Form({
    el: formElement
 });
 form.setup();
@@ -221,7 +221,7 @@ Clears all fields inside of the form. It also unchecks any checkboxes and resets
 let formElement = document.getElementById('my-form');
 let locationInput = document.getElementById('location-input');
 let nameInput = document.getElementById('name-input');
-var form = new Form({
+let form = new Form({
    el: formElement
 });
 form.setup();

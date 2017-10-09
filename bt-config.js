@@ -1,13 +1,25 @@
-'use strict';
-module.exports = {
+let transform = [
+    [
+        "babelify",
+        {
+            "presets": [
+                "es2015"
+            ],
+            "plugins": [
+                "add-module-exports" // to ensure dist files are exported without the "default" property
+            ]
+        }
+    ]
+];
 
-    dist: 'dist',
+module.exports = {
     build: {
         files: {
             'dist/form.js': ['src/form.js']
         },
         browserifyOptions: {
-            standalone: 'Form'
+            standalone: 'Form',
+            transform,
         },
         minifyFiles: {
             'dist/form-min.js': ['dist/form.js']
@@ -16,7 +28,7 @@ module.exports = {
     },
     tests: {
         qunit: {
-            src: ['tests/*.js']
+            files: ['tests/*.js']
         }
     }
 };
